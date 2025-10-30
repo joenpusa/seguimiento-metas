@@ -1,0 +1,20 @@
+# Node (React)
+frontend/node_modules/
+frontend/dist/
+frontend/build/
+
+# .NET
+backend/bin/
+backend/obj/
+
+# Laravel
+backend/vendor/
+backend/storage/
+backend/.env
+
+# General
+*.log
+.env
+.DS_Store
+.idea/
+.vscode/
