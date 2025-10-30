@@ -3,12 +3,9 @@ frontend/node_modules/
 frontend/dist/
 frontend/build/
 
-# .NET
-backend/bin/
-backend/obj/
 
-# Laravel
-backend/vendor/
+# Node (backend)
+backend/node_modules/
 backend/storage/
 backend/.env
 
