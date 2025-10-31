@@ -5,29 +5,26 @@ import path from "path";
 import fs from "fs";
 import { fileURLToPath } from "url";
 
+// 📍 Necesario para obtener rutas absolutas correctamente en módulos ESM
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+// 📁 Ruta del archivo de base de datos
 const dbPath = path.join(__dirname, "../data/seguimiento.db");
 
-// 🔧 Crear carpeta automáticamente
+// 🧩 Crear carpeta automáticamente si no existe
 fs.mkdirSync(path.dirname(dbPath), { recursive: true });
 
-export const initDB = async () => {
-  const db = await open({
-    filename: dbPath,
-    driver: sqlite3.Database,
-  });
-
-  // Crear tabla de ejemplo
-  // await db.exec(`
-  //   CREATE TABLE IF NOT EXISTS users (
-  //     id INTEGER PRIMARY KEY AUTOINCREMENT,
-  //     email TEXT UNIQUE,
-  //     password TEXT,
-  //     role TEXT DEFAULT 'user'
-  //   );
-  // `);
-
-  return db;
-};
+// 🧠 Función para abrir la conexión a la base de datos
+export async function openDb() {
+  try {
+    const db = await open({
+      filename: dbPath,
+      driver: sqlite3.Database,
+    });
+    return db;
+  } catch (err) {
+    console.error("❌ Error al abrir la base de datos:", err);
+    throw err;
+  }
+}
