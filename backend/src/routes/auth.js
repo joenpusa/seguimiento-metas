@@ -23,7 +23,13 @@ router.post('/login', async (req, res) => {
   const payload = { id: user.id, email: user.email, nombre: user.nombre, rol: user.rol, requiereCambioClave: !!user.requiereCambioClave };
   const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: process.env.JWT_EXPIRES_IN || '8h' });
 
-  res.json({ token, user: safeUser(user) });
+  // res.json({ token, user: safeUser(user) });
+  res.json({
+  accessToken: token,
+  refreshToken: null, // o genera uno si lo implementas luego
+  user: safeUser(user),
+});
+
 });
 
 // POST /api/auth/change-password

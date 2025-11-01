@@ -47,7 +47,9 @@ const run = async () => {
   try {
     const db = await openDb();
 
-    // 🧱 Configuración y creación de tablas
+    // ===============================
+    // 🧱 Creación de tablas
+    // ===============================
     await db.exec(`
       PRAGMA foreign_keys = ON;
 
@@ -60,9 +62,20 @@ const run = async () => {
         requiereCambioClave INTEGER DEFAULT 0,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP
       );
+
+      CREATE TABLE IF NOT EXISTS municipios (
+        id_municipio INTEGER PRIMARY KEY AUTOINCREMENT,
+        id_departamento INTEGER DEFAULT 54,
+        codigo_municipio TEXT UNIQUE NOT NULL,
+        nombre TEXT NOT NULL,
+        id_zona TEXT CHECK(id_zona IN ('Centro', 'Norte', 'Sur', 'Oriente', 'Occidente')),
+        activo INTEGER DEFAULT 1
+      );
     `);
 
-    // 👤 Insertar o actualizar usuarios iniciales
+    // ===============================
+    // 👤 Usuarios iniciales
+    // ===============================
     for (const u of initialUsers) {
       const hashed = await bcrypt.hash(u.password, saltRounds);
       await db.run(
@@ -76,6 +89,22 @@ const run = async () => {
            requiereCambioClave = excluded.requiereCambioClave;`,
         [u.id, u.email, u.nombre, u.rol, hashed, u.requiereCambioClave]
       );
+    }
+
+    // ===============================
+    // 🏙️ Insertar municipio por defecto
+    // ===============================
+    const existe = await db.get(
+      `SELECT * FROM municipios WHERE LOWER(nombre) = LOWER('Todo el departamento')`
+    );
+
+    if (!existe) {
+      await db.run(
+        `INSERT INTO municipios (codigo_municipio, nombre, id_zona)
+         VALUES (?, ?, ?)`,
+        ["000", "Todo el departamento", "Centro"]
+      );
+      console.log("🌍 Insertado municipio por defecto: 'Todo el departamento'");
     }
 
     console.log("✅ Base de datos inicializada correctamente.");

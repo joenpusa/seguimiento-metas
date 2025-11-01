@@ -29,7 +29,7 @@ const Layout = () => {
     <div className="min-h-screen bg-slate-50 flex">
       <Sidebar open={sidebarOpen} setOpen={setSidebarOpen} isDesktop={isDesktop} />
       
-      <div className={`flex-1 flex flex-col overflow-hidden transition-all duration-300 ease-in-out ${isDesktop && sidebarOpen ? 'md:ml-64' : 'ml-0'}`}>
+      <div className={`flex-1 flex flex-col overflow-hidden transition-all duration-300 ease-in-out ${isDesktop && sidebarOpen ? 'md:ml-0' : 'ml-0'}`}>
         <Header toggleSidebar={toggleSidebar} isDesktopSidebarVisible={isDesktop && sidebarOpen} />
         
         <motion.main 
