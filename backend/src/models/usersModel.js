@@ -1,0 +1,191 @@
+// src/models/usersModel.js
+import { openDb } from "../db.js";
+
+export const UsersModel = {
+
+  // =============================================
+  // 📌 Obtener todos los usuarios
+  // =============================================
+  async getAll() {
+    const db = await openDb();
+
+    const rows = await db.all(`
+      SELECT
+        id_usuario,
+        email,
+        nombre,
+        rol,
+        es_activo,
+        id_secretaria,
+        requiereCambioClave,
+        created_at
+      FROM users
+      ORDER BY nombre ASC
+    `);
+
+    await db.close();
+    return rows;
+  },
+
+  // =============================================
+  // 📌 Obtener usuario por ID
+  // =============================================
+  async getById(id) {
+    const db = await openDb();
+
+    const row = await db.get(
+      `
+      SELECT
+        id_usuario,
+        email,
+        nombre,
+        rol,
+        es_activo,
+        id_secretaria,
+        requiereCambioClave,
+        created_at
+      FROM users
+      WHERE id_usuario = ?
+      `,
+      [id]
+    );
+
+    await db.close();
+    return row;
+  },
+
+  // =============================================
+  // 📌 Obtener usuario por email (LOGIN)
+  // =============================================
+  async getByEmail(email) {
+    const db = await openDb();
+
+    const row = await db.get(
+      `
+      SELECT
+        id_usuario,
+        email,
+        nombre,
+        rol,
+        es_activo,
+        id_secretaria,
+        password,
+        requiereCambioClave
+      FROM users
+      WHERE email = ?
+      `,
+      [email]
+    );
+
+    await db.close();
+    return row;
+  },
+
+  // =============================================
+  // 📌 Crear usuario
+  // =============================================
+  async create(data) {
+    const db = await openDb();
+    const {
+      email,
+      nombre,
+      rol,
+      id_secretaria,
+      passwordHash
+    } = data;
+
+    const result = await db.run(
+      `
+      INSERT INTO users (
+        email,
+        nombre,
+        rol,
+        id_secretaria,
+        password,
+        requiereCambioClave,
+        es_activo
+      ) VALUES (?, ?, ?, ?, ?, 1, 1)
+      `,
+      [email, nombre, rol, id_secretaria, passwordHash]
+    );
+
+    await db.close();
+    return { id: result.lastID };
+  },
+
+  // =============================================
+  // 📌 Actualizar usuario
+  // =============================================
+ async update(id, data) {
+    const db = await openDb();
+
+    const fields = [];
+    const values = [];
+
+    if (data.email !== undefined) {
+      fields.push("email = ?");
+      values.push(data.email);
+    }
+    if (data.nombre !== undefined) {
+      fields.push("nombre = ?");
+      values.push(data.nombre);
+    }
+    if (data.rol !== undefined) {
+      fields.push("rol = ?");
+      values.push(data.rol);
+    }
+    if (data.es_activo !== undefined) {
+      fields.push("es_activo = ?");
+      values.push(data.es_activo);
+    }
+    if (data.id_secretaria !== undefined) {
+      fields.push("id_secretaria = ?");
+      values.push(data.id_secretaria);
+    }
+
+    values.push(id);
+
+    await db.run(
+      `UPDATE users SET ${fields.join(", ")} WHERE id_usuario = ?`,
+      values
+    );
+
+    await db.close();
+    return true;
+  },
+
+
+  // =============================================
+  // 📌 Actualizar contraseña
+  // =============================================
+  async updatePassword(id, passwordHash) {
+    const db = await openDb();
+
+    await db.run(
+      `
+      UPDATE users
+      SET password = ?, requiereCambioClave = 0
+      WHERE id_usuario = ?
+      `,
+      [passwordHash, id]
+    );
+
+    await db.close();
+    return true;
+  },
+
+  // =============================================
+  // 📌 Soft delete
+  // =============================================
+  async deactivate(id) {
+    const db = await openDb();
+
+    await db.run(
+      `UPDATE users SET es_activo = 0 WHERE id_usuario = ?`,
+      [id]
+    );
+
+    await db.close();
+    return true;
+  }
+};

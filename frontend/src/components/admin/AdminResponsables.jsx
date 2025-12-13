@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { motion } from "framer-motion";
-import { usePlan } from "@/context/PlanContext";
+import { useSecretaria } from "@/context/SecretariaContext";
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -21,7 +22,8 @@ const AdminResponsables = () => {
     addResponsable,
     removeResponsable,
     updateResponsableContext,
-  } = usePlan();
+    loadingSecretarias,
+  } = useSecretaria();
 
   const { toast } = useToast();
 
@@ -29,9 +31,12 @@ const AdminResponsables = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [data, setData] = useState({ id: null, nombre: "", esActivo: 1 });
 
+  // ===============================
+  // DIALOG
+  // ===============================
   const openDialog = (r = null) => {
     if (r) {
-      setData(r);
+      setData({ ...r });
       setIsEditing(true);
     } else {
       setData({ id: null, nombre: "", esActivo: 1 });
@@ -40,6 +45,9 @@ const AdminResponsables = () => {
     setOpen(true);
   };
 
+  // ===============================
+  // SAVE
+  // ===============================
   const save = async () => {
     if (!data.nombre.trim()) {
       toast({
@@ -50,17 +58,28 @@ const AdminResponsables = () => {
       return;
     }
 
+    let ok = false;
+
     if (isEditing) {
-      await updateResponsableContext(data.id, data);
-      toast({ title: "Actualizada", description: "Secretaría actualizada" });
+      ok = await updateResponsableContext(data.id, data);
     } else {
-      await addResponsable(data.nombre);
-      toast({ title: "Creada", description: "Secretaría creada" });
+      ok = await addResponsable(data.nombre);
     }
 
-    setOpen(false);
+    if (ok) {
+      toast({
+        title: isEditing ? "Actualizada" : "Creada",
+        description: isEditing
+          ? "Secretaría actualizada"
+          : "Secretaría creada",
+      });
+      setOpen(false);
+    }
   };
 
+  // ===============================
+  // RENDER
+  // ===============================
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
       <Card>
@@ -72,49 +91,61 @@ const AdminResponsables = () => {
         </CardHeader>
 
         <CardContent className="space-y-2">
-          {listaResponsables.length === 0 && (
+          {loadingSecretarias && (
+            <p className="text-muted-foreground text-center">
+              Cargando secretarías...
+            </p>
+          )}
+
+          {!loadingSecretarias && listaResponsables.length === 0 && (
             <p className="text-muted-foreground text-center">
               No hay secretarías registradas
             </p>
           )}
 
-          {listaResponsables.map((r) => (
-            <div
-              key={r.id}
-              className="flex justify-between items-center p-3 bg-white border rounded-md"
-            >
-              <div>
-                <p className="font-medium">{r.nombre}</p>
-                <p
-                  className={`text-xs ${
-                    r.esActivo ? "text-green-600" : "text-red-500"
-                  }`}
-                >
-                  {r.esActivo ? "Activa" : "Inactiva"}
-                </p>
+          {!loadingSecretarias &&
+            listaResponsables.map((r) => (
+              <div
+                key={r.id}
+                className="flex justify-between items-center p-3 bg-white border rounded-md"
+              >
+                <div>
+                  <p className="font-medium">{r.nombre}</p>
+                  <p
+                    className={`text-xs ${
+                      r.esActivo ? "text-green-600" : "text-red-500"
+                    }`}
+                  >
+                    {r.esActivo ? "Activa" : "Inactiva"}
+                  </p>
+                </div>
+
+                <div className="flex gap-1">
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    onClick={() => openDialog(r)}
+                  >
+                    <Edit2 size={14} />
+                  </Button>
+
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    className="text-red-500"
+                    onClick={() => removeResponsable(r.id)}
+                  >
+                    <Trash2 size={14} />
+                  </Button>
+                </div>
               </div>
-              <div className="flex gap-1">
-                <Button
-                  size="icon"
-                  variant="ghost"
-                  onClick={() => openDialog(r)}
-                >
-                  <Edit2 size={14} />
-                </Button>
-                <Button
-                  size="icon"
-                  variant="ghost"
-                  className="text-red-500"
-                  onClick={() => removeResponsable(r.id)}
-                >
-                  <Trash2 size={14} />
-                </Button>
-              </div>
-            </div>
-          ))}
+            ))}
         </CardContent>
       </Card>
 
+      {/* ===============================
+          DIALOG
+         =============================== */}
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent>
           <DialogHeader>

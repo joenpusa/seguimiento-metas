@@ -6,21 +6,78 @@ import { useNavigate } from "react-router-dom";
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
-  const [currentUser, setCurrentUser] = useState(null);
-  const [loading, setLoading] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
 
-  // Cargar sesión guardada
+  // ===============================
+  // SESIÓN
+  // ===============================
+  const [currentUser, setCurrentUser] = useState(null);
+  const [loading, setLoading] = useState(false);
+
+  // ===============================
+  // USUARIOS (ADMIN)
+  // ===============================
+  const [users, setUsers] = useState([]);
+  const [usersLoading, setUsersLoading] = useState(false);
+
+  // ===============================
+  // NORMALIZADOR
+  // ===============================
+  const normalizeUser = (u) => ({
+    id: u.id_usuario,
+    email: u.email,
+    nombre: u.nombre,
+    rol: u.rol,
+    id_secretaria: u.id_secretaria,
+    requiereCambioClave: Number(u.requiereCambioClave),
+    es_activo: Number(u.es_activo ?? 1),
+  });
+
+  // ===============================
+  // CARGAR SESIÓN GUARDADA
+  // ===============================
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
     const storedToken = localStorage.getItem("accessToken");
+
     if (storedUser && storedToken) {
       setCurrentUser(JSON.parse(storedUser));
     }
   }, []);
 
-  // 🔹 LOGIN
+  // ===============================
+  // CARGAR USUARIOS (ADMIN)
+  // ===============================
+  useEffect(() => {
+    const loadUsers = async () => {
+      if (!currentUser || currentUser.rol !== "admin") {
+        setUsers([]);
+        return;
+      }
+
+      setUsersLoading(true);
+      try {
+        const res = await api.get("/users");
+        setUsers(res.data.map(normalizeUser));
+      } catch (err) {
+        toast({
+          title: "Usuarios",
+          description: "No se pudieron cargar los usuarios",
+          variant: "destructive",
+        });
+        setUsers([]);
+      } finally {
+        setUsersLoading(false);
+      }
+    };
+
+    loadUsers();
+  }, [currentUser]);
+
+  // ===============================
+  // LOGIN
+  // ===============================
   const login = async (email, password) => {
     setLoading(true);
     try {
@@ -33,25 +90,20 @@ export const AuthProvider = ({ children }) => {
 
       toast({
         title: "Inicio de sesión exitoso",
-        description: `Bienvenido, ${user.nombre}!`,
+        description: `Bienvenido, ${user.nombre}`,
       });
 
       if (user.requiereCambioClave && user.rol !== "admin") {
-        toast({
-          title: "Cambio de contraseña requerido",
-          description: "Por favor, actualiza tu contraseña inicial.",
-          duration: 7000,
-        });
         navigate("/change-password");
       } else {
         navigate("/");
       }
     } catch (err) {
       toast({
-        title: "Error de inicio de sesión",
+        title: "Error",
         description:
           err.response?.data?.message ||
-          "Credenciales incorrectas o error de conexión.",
+          "Credenciales incorrectas o error de conexión",
         variant: "destructive",
       });
     } finally {
@@ -59,47 +111,49 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  // 🔹 LOGOUT
+  // ===============================
+  // LOGOUT
+  // ===============================
   const logout = () => {
-    setLoading(true);
     setAuthTokens(null, null);
     localStorage.removeItem("user");
     setCurrentUser(null);
-
-    toast({
-      title: "Sesión cerrada",
-      description: "Has cerrado sesión correctamente.",
-    });
-
+    setUsers([]);
     navigate("/login");
-    setLoading(false);
   };
 
-  // 🔹 CAMBIO DE CONTRASEÑA
+  // ===============================
+  // CAMBIO DE CONTRASEÑA
+  // ===============================
   const changePassword = async (currentPassword, newPassword) => {
     if (!currentUser) return;
+
     setLoading(true);
     try {
       await api.post("/auth/change-password", {
-        userId: currentUser.id,
+        userId: currentUser.id_usuario,
         currentPassword,
         newPassword,
       });
 
-      toast({
-        title: "Contraseña cambiada",
-        description: "Tu contraseña ha sido actualizada exitosamente.",
-      });
+      const updatedUser = {
+        ...currentUser,
+        requiereCambioClave: false,
+      };
 
-      const updatedUser = { ...currentUser, requiereCambioClave: false };
       setCurrentUser(updatedUser);
       localStorage.setItem("user", JSON.stringify(updatedUser));
+
+      toast({
+        title: "Contraseña actualizada",
+      });
+
       navigate("/");
     } catch (err) {
       toast({
-        title: "Error al cambiar contraseña",
+        title: "Error",
         description:
-          err.response?.data?.message || "No se pudo cambiar la contraseña.",
+          err.response?.data?.message || "No se pudo cambiar la contraseña",
         variant: "destructive",
       });
     } finally {
@@ -107,49 +161,108 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  // 🔹 RESTABLECER CONTRASEÑA (solo admin)
-  const resetPassword = async (userId) => {
-    setLoading(true);
+  // ===============================
+  // CRUD USUARIOS
+  // ===============================
+  const createUserContext = async (data) => {
     try {
-      const res = await api.post("/auth/reset-password", { userId });
-      const { tempPassword } = res.data;
+      const res = await api.post("/users", {
+        email: data.email,
+        nombre: data.nombre,
+        rol: data.rol,
+        id_secretaria: data.id_secretaria,
+      });
+
+      setUsers((prev) => [...prev, normalizeUser(res.data)]);
 
       toast({
-        title: "Contraseña restablecida",
-        description: `Nueva contraseña temporal: ${tempPassword}`,
+        title: "Usuario creado",
+        description: data.email,
       });
+
       return true;
     } catch (err) {
       toast({
         title: "Error",
         description:
-          err.response?.data?.message ||
-          "No se pudo restablecer la contraseña.",
+          err.response?.data?.message || "No se pudo crear el usuario",
         variant: "destructive",
       });
       return false;
-    } finally {
-      setLoading(false);
     }
   };
 
-  const value = {
-    currentUser,
-    loading,
-    isAuthenticated: !!currentUser,
-    login,
-    logout,
-    changePassword,
-    resetPassword,
+  const updateUserContext = async (id, data) => {
+    try {
+      await api.put(`/users/${id}`, {
+        nombre: data.nombre,
+        rol: data.rol,
+        id_secretaria: data.id_secretaria,
+      });
+
+      setUsers((prev) =>
+        prev.map((u) => (u.id === id ? { ...u, ...data } : u))
+      );
+
+      toast({
+        title: "Usuario actualizado",
+      });
+
+      return true;
+    } catch {
+      toast({
+        title: "Error",
+        description: "No se pudo actualizar el usuario",
+        variant: "destructive",
+      });
+      return false;
+    }
   };
 
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+  const deleteUserContext = async (id) => {
+    try {
+      await api.delete(`/users/${id}`);
+      setUsers((prev) => prev.filter((u) => u.id !== id));
+      return true;
+    } catch {
+      toast({
+        title: "Error",
+        description: "No se pudo eliminar el usuario",
+        variant: "destructive",
+      });
+      return false;
+    }
+  };
+
+  // ===============================
+  // CONTEXT VALUE
+  // ===============================
+  return (
+    <AuthContext.Provider
+      value={{
+        currentUser,
+        loading,
+        isAuthenticated: !!currentUser,
+
+        login,
+        logout,
+        changePassword,
+
+        _users: users,
+        usersLoading,
+        createUserContext,
+        updateUserContext,
+        deleteUserContext,
+      }}
+    >
+      {children}
+    </AuthContext.Provider>
+  );
 };
 
 export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (context === undefined) {
-    throw new Error("useAuth debe ser usado dentro de un AuthProvider");
-  }
-  return context;
+  const ctx = useContext(AuthContext);
+  if (!ctx)
+    throw new Error("useAuth debe usarse dentro de AuthProvider");
+  return ctx;
 };

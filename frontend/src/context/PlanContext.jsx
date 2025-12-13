@@ -46,12 +46,6 @@ export const PlanProvider = ({ children }) => {
     estructuraPDI: JSON.parse(JSON.stringify(initialPlanEstructura)),
   });
 
-  const normalizeSecretaria = (s) => ({
-    id: s.id_secretaria,
-    nombre: s.nombre,
-    esActivo: Number(s.es_activo),
-  });
-
   const normalizeUnidad = (u) => ({
     id: u.id_unidad,
     nombre: u.nombre,
@@ -74,16 +68,6 @@ export const PlanProvider = ({ children }) => {
         const activo = planes.find((p) => p.esActivo === 1);
         setActivePlanId(activo?.id || planes[0]?.id);
 
-        // 🔹 SECRETARÍAS
-        try {
-          const resSecretarias = await api.get("/secretarias");
-          setListaResponsables(
-            resSecretarias.data.map(normalizeSecretaria)
-          );
-        } catch {
-          setListaResponsables(initialResponsables);
-        }
-
         // 🔹 UNIDADES
         const resUnidades = await api.get("/unidades");
         setListaUnidadesMedida(resUnidades.data.map(normalizeUnidad));
@@ -104,88 +88,6 @@ export const PlanProvider = ({ children }) => {
     () => planesDesarrollo.find((p) => p.id === activePlanId),
     [planesDesarrollo, activePlanId]
   );
-
-  // ===============================
-  // CRUD SECRETARÍAS (🔥 RESTAURADO)
-  // ===============================
-  const addResponsable = async (nombre) => {
-    try {
-      const res = await api.post("/secretarias", {
-        nombre,
-        es_activo: 1,
-      });
-
-      setListaResponsables((prev) => [
-        ...prev,
-        {
-          id: res.data.id,
-          nombre,
-          esActivo: 1,
-        },
-      ]);
-
-      toast({
-        title: "Secretaría creada",
-        description: "La secretaría fue registrada correctamente",
-      });
-
-      return true;
-    } catch {
-      toast({
-        title: "Error",
-        description: "No se pudo crear la secretaría",
-        variant: "destructive",
-      });
-      return false;
-    }
-  };
-
-  const updateResponsableContext = async (id, data) => {
-    try {
-      await api.put(`/secretarias/${id}`, {
-        nombre: data.nombre,
-        es_activo: data.esActivo,
-      });
-
-      setListaResponsables((prev) =>
-        prev.map((r) => (r.id === id ? { ...r, ...data } : r))
-      );
-
-      toast({
-        title: "Secretaría actualizada",
-        description: "Los datos fueron actualizados correctamente",
-      });
-
-      return true;
-    } catch {
-      toast({
-        title: "Error",
-        description: "No se pudo actualizar la secretaría",
-        variant: "destructive",
-      });
-      return false;
-    }
-  };
-
-  const removeResponsable = async (id) => {
-    try {
-      await api.delete(`/secretarias/${id}`);
-      setListaResponsables((prev) =>
-        prev.filter((r) => r.id !== id)
-      );
-
-      toast({
-        title: "Secretaría eliminada",
-        description: "La secretaría fue eliminada correctamente",
-      });
-    } catch {
-      toast({
-        title: "Error",
-        description: "No se pudo eliminar la secretaría",
-        variant: "destructive",
-      });
-    }
-  };
 
   // ===============================
   // CRUD UNIDADES
@@ -307,13 +209,7 @@ export const PlanProvider = ({ children }) => {
 
     // catálogos
     listaMunicipios,
-    listaResponsables,
     listaUnidadesMedida,
-
-    // responsables
-    addResponsable,
-    updateResponsableContext,
-    removeResponsable,
 
     // unidades
     addUnidadMedida,

@@ -57,6 +57,7 @@ const run = async () => {
         nombre VARCHAR(120),
         rol VARCHAR(50) NOT NULL,
         es_activo INTEGER DEFAULT 1,
+        id_secretaria INTEGER NOT NULL,
         password VARCHAR(255) NOT NULL,
         requiereCambioClave INTEGER DEFAULT 0,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP
