@@ -7,6 +7,7 @@ frontend/build/
 # Node (backend)
 backend/node_modules/
 backend/storage/
+backend/validaciones_api/
 backend/.env
 
 # General

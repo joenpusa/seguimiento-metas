@@ -13,7 +13,6 @@ import {
   planDesarrolloEstructura as initialPlanEstructura,
   municipiosDepartamentales as initialMunicipios,
   responsables as initialResponsables,
-  unidadesMedida as initialUnidadesMedida,
 } from "@/context/metasData.js";
 
 const PlanContext = createContext();
@@ -24,17 +23,18 @@ export const PlanProvider = ({ children }) => {
   const [planesDesarrollo, setPlanesDesarrollo] = useState([]);
   const [activePlanId, setActivePlanId] = useState(null);
 
-  // catálogos
-  const [listaMunicipios, setListaMunicipios] = useState(initialMunicipios);
+  // ===============================
+  // CATÁLOGOS
+  // ===============================
+  const [listaMunicipios] = useState(initialMunicipios);
   const [listaResponsables, setListaResponsables] =
     useState(initialResponsables);
-  const [listaUnidadesMedida, setListaUnidadesMedida] =
-    useState(initialUnidadesMedida);
+  const [listaUnidadesMedida, setListaUnidadesMedida] = useState([]);
 
   const [loading, setLoading] = useState(true);
 
   // ===============================
-  // Normalizadores
+  // NORMALIZADORES
   // ===============================
   const normalizePlan = (p) => ({
     id: p.id_plan,
@@ -52,8 +52,14 @@ export const PlanProvider = ({ children }) => {
     esActivo: Number(s.es_activo),
   });
 
+  const normalizeUnidad = (u) => ({
+    id: u.id_unidad,
+    nombre: u.nombre,
+    codigo: u.codigo,
+  });
+
   // ===============================
-  // Carga inicial
+  // CARGA INICIAL
   // ===============================
   useEffect(() => {
     const loadInitialData = async () => {
@@ -62,11 +68,11 @@ export const PlanProvider = ({ children }) => {
 
         // 🔹 PLANES
         const resPlanes = await api.get("/planes-desarrollo");
-        const normalizados = resPlanes.data.map(normalizePlan);
-        setPlanesDesarrollo(normalizados);
+        const planes = resPlanes.data.map(normalizePlan);
+        setPlanesDesarrollo(planes);
 
-        const activo = normalizados.find((p) => p.esActivo === 1);
-        setActivePlanId(activo?.id || normalizados[0]?.id);
+        const activo = planes.find((p) => p.esActivo === 1);
+        setActivePlanId(activo?.id || planes[0]?.id);
 
         // 🔹 SECRETARÍAS
         try {
@@ -75,23 +81,14 @@ export const PlanProvider = ({ children }) => {
             resSecretarias.data.map(normalizeSecretaria)
           );
         } catch {
-          console.warn("⚠ Secretarías API falló → mock");
           setListaResponsables(initialResponsables);
         }
-      } catch (err) {
-        console.warn("⚠ API caída → usando mock general");
 
-        setPlanesDesarrollo([
-          {
-            id: 1,
-            nombrePlan: "Plan Temporal",
-            vigenciaInicio: "2024-01-01",
-            vigenciaFin: "2027-12-31",
-            esActivo: 1,
-            estructuraPDI: JSON.parse(JSON.stringify(initialPlanEstructura)),
-          },
-        ]);
-        setActivePlanId(1);
+        // 🔹 UNIDADES
+        const resUnidades = await api.get("/unidades");
+        setListaUnidadesMedida(resUnidades.data.map(normalizeUnidad));
+      } catch (err) {
+        console.error("Error cargando datos iniciales:", err);
       } finally {
         setLoading(false);
       }
@@ -101,66 +98,15 @@ export const PlanProvider = ({ children }) => {
   }, []);
 
   // ===============================
-  // CRUD PLANES
+  // 🔥 FUNCIÓN CRÍTICA PARA METAS
   // ===============================
-  const addPlanDesarrollo = async (nuevoPlan) => {
-    try {
-      const res = await api.post("/planes-desarrollo", nuevoPlan);
-      setPlanesDesarrollo((prev) => [...prev, normalizePlan(res.data)]);
-    } catch {
-      setPlanesDesarrollo((prev) => [
-        ...prev,
-        {
-          id: Date.now(),
-          nombrePlan: nuevoPlan.nombrePlan,
-          vigenciaInicio: nuevoPlan.vigenciaInicio,
-          vigenciaFin: nuevoPlan.vigenciaFin,
-          esActivo: 0,
-          estructuraPDI: JSON.parse(JSON.stringify(initialPlanEstructura)),
-        },
-      ]);
-    }
-  };
-
-  const updatePlanDesarrolloInfo = async (id, datos) => {
-    try {
-      const res = await api.put(`/planes-desarrollo/${id}`, datos);
-      setPlanesDesarrollo((prev) =>
-        prev.map((p) => (p.id === id ? normalizePlan(res.data) : p))
-      );
-    } catch {
-      setPlanesDesarrollo((prev) =>
-        prev.map((p) =>
-          p.id === id ? { ...p, nombrePlan: datos.nombrePlan } : p
-        )
-      );
-    }
-  };
-
-  const deletePlanDesarrollo = async (id) => {
-    try {
-      await api.delete(`/planes-desarrollo/${id}`);
-    } catch {}
-    setPlanesDesarrollo((prev) => prev.filter((p) => p.id !== id));
-  };
-
-  const setActivePlanContext = async (id) => {
-    try {
-      await api.put(`/planes-desarrollo/${id}/activar`);
-    } catch {}
-    setActivePlanId(id);
-    setPlanesDesarrollo((prev) =>
-      prev.map((p) => ({ ...p, esActivo: p.id === id ? 1 : 0 }))
-    );
-  };
-
   const getActivePlan = useCallback(
     () => planesDesarrollo.find((p) => p.id === activePlanId),
     [planesDesarrollo, activePlanId]
   );
 
   // ===============================
-  // CRUD SECRETARÍAS
+  // CRUD SECRETARÍAS (🔥 RESTAURADO)
   // ===============================
   const addResponsable = async (nombre) => {
     try {
@@ -171,15 +117,26 @@ export const PlanProvider = ({ children }) => {
 
       setListaResponsables((prev) => [
         ...prev,
-        { id: res.data.id, nombre, esActivo: 1 },
+        {
+          id: res.data.id,
+          nombre,
+          esActivo: 1,
+        },
       ]);
+
+      toast({
+        title: "Secretaría creada",
+        description: "La secretaría fue registrada correctamente",
+      });
+
       return true;
     } catch {
-      setListaResponsables((prev) => [
-        ...prev,
-        { id: Date.now(), nombre, esActivo: 1 },
-      ]);
-      return true;
+      toast({
+        title: "Error",
+        description: "No se pudo crear la secretaría",
+        variant: "destructive",
+      });
+      return false;
     }
   };
 
@@ -189,42 +146,178 @@ export const PlanProvider = ({ children }) => {
         nombre: data.nombre,
         es_activo: data.esActivo,
       });
-    } catch {}
 
-    setListaResponsables((prev) =>
-      prev.map((r) => (r.id === id ? { ...r, ...data } : r))
-    );
-    return true;
+      setListaResponsables((prev) =>
+        prev.map((r) => (r.id === id ? { ...r, ...data } : r))
+      );
+
+      toast({
+        title: "Secretaría actualizada",
+        description: "Los datos fueron actualizados correctamente",
+      });
+
+      return true;
+    } catch {
+      toast({
+        title: "Error",
+        description: "No se pudo actualizar la secretaría",
+        variant: "destructive",
+      });
+      return false;
+    }
   };
 
   const removeResponsable = async (id) => {
     try {
       await api.delete(`/secretarias/${id}`);
-    } catch {}
-    setListaResponsables((prev) => prev.filter((r) => r.id !== id));
+      setListaResponsables((prev) =>
+        prev.filter((r) => r.id !== id)
+      );
+
+      toast({
+        title: "Secretaría eliminada",
+        description: "La secretaría fue eliminada correctamente",
+      });
+    } catch {
+      toast({
+        title: "Error",
+        description: "No se pudo eliminar la secretaría",
+        variant: "destructive",
+      });
+    }
   };
 
   // ===============================
-  // CONTEXT VALUE
+  // CRUD UNIDADES
+  // ===============================
+  const addUnidadMedida = async (nombre) => {
+    try {
+      const codigo = nombre
+        .trim()
+        .toUpperCase()
+        .replace(/\s+/g, "_");
+
+      const res = await api.post("/unidades", { nombre, codigo });
+
+      setListaUnidadesMedida((prev) => [
+        ...prev,
+        { id: res.data.id, nombre, codigo },
+      ]);
+
+      return true;
+    } catch {
+      return false;
+    }
+  };
+
+  const removeUnidadMedida = async (id) => {
+    try {
+      await api.delete(`/unidades/${id}`);
+    } finally {
+      setListaUnidadesMedida((prev) =>
+        prev.filter((u) => u.id !== id)
+      );
+    }
+  };
+
+  // ===============================
+  // CRUD PLANES DE DESARROLLO
+  // ===============================
+
+  const addPlanDesarrollo = async (nuevoPlan) => {
+    try {
+      const res = await api.post("/planes-desarrollo", nuevoPlan);
+      const normalizado = normalizePlan(res.data);
+
+      setPlanesDesarrollo((prev) => [...prev, normalizado]);
+    } catch (err) {
+      console.warn("⚠ Error API al crear plan → usando mock");
+
+      const mock = {
+        id: Date.now(),
+        nombre_plan: nuevoPlan.nombrePlan,
+        vigencia_inicio: nuevoPlan.vigenciaInicio,
+        vigencia_fin: nuevoPlan.vigenciaFin,
+        es_activo: 0,
+        estructuraPDI: JSON.parse(JSON.stringify(initialPlanEstructura)),
+      };
+
+      setPlanesDesarrollo((prev) => [...prev, mock]);
+    }
+  };
+
+  const updatePlanDesarrolloInfo = async (id, datos) => {
+    try {
+      const res = await api.put(`/planes-desarrollo/${id}`, datos);
+      const actualizado = normalizePlan(res.data);
+
+      setPlanesDesarrollo((prev) =>
+        prev.map((p) => (p.id === id ? actualizado : p))
+      );
+    } catch {
+      console.warn("⚠ Error API al actualizar → actualización local");
+
+      setPlanesDesarrollo((prev) =>
+        prev.map((p) =>
+          p.id === id ? { ...p, nombre_plan: datos.nombrePlan } : p
+        )
+      );
+    }
+  };
+
+  const deletePlanDesarrollo = async (id) => {
+    try {
+      await api.delete(`/planes-desarrollo/${id}`);
+      setPlanesDesarrollo((prev) => prev.filter((p) => p.id !== id));
+    } catch {
+      console.warn("⚠ Error API al eliminar → borrando local");
+
+      setPlanesDesarrollo((prev) => prev.filter((p) => p.id !== id));
+    }
+  };
+
+  const setActivePlanContext = async (id) => {
+    try {
+      await api.put(`/planes-desarrollo/${id}/activar`);
+    } catch {
+      console.warn("⚠ Error API al activar → solo local");
+    }
+
+    setActivePlanId(id);
+
+    setPlanesDesarrollo((prev) =>
+      prev.map((p) => ({ ...p, es_activo: p.id === id ? 1 : 0 }))
+    );
+  };
+
+  // ===============================
+  // CONTEXT VALUE (🔥 COMPLETO)
   // ===============================
   const contextValue = {
     planesDesarrollo,
     activePlanId,
     loading,
 
+    // 🔥 planes
     addPlanDesarrollo,
     updatePlanDesarrolloInfo,
+    getActivePlan,
     deletePlanDesarrollo,
     setActivePlanContext,
-    getActivePlan,
 
+    // catálogos
     listaMunicipios,
     listaResponsables,
     listaUnidadesMedida,
 
+    // responsables
     addResponsable,
     updateResponsableContext,
     removeResponsable,
+
+    // unidades
+    addUnidadMedida,
+    removeUnidadMedida,
   };
 
   return (
