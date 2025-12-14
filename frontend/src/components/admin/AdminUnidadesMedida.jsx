@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { usePlan } from '@/context/PlanContext';
+import { useUnidad } from "@/context/UnidadContext";
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -17,7 +17,7 @@ import {
 import { useToast } from '@/components/ui/use-toast';
 
 const AdminUnidadesMedida = () => {
-  const { listaUnidadesMedida, addUnidadMedida, removeUnidadMedida } = usePlan();
+const { unidades, addUnidad, removeUnidad } = useUnidad();
   const { toast } = useToast();
 
   const [openUnidadDialog, setOpenUnidadDialog] = useState(false);
@@ -33,7 +33,8 @@ const AdminUnidadesMedida = () => {
       return;
     }
 
-    const ok = await addUnidadMedida(unidadName);
+    const ok = await addUnidad(unidadName);
+
     if (ok) {
       setUnidadName('');
       setOpenUnidadDialog(false);
@@ -41,7 +42,7 @@ const AdminUnidadesMedida = () => {
   };
 
   const handleDeleteUnidad = (id) => {
-    removeUnidadMedida(id);
+    removeUnidad(id); 
   };
 
   return (
@@ -63,9 +64,9 @@ const AdminUnidadesMedida = () => {
         </CardHeader>
 
         <CardContent className="max-h-[60vh] overflow-y-auto p-4 bg-gray-50 rounded-b-md">
-          {listaUnidadesMedida.length > 0 ? (
+          {unidades.length > 0 ? (
             <ul className="space-y-2">
-              {listaUnidadesMedida.map((unidad) => (
+              {unidades.map((unidad) => (
                 <li
                   key={unidad.id}
                   className="flex items-center justify-between p-2 border rounded-md bg-white shadow-sm text-sm"
@@ -75,7 +76,7 @@ const AdminUnidadesMedida = () => {
                     variant="ghost"
                     size="icon"
                     className="h-7 w-7 text-red-500 hover:text-red-600"
-                    onClick={() => handleDeleteUnidad(unidad.id)}
+                    onClick={() => removeUnidad(unidad.id)}
                   >
                     <Trash2 size={14} />
                   </Button>
@@ -87,6 +88,7 @@ const AdminUnidadesMedida = () => {
               No hay unidades de medida definidas.
             </p>
           )}
+
         </CardContent>
       </Card>
 

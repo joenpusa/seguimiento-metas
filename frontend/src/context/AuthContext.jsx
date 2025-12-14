@@ -1,4 +1,9 @@
-import React, { createContext, useState, useContext, useEffect } from "react";
+import React, {
+  createContext,
+  useState,
+  useContext,
+  useEffect,
+} from "react";
 import api, { setAuthTokens } from "@/api/axiosConfig";
 import { useToast } from "@/components/ui/use-toast";
 import { useNavigate } from "react-router-dom";
@@ -49,30 +54,30 @@ export const AuthProvider = ({ children }) => {
   // ===============================
   // CARGAR USUARIOS (ADMIN)
   // ===============================
+  const fetchUsers = async () => {
+    if (!currentUser || currentUser.rol !== "admin") {
+      setUsers([]);
+      return;
+    }
+
+    setUsersLoading(true);
+    try {
+      const res = await api.get("/users");
+      setUsers(res.data.map(normalizeUser));
+    } catch (err) {
+      toast({
+        title: "Usuarios",
+        description: "No se pudieron cargar los usuarios",
+        variant: "destructive",
+      });
+      setUsers([]);
+    } finally {
+      setUsersLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const loadUsers = async () => {
-      if (!currentUser || currentUser.rol !== "admin") {
-        setUsers([]);
-        return;
-      }
-
-      setUsersLoading(true);
-      try {
-        const res = await api.get("/users");
-        setUsers(res.data.map(normalizeUser));
-      } catch (err) {
-        toast({
-          title: "Usuarios",
-          description: "No se pudieron cargar los usuarios",
-          variant: "destructive",
-        });
-        setUsers([]);
-      } finally {
-        setUsersLoading(false);
-      }
-    };
-
-    loadUsers();
+    fetchUsers();
   }, [currentUser]);
 
   // ===============================
@@ -153,7 +158,8 @@ export const AuthProvider = ({ children }) => {
       toast({
         title: "Error",
         description:
-          err.response?.data?.message || "No se pudo cambiar la contraseña",
+          err.response?.data?.message ||
+          "No se pudo cambiar la contraseña",
         variant: "destructive",
       });
     } finally {
@@ -166,14 +172,14 @@ export const AuthProvider = ({ children }) => {
   // ===============================
   const createUserContext = async (data) => {
     try {
-      const res = await api.post("/users", {
+      await api.post("/users", {
         email: data.email,
         nombre: data.nombre,
         rol: data.rol,
         id_secretaria: data.id_secretaria,
       });
 
-      setUsers((prev) => [...prev, normalizeUser(res.data)]);
+      await fetchUsers();
 
       toast({
         title: "Usuario creado",
@@ -198,11 +204,10 @@ export const AuthProvider = ({ children }) => {
         nombre: data.nombre,
         rol: data.rol,
         id_secretaria: data.id_secretaria,
+        es_activo: data.es_activo,
       });
 
-      setUsers((prev) =>
-        prev.map((u) => (u.id === id ? { ...u, ...data } : u))
-      );
+      await fetchUsers();
 
       toast({
         title: "Usuario actualizado",
@@ -222,17 +227,27 @@ export const AuthProvider = ({ children }) => {
   const deleteUserContext = async (id) => {
     try {
       await api.delete(`/users/${id}`);
-      setUsers((prev) => prev.filter((u) => u.id !== id));
-      return true;
-    } catch {
+      await fetchUsers();
+
       toast({
-        title: "Error",
-        description: "No se pudo eliminar el usuario",
+        title: "Usuario eliminado",
+      });
+
+      return true;
+    } catch (err) {
+      toast({
+        title: "Error al eliminar",
+        description:
+          err.response?.data?.message ||
+          "No se pudo eliminar el usuario",
         variant: "destructive",
       });
+
+      console.error("Error delete user:", err);
       return false;
     }
   };
+
 
   // ===============================
   // CONTEXT VALUE
@@ -244,10 +259,12 @@ export const AuthProvider = ({ children }) => {
         loading,
         isAuthenticated: !!currentUser,
 
+        // auth
         login,
         logout,
         changePassword,
 
+        // usuarios
         _users: users,
         usersLoading,
         createUserContext,

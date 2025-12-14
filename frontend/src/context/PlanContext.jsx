@@ -11,7 +11,6 @@ import api from "@/api/axiosConfig";
 
 import {
   planDesarrolloEstructura as initialPlanEstructura,
-  municipiosDepartamentales as initialMunicipios,
   responsables as initialResponsables,
 } from "@/context/metasData.js";
 
@@ -22,14 +21,6 @@ export const PlanProvider = ({ children }) => {
 
   const [planesDesarrollo, setPlanesDesarrollo] = useState([]);
   const [activePlanId, setActivePlanId] = useState(null);
-
-  // ===============================
-  // CATÁLOGOS
-  // ===============================
-  const [listaMunicipios] = useState(initialMunicipios);
-  const [listaResponsables, setListaResponsables] =
-    useState(initialResponsables);
-  const [listaUnidadesMedida, setListaUnidadesMedida] = useState([]);
 
   const [loading, setLoading] = useState(true);
 
@@ -44,12 +35,6 @@ export const PlanProvider = ({ children }) => {
     esActivo: Number(p.es_activo),
     createdAt: p.created_at,
     estructuraPDI: JSON.parse(JSON.stringify(initialPlanEstructura)),
-  });
-
-  const normalizeUnidad = (u) => ({
-    id: u.id_unidad,
-    nombre: u.nombre,
-    codigo: u.codigo,
   });
 
   // ===============================
@@ -68,9 +53,6 @@ export const PlanProvider = ({ children }) => {
         const activo = planes.find((p) => p.esActivo === 1);
         setActivePlanId(activo?.id || planes[0]?.id);
 
-        // 🔹 UNIDADES
-        const resUnidades = await api.get("/unidades");
-        setListaUnidadesMedida(resUnidades.data.map(normalizeUnidad));
       } catch (err) {
         console.error("Error cargando datos iniciales:", err);
       } finally {
@@ -88,39 +70,6 @@ export const PlanProvider = ({ children }) => {
     () => planesDesarrollo.find((p) => p.id === activePlanId),
     [planesDesarrollo, activePlanId]
   );
-
-  // ===============================
-  // CRUD UNIDADES
-  // ===============================
-  const addUnidadMedida = async (nombre) => {
-    try {
-      const codigo = nombre
-        .trim()
-        .toUpperCase()
-        .replace(/\s+/g, "_");
-
-      const res = await api.post("/unidades", { nombre, codigo });
-
-      setListaUnidadesMedida((prev) => [
-        ...prev,
-        { id: res.data.id, nombre, codigo },
-      ]);
-
-      return true;
-    } catch {
-      return false;
-    }
-  };
-
-  const removeUnidadMedida = async (id) => {
-    try {
-      await api.delete(`/unidades/${id}`);
-    } finally {
-      setListaUnidadesMedida((prev) =>
-        prev.filter((u) => u.id !== id)
-      );
-    }
-  };
 
   // ===============================
   // CRUD PLANES DE DESARROLLO
@@ -207,13 +156,6 @@ export const PlanProvider = ({ children }) => {
     deletePlanDesarrollo,
     setActivePlanContext,
 
-    // catálogos
-    listaMunicipios,
-    listaUnidadesMedida,
-
-    // unidades
-    addUnidadMedida,
-    removeUnidadMedida,
   };
 
   return (

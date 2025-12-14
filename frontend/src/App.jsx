@@ -14,6 +14,9 @@ import { AuthProvider, useAuth } from "@/context/AuthContext";
 import { PlanProvider } from "@/context/PlanContext";
 import { MetasProvider } from "@/context/MetasContext";
 import { SecretariaProvider } from "@/context/SecretariaContext";
+import { MunicipioProvider } from "@/context/MunicipioContext";
+import { UnidadProvider } from "@/context/UnidadContext";
+
 
 /* ===============================
    RUTA PROTEGIDA
@@ -51,41 +54,45 @@ function App() {
   return (
     <AuthProvider>
       {/* Catálogos y administración */}
-      <SecretariaProvider>
-        <PlanProvider>
-          <MetasProvider>
-            <Routes>
-              {/* 🔓 Público */}
-              <Route path="/login" element={<LoginPage />} />
+      <UnidadProvider>
+        <SecretariaProvider>
+          <MunicipioProvider>
+            <PlanProvider>
+              <MetasProvider>
+                <Routes>
+                  {/* 🔓 Público */}
+                  <Route path="/login" element={<LoginPage />} />
 
-              {/* 🔐 Protegido */}
-              <Route
-                path="/"
-                element={
-                  <ProtectedRoute>
-                    <Layout />
-                  </ProtectedRoute>
-                }
-              >
-                <Route index element={<Dashboard />} />
-                <Route path="metas" element={<MetasPage />} />
-                <Route path="avances" element={<AvancesPage />} />
-                <Route path="informes" element={<InformesPage />} />
-                <Route path="admin-plan" element={<AdminPlanPage />} />
+                  {/* 🔐 Protegido */}
+                  <Route
+                    path="/"
+                    element={
+                      <ProtectedRoute>
+                        <Layout />
+                      </ProtectedRoute>
+                    }
+                  >
+                    <Route index element={<Dashboard />} />
+                    <Route path="metas" element={<MetasPage />} />
+                    <Route path="avances" element={<AvancesPage />} />
+                    <Route path="informes" element={<InformesPage />} />
+                    <Route path="admin-plan" element={<AdminPlanPage />} />
 
-                <Route
-                  path="change-password"
-                  element={
-                    <ProtectedRoute>
-                      <ChangePasswordPage />
-                    </ProtectedRoute>
-                  }
-                />
-              </Route>
-            </Routes>
-          </MetasProvider>
-        </PlanProvider>
-      </SecretariaProvider>
+                    <Route
+                      path="change-password"
+                      element={
+                        <ProtectedRoute>
+                          <ChangePasswordPage />
+                        </ProtectedRoute>
+                      }
+                    />
+                  </Route>
+                </Routes>
+              </MetasProvider>
+            </PlanProvider>
+          </MunicipioProvider>
+        </SecretariaProvider>
+      </UnidadProvider>
     </AuthProvider>
   );
 }

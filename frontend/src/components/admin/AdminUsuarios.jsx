@@ -107,6 +107,11 @@ const AdminUsuarios = () => {
     setOpenDialog(false);
   };
 
+  const handleDelete = async (id) => {
+    if (!confirm("¿Está seguro de eliminar este usuario?")) return;
+    await deleteUserContext(id);
+  };
+
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
       <Card>
@@ -147,6 +152,13 @@ const AdminUsuarios = () => {
                     <p className="text-xs text-muted-foreground">
                       {u.email}
                     </p>
+                    <p
+                      className={`text-xs font-medium ${
+                        u.es_activo ? "text-green-600" : "text-red-500"
+                      }`}
+                    >
+                      {u.es_activo ? "Activo" : "Inactivo"}
+                    </p>
                   </div>
                   <div className="flex gap-1">
                     <Button
@@ -158,11 +170,27 @@ const AdminUsuarios = () => {
                     </Button>
                     <Button
                       size="sm"
-                      variant="destructive"
-                      onClick={() => deleteUserContext(u.id)}
+                      variant={u.es_activo ? "destructive" : "outline"}
+                      onClick={() =>
+                        updateUserContext(u.id, {
+                          ...u,
+                          es_activo: u.es_activo ? 0 : 1,
+                        })
+                      }
                     >
-                      <Trash2 size={12} />
+                      {u.es_activo ? (
+                        <>
+                          <Trash2 size={12} className="mr-1" />
+                          Desactivar
+                        </>
+                      ) : (
+                        <>
+                          <ShieldCheck size={12} className="mr-1" />
+                          Activar
+                        </>
+                      )}
                     </Button>
+
                   </div>
                 </li>
               ))}
