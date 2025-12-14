@@ -1,68 +1,88 @@
-import React, { useState, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import { useEffect, useState } from "react";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogFooter,
-  DialogDescription
-} from '@/components/ui/dialog';
-import { Save } from 'lucide-react';
-import { useToast } from '@/components/ui/use-toast';
+  DialogDescription,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
-const ItemDialog = ({ open, onOpenChange, onSave, itemType, initialName = '', isEditing }) => {
-  const [name, setName] = useState(initialName);
-  const { toast } = useToast();
+const ItemDialog = ({
+  open,
+  onOpenChange,
+  onSave,
+  isEditing,
+  initialData,
+  parentLabel,
+  suggestedCode,
+}) => {
+  console.log("🟢 ItemDialog render → open:", open);
+
+  const [nombre, setNombre] = useState("");
+  const [codigo, setCodigo] = useState("");
 
   useEffect(() => {
-    setName(initialName);
-  }, [initialName, open]);
+    if (isEditing && initialData) {
+      setNombre(initialData.nombre);
+      setCodigo(initialData.codigo);
+    } else {
+      setNombre("");
+      setCodigo(suggestedCode || "");
+    }
+  }, [isEditing, initialData, suggestedCode]);
 
   const handleSubmit = () => {
-    if (!name.trim()) {
-      toast({ title: "Error", description: "El nombre no puede estar vacío.", variant: "destructive" });
-      return;
-    }
-    onSave(name);
-  };
-  
-  const getItemTypeDisplayName = () => {
-    if (!itemType) return 'Elemento';
-    switch(itemType) {
-        case 'lineaEstrategica': return 'Línea Estratégica';
-        case 'componente': return 'Componente';
-        case 'apuesta': return 'Apuesta';
-        case 'iniciativa': return 'Iniciativa';
-        default: return itemType.charAt(0).toUpperCase() + itemType.slice(1);
-    }
+    if (!nombre.trim()) return;
+    if (!codigo.trim()) return;
+
+    onSave({ nombre, codigo });
   };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-[450px]">
         <DialogHeader>
-          <DialogTitle>{isEditing ? 'Editar' : 'Añadir'} {getItemTypeDisplayName()}</DialogTitle>
+          <DialogTitle>
+            {isEditing ? "Editar elemento" : "Nuevo elemento"}
+          </DialogTitle>
           <DialogDescription>
-            Ingrese el nombre para {isEditing ? 'actualizar el' : 'el nuevo'} {getItemTypeDisplayName().toLowerCase()}.
+            {parentLabel
+              ? `Pertenece a: ${parentLabel}`
+              : "Elemento de nivel raíz"}
           </DialogDescription>
         </DialogHeader>
-        <div className="grid gap-4 py-4">
-          <div className="grid gap-2">
-            <Label htmlFor="itemName">Nombre</Label>
-            <Input 
-              id="itemName" 
-              value={name} 
-              onChange={(e) => setName(e.target.value)} 
-              placeholder={`Nombre de ${getItemTypeDisplayName().toLowerCase()}`} 
+
+        <div className="space-y-4 py-2">
+          <div className="space-y-2">
+            <Label>Código</Label>
+            <Input
+              value={codigo}
+              onChange={(e) => setCodigo(e.target.value)}
+              placeholder="Ej: 1.2.3"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label>Nombre</Label>
+            <Input
+              value={nombre}
+              onChange={(e) => setNombre(e.target.value)}
+              placeholder="Nombre del elemento"
             />
           </div>
         </div>
+
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
-          <Button onClick={handleSubmit}><Save size={16} className="mr-2"/> {isEditing ? 'Guardar Cambios' : 'Añadir'}</Button>
+          <Button variant="outline" onClick={() => onOpenChange(false)}>
+            Cancelar
+          </Button>
+          <Button onClick={handleSubmit}>
+            {isEditing ? "Guardar cambios" : "Crear"}
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

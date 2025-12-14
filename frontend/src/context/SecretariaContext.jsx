@@ -9,10 +9,6 @@ import React, {
 import { useToast } from "@/components/ui/use-toast";
 import api from "@/api/axiosConfig";
 
-import {
-  responsables as initialResponsables,
-} from "@/context/metasData.js";
-
 const SecretariaContext = createContext();
 
 // ===============================
@@ -21,8 +17,7 @@ const SecretariaContext = createContext();
 export const SecretariaProvider = ({ children }) => {
   const { toast } = useToast();
 
-  const [listaResponsables, setListaResponsables] =
-    useState(initialResponsables);
+  const [listaResponsables, setListaResponsables] = useState([]);
 
   const [loadingSecretarias, setLoadingSecretarias] = useState(false);
 
@@ -46,8 +41,15 @@ export const SecretariaProvider = ({ children }) => {
         const res = await api.get("/secretarias");
         setListaResponsables(res.data.map(normalizeSecretaria));
       } catch (err) {
-        console.warn("⚠ Error cargando secretarías → usando mock");
-        setListaResponsables(initialResponsables);
+        console.error("❌ Error cargando secretarías", err);
+
+        setListaResponsables([]);
+
+        toast({
+          title: "Error",
+          description: "No se pudieron cargar las secretarías",
+          variant: "destructive",
+        });
       } finally {
         setLoadingSecretarias(false);
       }

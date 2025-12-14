@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { usePlan } from '@/context/PlanContext';
 import { useAuth } from '@/context/AuthContext';
+import { DetallePlanProvider } from "@/context/DetallePlanContext";
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -150,7 +151,6 @@ const AdminPlanPage = () => {
       </div>
       
       <motion.div 
-        key={currentTab} 
         initial={{ opacity: 0, y: 10 }} 
         animate={{ opacity: 1, y: 0 }} 
         transition={{ duration: 0.2 }}
@@ -164,43 +164,61 @@ const AdminPlanPage = () => {
             activePlanId={activePlanId}
           />
         )}
-        {currentTab === 'estructura' && activePlan && currentUser?.rol === 'admin' && <AdminEstructuraPlan key={activePlan.id} plan={activePlan} />}
+
+        {currentTab === 'estructura' && activePlan && currentUser?.rol === 'admin' && (
+          <DetallePlanProvider planId={activePlanId}>
+            <AdminEstructuraPlan key={activePlan.id} plan={activePlan} />
+          </DetallePlanProvider>
+        )}
+
         {currentTab === 'municipios' && currentUser?.rol === 'admin' && <AdminMunicipios />}
         {currentTab === 'responsables' && currentUser?.rol === 'admin' && <AdminResponsables />}
         {currentTab === 'usuarios' && currentUser?.rol === 'admin' && <AdminUsuarios />}
         {currentTab === 'unidades' && <AdminUnidadesMedida />}
       </motion.div>
 
-      <Dialog open={openPlanDialog} onOpenChange={setOpenPlanDialog}>
-        <DialogContent className="sm:max-w-[425px]">
-          <DialogHeader>
-            <DialogTitle>{editingPlan ? 'Editar' : 'Nuevo'} Plan de Desarrollo</DialogTitle>
-            <DialogDescription>
-              Complete la información del plan de desarrollo.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="grid gap-4 py-4">
-            <div className="grid gap-2">
-              <Label htmlFor="nombrePlan">Nombre del Plan</Label>
-              <Input id="nombrePlan" value={planFormData.nombrePlan} onChange={(e) => setPlanFormData({...planFormData, nombrePlan: e.target.value})} placeholder="Ej: Plan de Desarrollo 2024-2027" />
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="grid gap-2">
-                <Label htmlFor="vigenciaInicio">Vigencia Inicio</Label>
-                <Input id="vigenciaInicio" type="date" value={planFormData.vigenciaInicio} onChange={(e) => setPlanFormData({...planFormData, vigenciaInicio: e.target.value})} />
+
+      {currentTab === "planes" && (
+        <Dialog open={openPlanDialog} onOpenChange={setOpenPlanDialog}>
+          <DialogContent className="sm:max-w-[425px]">
+            <DialogHeader>
+              <DialogTitle>
+                {editingPlan ? "Editar" : "Nuevo"} Plan de Desarrollo
+              </DialogTitle>
+              <DialogDescription>
+                Complete la información del plan de desarrollo.
+              </DialogDescription>
+            </DialogHeader>
+              <div className="grid gap-4 py-4">
+                <div className="grid gap-2">
+                  <Label htmlFor="nombrePlan">Nombre del Plan</Label>
+                  <Input id="nombrePlan" value={planFormData.nombrePlan} onChange={(e) => setPlanFormData({...planFormData, nombrePlan: e.target.value})} placeholder="Ej: Plan de Desarrollo 2024-2027" />
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="grid gap-2">
+                    <Label htmlFor="vigenciaInicio">Vigencia Inicio</Label>
+                    <Input id="vigenciaInicio" type="date" value={planFormData.vigenciaInicio} onChange={(e) => setPlanFormData({...planFormData, vigenciaInicio: e.target.value})} />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="vigenciaFin">Vigencia Fin</Label>
+                    <Input id="vigenciaFin" type="date" value={planFormData.vigenciaFin} onChange={(e) => setPlanFormData({...planFormData, vigenciaFin: e.target.value})} />
+                  </div>
+                </div>
               </div>
-              <div className="grid gap-2">
-                <Label htmlFor="vigenciaFin">Vigencia Fin</Label>
-                <Input id="vigenciaFin" type="date" value={planFormData.vigenciaFin} onChange={(e) => setPlanFormData({...planFormData, vigenciaFin: e.target.value})} />
-              </div>
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setOpenPlanDialog(false)}>Cancelar</Button>
-            <Button onClick={handleSavePlan}><Save size={16} className="mr-2"/> {editingPlan ? 'Guardar Cambios' : 'Crear Plan'}</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+            <DialogFooter>
+              <Button
+                variant="outline"
+                onClick={() => setOpenPlanDialog(false)}
+              >
+                Cancelar
+              </Button>
+              <Button onClick={handleSavePlan}>
+                Guardar
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      )}
     </div>
   );
 };
