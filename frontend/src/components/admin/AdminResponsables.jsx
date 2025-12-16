@@ -18,12 +18,13 @@ import { useToast } from "@/components/ui/use-toast";
 
 const AdminResponsables = () => {
   const {
-    listaResponsables,
-    addResponsable,
-    removeResponsable,
-    updateResponsableContext,
+    secretarias,
+    addSecretaria,
+    removeSecretaria,
+    updateSecretaria,
     loadingSecretarias,
   } = useSecretaria();
+
 
   const { toast } = useToast();
 
@@ -61,9 +62,9 @@ const AdminResponsables = () => {
     let ok = false;
 
     if (isEditing) {
-      ok = await updateResponsableContext(data.id, data);
+      ok = await updateSecretaria(data.id, data);
     } else {
-      ok = await addResponsable(data.nombre);
+      ok = await addSecretaria(data.nombre);
     }
 
     if (ok) {
@@ -97,14 +98,14 @@ const AdminResponsables = () => {
             </p>
           )}
 
-          {!loadingSecretarias && listaResponsables.length === 0 && (
+          {!loadingSecretarias && secretarias.length === 0 && (
             <p className="text-muted-foreground text-center">
               No hay secretarías registradas
             </p>
           )}
 
           {!loadingSecretarias &&
-            listaResponsables.map((r) => (
+            secretarias.map((r) => (
               <div
                 key={r.id}
                 className="flex justify-between items-center p-3 bg-white border rounded-md"
@@ -133,7 +134,7 @@ const AdminResponsables = () => {
                     size="icon"
                     variant="ghost"
                     className="text-red-500"
-                    onClick={() => removeResponsable(r.id)}
+                    onClick={() => removeSecretaria(r.id)}
                   >
                     <Trash2 size={14} />
                   </Button>

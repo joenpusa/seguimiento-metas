@@ -17,8 +17,7 @@ const SecretariaContext = createContext();
 export const SecretariaProvider = ({ children }) => {
   const { toast } = useToast();
 
-  const [listaResponsables, setListaResponsables] = useState([]);
-
+  const [secretarias, setSecretarias] = useState([]);
   const [loadingSecretarias, setLoadingSecretarias] = useState(false);
 
   // ===============================
@@ -39,11 +38,11 @@ export const SecretariaProvider = ({ children }) => {
         setLoadingSecretarias(true);
 
         const res = await api.get("/secretarias");
-        setListaResponsables(res.data.map(normalizeSecretaria));
+        setSecretarias(res.data.map(normalizeSecretaria));
       } catch (err) {
         console.error("❌ Error cargando secretarías", err);
 
-        setListaResponsables([]);
+        setSecretarias([]);
 
         toast({
           title: "Error",
@@ -56,19 +55,19 @@ export const SecretariaProvider = ({ children }) => {
     };
 
     loadSecretarias();
-  }, [normalizeSecretaria]);
+  }, [normalizeSecretaria, toast]);
 
   // ===============================
-  // CRUD SECRETARÍAS
+  // CRUD
   // ===============================
-  const addResponsable = async (nombre) => {
+  const addSecretaria = async (nombre) => {
     try {
       const res = await api.post("/secretarias", {
         nombre,
         es_activo: 1,
       });
 
-      setListaResponsables((prev) => [
+      setSecretarias((prev) => [
         ...prev,
         {
           id: res.data.id,
@@ -93,15 +92,15 @@ export const SecretariaProvider = ({ children }) => {
     }
   };
 
-  const updateResponsableContext = async (id, data) => {
+  const updateSecretaria = async (id, data) => {
     try {
       await api.put(`/secretarias/${id}`, {
         nombre: data.nombre,
         es_activo: data.esActivo,
       });
 
-      setListaResponsables((prev) =>
-        prev.map((r) => (r.id === id ? { ...r, ...data } : r))
+      setSecretarias((prev) =>
+        prev.map((s) => (s.id === id ? { ...s, ...data } : s))
       );
 
       toast({
@@ -120,12 +119,12 @@ export const SecretariaProvider = ({ children }) => {
     }
   };
 
-  const removeResponsable = async (id) => {
+  const removeSecretaria = async (id) => {
     try {
       await api.delete(`/secretarias/${id}`);
 
-      setListaResponsables((prev) =>
-        prev.filter((r) => r.id !== id)
+      setSecretarias((prev) =>
+        prev.filter((s) => s.id !== id)
       );
 
       toast({
@@ -148,13 +147,12 @@ export const SecretariaProvider = ({ children }) => {
   // CONTEXT VALUE
   // ===============================
   const contextValue = {
-    listaResponsables,
+    secretarias,
     loadingSecretarias,
 
-    // CRUD
-    addResponsable,
-    updateResponsableContext,
-    removeResponsable,
+    addSecretaria,
+    updateSecretaria,
+    removeSecretaria,
   };
 
   return (

@@ -1,7 +1,11 @@
 import { Button } from "@/components/ui/button";
 import { Plus, Pencil, Trash } from "lucide-react";
+import MetasTable from "./MetasTable";
+
+
 
 const EstructuraItem = ({ node, level = 0, onAdd, onEdit, onDelete }) => {
+  const isIniciativa = level === 3;
   return (
     <div className="ml-4">
       <div className="flex items-center gap-2 py-1">
@@ -13,9 +17,9 @@ const EstructuraItem = ({ node, level = 0, onAdd, onEdit, onDelete }) => {
 
         <div className="ml-auto flex gap-1">
           <Button
-            size="icon"
+            size="sm"
             variant="ghost"
-            onClick={() => onAdd(node)}
+            onClick={() => onAdd(node, isIniciativa)}
           >
             <Plus className="h-4 w-4" />
           </Button>
@@ -51,6 +55,10 @@ const EstructuraItem = ({ node, level = 0, onAdd, onEdit, onDelete }) => {
             />
           ))}
         </div>
+      )}
+
+      {level === 3 && (
+        <MetasTable idDetalle={node.id} />
       )}
     </div>
   );

@@ -47,7 +47,7 @@ const AdminUsuarios = () => {
     deleteUserContext,
   } = useAuth();
 
-  const { listaResponsables } = useSecretaria();
+  const { secretarias } = useSecretaria();
 
   const [openDialog, setOpenDialog] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
@@ -267,7 +267,7 @@ const AdminUsuarios = () => {
                 <SelectValue placeholder="Seleccione una secretaría" />
               </SelectTrigger>
               <SelectContent>
-                {listaResponsables.map((s) => (
+                {secretarias.map((s) => (
                   <SelectItem key={s.id} value={String(s.id)}>
                     {s.nombre}
                   </SelectItem>

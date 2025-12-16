@@ -126,12 +126,37 @@ const run = async () => {
       -- ============================================
       CREATE TABLE IF NOT EXISTS metas (
         id_meta INTEGER PRIMARY KEY AUTOINCREMENT,
-        nombre VARCHAR(200) NOT NULL,
+        codigo VARCHAR(200) NOT NULL,
+        nombre VARCHAR(120) NOT NULL,
         descripcion VARCHAR(500) NOT NULL,
         id_detalle INTEGER NOT NULL,
         cantidad INTEGER DEFAULT 0,
         id_unidad INTEGER NOT NULL,
+        valor DOUBLE DEFAULT 0,
+        valor2 DOUBLE DEFAULT 0,
+        valor3 DOUBLE DEFAULT 0,
+        valor4 DOUBLE DEFAULT 0,
+        recurrente INTEGER DEFAULT 0,
         id_secretaria INTEGER NOT NULL,
+        fecha_limite VARCHAR(10) NOT NULL,
+
+        cantidad_0_5 INTEGER DEFAULT 0,
+        cantidad_6_12 INTEGER DEFAULT 0,
+        cantidad_13_17 INTEGER DEFAULT 0,
+        cantidad_18_24 INTEGER DEFAULT 0,
+        cantidad_25_62 INTEGER DEFAULT 0,
+        cantidad_65_mas INTEGER DEFAULT 0,
+
+        cantesp_mujer INTEGER DEFAULT 0,
+        cantesp_discapacidad INTEGER DEFAULT 0,
+        cantesp_etnia INTEGER DEFAULT 0,
+        cantesp_victima INTEGER DEFAULT 0,
+        cantesp_desmovilizado INTEGER DEFAULT 0,
+        cantesp_lgtbi INTEGER DEFAULT 0,
+        cantesp_migrante INTEGER DEFAULT 0,
+        cantesp_indigente INTEGER DEFAULT 0,
+        cantesp_privado INTEGER DEFAULT 0,
+
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY(id_detalle) REFERENCES detalles_plan(id_detalle),
         FOREIGN KEY(id_unidad) REFERENCES unidades(id_unidad),
@@ -144,11 +169,9 @@ const run = async () => {
       CREATE TABLE IF NOT EXISTS metasxmunicipio (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         id_meta INTEGER NOT NULL,
-        id_secretaria INTEGER NOT NULL,
         id_municipio INTEGER NULL,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY(id_meta) REFERENCES metas(id_meta),
-        FOREIGN KEY(id_secretaria) REFERENCES secretarias(id_secretaria),
         FOREIGN KEY(id_municipio) REFERENCES municipios(id_municipio)
       );
 

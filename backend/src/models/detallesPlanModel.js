@@ -54,7 +54,7 @@ export const DetallesPlanModel = {
   },
 
   // =============================================
-  // 📌 Crear detalle
+  // 📌 Crear detalle (VALIDA CÓDIGO ÚNICO POR PLAN)
   // =============================================
   async create(data) {
     const db = await openDb();
@@ -65,6 +65,23 @@ export const DetallesPlanModel = {
       id_detalle_padre,
       codigo
     } = data;
+
+    // 🔍 Validar código duplicado en el plan
+    const existe = await db.get(
+      `
+      SELECT 1
+      FROM detalles_plan
+      WHERE id_plan = ?
+        AND codigo = ?
+      LIMIT 1
+      `,
+      [id_plan, codigo]
+    );
+
+    if (existe) {
+      await db.close();
+      throw new Error("Ya existe un elemento con ese código en este plan");
+    }
 
     const result = await db.run(
       `
@@ -84,11 +101,11 @@ export const DetallesPlanModel = {
     );
 
     await db.close();
-    return { id: result.lastID };
+    return { id_detalle: result.lastID };
   },
 
   // =============================================
-  // 📌 Actualizar detalle
+  // 📌 Actualizar detalle (VALIDA CÓDIGO ÚNICO)
   // =============================================
   async update(id, data) {
     const db = await openDb();
@@ -96,14 +113,32 @@ export const DetallesPlanModel = {
     const fields = [];
     const values = [];
 
+    // 🔍 Si se intenta cambiar el código, validar duplicado
+    if (data.codigo !== undefined) {
+      const existe = await db.get(
+        `
+        SELECT 1
+        FROM detalles_plan
+        WHERE id_plan = ?
+          AND codigo = ?
+          AND id_detalle != ?
+        LIMIT 1
+        `,
+        [data.id_plan, data.codigo, id]
+      );
+
+      if (existe) {
+        await db.close();
+        throw new Error("Ya existe otro elemento con ese código en este plan");
+      }
+
+      fields.push("codigo = ?");
+      values.push(data.codigo);
+    }
+
     if (data.nombre_detalle !== undefined) {
       fields.push("nombre_detalle = ?");
       values.push(data.nombre_detalle);
-    }
-
-    if (data.codigo !== undefined) {
-      fields.push("codigo = ?");
-      values.push(data.codigo);
     }
 
     if (fields.length === 0) {

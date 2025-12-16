@@ -8,6 +8,8 @@ import planesRoutes from "./src/routes/planesDesarrollo.js";
 import secretariasRoutes from "./src/routes/secretarias.js";
 import unidadesRouter from "./src/routes/unidades.js";
 import detallesPlanRoutes from "./src/routes/detallesPlan.js";
+import metasRoutes from "./src/routes/metas.js";
+
 
 dotenv.config();
 const app = express();
@@ -22,6 +24,7 @@ app.use("/api/planes-desarrollo", planesRoutes);
 app.use("/api/secretarias", secretariasRoutes);
 app.use("/api/unidades", unidadesRouter);
 app.use("/api/detalles-plan", detallesPlanRoutes);
+app.use("/api/metas", metasRoutes);
 
 const port = process.env.PORT || 4000;
 app.listen(port, () => console.log(`API escuchando en http://localhost:${port}`));

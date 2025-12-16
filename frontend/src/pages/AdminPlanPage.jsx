@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { usePlan } from '@/context/PlanContext';
 import { useAuth } from '@/context/AuthContext';
 import { DetallePlanProvider } from "@/context/DetallePlanContext";
+import { MetaProvider } from "@/context/MetaContext";
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -167,7 +168,9 @@ const AdminPlanPage = () => {
 
         {currentTab === 'estructura' && activePlan && currentUser?.rol === 'admin' && (
           <DetallePlanProvider planId={activePlanId}>
-            <AdminEstructuraPlan key={activePlan.id} plan={activePlan} />
+            <MetaProvider>
+              <AdminEstructuraPlan key={activePlan.id} plan={activePlan} />
+            </MetaProvider>
           </DetallePlanProvider>
         )}
 

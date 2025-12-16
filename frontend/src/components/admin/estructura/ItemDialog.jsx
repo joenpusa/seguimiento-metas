@@ -20,8 +20,6 @@ const ItemDialog = ({
   parentLabel,
   suggestedCode,
 }) => {
-  console.log("🟢 ItemDialog render → open:", open);
-
   const [nombre, setNombre] = useState("");
   const [codigo, setCodigo] = useState("");
 
