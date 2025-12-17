@@ -34,12 +34,19 @@ router.post(
         id_plan,
         nombre_detalle,
         id_detalle_padre,
-        codigo
+        codigo, 
+        tipo
       } = req.body;
 
-      if (!id_plan || !nombre_detalle || !codigo) {
+      if (!id_plan || !nombre_detalle || !codigo || !tipo) {
         return res.status(400).json({
           message: "id_plan, nombre_detalle y codigo son obligatorios"
+        });
+      }
+
+      if (tipo !== "linea" && !id_detalle_padre) {
+        return res.status(400).json({
+          message: "Este tipo de elemento requiere un padre"
         });
       }
 
@@ -47,7 +54,8 @@ router.post(
         id_plan,
         nombre_detalle,
         id_detalle_padre,
-        codigo
+        codigo,
+        tipo
       });
 
       res.status(201).json({

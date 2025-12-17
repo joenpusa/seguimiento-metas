@@ -4,11 +4,11 @@ import React, {
   useEffect,
   useState,
   useCallback,
+  useMemo,
 } from "react";
 import api from "@/api/axiosConfig";
 import { useToast } from "@/components/ui/use-toast";
 import { buildTree } from "@/utils/buildTree";
-import { useMemo } from "react";
 
 const DetallePlanContext = createContext();
 
@@ -17,10 +17,9 @@ export const DetallePlanProvider = ({ planId, children }) => {
 
   const [detalles, setDetalles] = useState([]);
   const [loadingDetalles, setLoadingDetalles] = useState(false);
-  const tree = useMemo(() => buildTree(detalles), [detalles]);
 
   // ===============================
-  // NORMALIZADOR
+  // NORMALIZADOR (FIJO)
   // ===============================
   const normalizeDetalle = useCallback((d) => ({
     id: d.id_detalle,
@@ -28,10 +27,13 @@ export const DetallePlanProvider = ({ planId, children }) => {
     nombre: d.nombre_detalle,
     codigo: d.codigo,
     idPadre: d.id_detalle_padre,
+    tipo: d.tipo, // 🔑 CRÍTICO
   }), []);
 
+  const tree = useMemo(() => buildTree(detalles), [detalles]);
+
   // ===============================
-  // CARGAR DETALLES POR PLAN
+  // CARGAR DETALLES
   // ===============================
   const loadDetallesByPlan = useCallback(async () => {
     if (!planId) return;
@@ -41,7 +43,7 @@ export const DetallePlanProvider = ({ planId, children }) => {
       const res = await api.get(`/detalles-plan/${planId}`);
       setDetalles(res.data.map(normalizeDetalle));
     } catch (err) {
-      console.error("Error cargando detalles del plan", err);
+      console.error(err);
       setDetalles([]);
     } finally {
       setLoadingDetalles(false);
@@ -55,35 +57,39 @@ export const DetallePlanProvider = ({ planId, children }) => {
   // ===============================
   // CRUD
   // ===============================
-  const addDetalle = async (data) => {
+  const addDetalle = async ({ nombre, codigo, tipo, idPadre }) => {
     try {
       const res = await api.post("/detalles-plan", {
         id_plan: planId,
-        nombre_detalle: data.nombre,
-        codigo: data.codigo,
-        id_detalle_padre: data.idPadre ?? null,
+        nombre_detalle: nombre,
+        codigo,
+        tipo,
+        id_detalle_padre: idPadre ?? null,
       });
 
-      const nuevoDetalle = {
+      const nuevo = {
         id: res.data.id_detalle,
         idPlan: planId,
-        nombre: data.nombre,
-        codigo: data.codigo,
-        idPadre: data.idPadre ?? null,
+        nombre,
+        codigo,
+        tipo,
+        idPadre: idPadre ?? null,
       };
 
-      setDetalles((prev) => [...prev, nuevoDetalle]);
+      setDetalles((prev) => [...prev, nuevo]);
 
       toast({
         title: "Detalle creado",
-        description: "El detalle fue registrado correctamente",
+        description: "El elemento fue creado correctamente",
       });
 
       return true;
     } catch (err) {
       toast({
         title: "Error",
-        description: "No se pudo crear el detalle",
+        description:
+          err.response?.data?.message ||
+          "No se pudo crear el elemento",
         variant: "destructive",
       });
       return false;
@@ -105,46 +111,28 @@ export const DetallePlanProvider = ({ planId, children }) => {
 
       toast({
         title: "Detalle actualizado",
-        description: "Cambios guardados correctamente",
+        description: "Cambios guardados",
       });
 
       return true;
     } catch {
       toast({
         title: "Error",
-        description: "No se pudo actualizar el detalle",
+        description: "No se pudo actualizar",
         variant: "destructive",
       });
       return false;
     }
   };
-  const getSiguienteCodigo = (idPadre = null) => {
-    const hijos = detalles.filter(d => d.idPadre === idPadre);
-
-    if (hijos.length === 0) {
-      return idPadre ? `${idPadre}.1` : '1';
-    }
-
-    const codigos = hijos
-      .map(h => h.codigo)
-      .map(c => c.split('.').pop())
-      .map(n => parseInt(n, 10))
-      .filter(Boolean);
-
-    const siguiente = Math.max(...codigos) + 1;
-
-    return idPadre ? `${idPadre}.${siguiente}` : `${siguiente}`;
-  };
 
   const deleteDetalle = async (id) => {
     try {
       await api.delete(`/detalles-plan/${id}`);
-
       setDetalles((prev) => prev.filter((d) => d.id !== id));
 
       toast({
         title: "Detalle eliminado",
-        description: "El detalle fue eliminado correctamente",
+        description: "Elemento eliminado",
       });
 
       return true;
@@ -153,7 +141,7 @@ export const DetallePlanProvider = ({ planId, children }) => {
         title: "Error",
         description:
           err.response?.data?.message ||
-          "No se pudo eliminar el detalle",
+          "No se pudo eliminar",
         variant: "destructive",
       });
       return false;
@@ -162,16 +150,15 @@ export const DetallePlanProvider = ({ planId, children }) => {
 
   return (
     <DetallePlanContext.Provider
-        value={{
-            detalles,
-            tree,
-            loadingDetalles,
-            addDetalle,
-            updateDetalle,
-            deleteDetalle,
-            reloadDetalles: loadDetallesByPlan,
-            getSiguienteCodigo 
-        }}
+      value={{
+        detalles,
+        tree,
+        loadingDetalles,
+        addDetalle,
+        updateDetalle,
+        deleteDetalle,
+        reloadDetalles: loadDetallesByPlan,
+      }}
     >
       {children}
     </DetallePlanContext.Provider>
@@ -180,9 +167,10 @@ export const DetallePlanProvider = ({ planId, children }) => {
 
 export const useDetallePlan = () => {
   const ctx = useContext(DetallePlanContext);
-  if (!ctx)
+  if (!ctx) {
     throw new Error(
       "useDetallePlan debe usarse dentro de DetallePlanProvider"
     );
+  }
   return ctx;
 };

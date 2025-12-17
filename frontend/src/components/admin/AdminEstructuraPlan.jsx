@@ -9,6 +9,12 @@ import MetaDialog from "./estructura/MetaDialog";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 
+const NEXT_TIPO = {
+  linea: "componente",
+  componente: "apuesta",
+  apuesta: "iniciativa",
+};
+
 const AdminEstructuraPlan = () => {
   const {
     tree,
@@ -16,94 +22,45 @@ const AdminEstructuraPlan = () => {
     addDetalle,
     updateDetalle,
     deleteDetalle,
-    getSiguienteCodigo,
   } = useDetallePlan();
 
   const { createMeta, fetchMetasByDetalle } = useMeta();
 
-  // ===============================
-  // Estados estructura
-  // ===============================
   const [openDialog, setOpenDialog] = useState(false);
   const [editingNode, setEditingNode] = useState(null);
   const [parentNode, setParentNode] = useState(null);
-  const [suggestedCode, setSuggestedCode] = useState("");
+  const [currentTipo, setCurrentTipo] = useState(null);
+  const [collapsed, setCollapsed] = useState(new Set());
 
-  // ===============================
-  // Estados metas
-  // ===============================
   const [openMetaDialog, setOpenMetaDialog] = useState(false);
   const [currentIniciativa, setCurrentIniciativa] = useState(null);
 
-  // ===============================
-  // Agregar nodo o meta
-  // ===============================
-  const handleAdd = (parent, isIniciativa = false) => {
-    // ➕ Agregar META a una iniciativa
-    if (isIniciativa) {
-      if (!parent?.id) {
-        console.error("❌ Iniciativa inválida", parent);
-        return;
-      }
-
+  const handleAdd = (parent) => {
+    if (parent?.tipo === "iniciativa") {
       setCurrentIniciativa(parent);
       setOpenMetaDialog(true);
       return;
     }
 
-    // ➕ Agregar detalle normal
-    setEditingNode(null);
-    setParentNode(parent);
-    setSuggestedCode(getSiguienteCodigo(parent?.id ?? null));
-    setOpenDialog(true);
-  };
+    const tipo = parent ? NEXT_TIPO[parent.tipo] : "linea";
 
-  // ===============================
-  // Guardar meta
-  // ===============================
-  const handleSaveMeta = async (data) => {
-    if (!currentIniciativa?.id) {
-      console.error("❌ No hay iniciativa seleccionada");
+    if (!tipo) {
+      console.error("❌ Tipo inválido para agregar hijo", parent);
       return;
     }
-    console.log("el detalle es: " + currentIniciativa.id);
-    await createMeta({
-      ...data,
-      id_detalle: currentIniciativa.id, // 🔥 GARANTIZADO
-    });
 
-    await fetchMetasByDetalle(currentIniciativa.id);
-
-    setOpenMetaDialog(false);
-    setCurrentIniciativa(null);
-  };
-
-  // ===============================
-  // Editar detalle
-  // ===============================
-  const handleEdit = (node) => {
-    setEditingNode(node);
-    setParentNode(null);
-    setSuggestedCode(node.codigo);
+    setEditingNode(null);
+    setParentNode(parent ?? null);
+    setCurrentTipo(tipo);
     setOpenDialog(true);
   };
 
-  // ===============================
-  // Eliminar detalle
-  // ===============================
-  const handleDelete = async (node) => {
-    const ok = confirm(
-      "¿Está seguro de eliminar este elemento? Se eliminarán todos sus hijos."
-    );
-    if (!ok) return;
+  const handleSave = async ({ nombre, codigo, tipo }) => {
+    if (!tipo) {
+      console.error("Intento de guardar sin tipo");
+      return;
+    }
 
-    await deleteDetalle(node.id);
-  };
-
-  // ===============================
-  // Guardar detalle
-  // ===============================
-  const handleSave = async ({ nombre, codigo }) => {
     if (editingNode) {
       await updateDetalle(editingNode.id, { nombre, codigo });
     } else {
@@ -111,25 +68,42 @@ const AdminEstructuraPlan = () => {
         nombre,
         codigo,
         idPadre: parentNode?.id ?? null,
+        tipo,
       });
     }
 
     setOpenDialog(false);
     setEditingNode(null);
     setParentNode(null);
-    setSuggestedCode("");
+    setCurrentTipo(null);
   };
 
-  // ===============================
-  // Render
-  // ===============================
+  const handleEdit = (node) => {
+    setEditingNode(node);
+    setParentNode(null);
+    setCurrentTipo(node.tipo);
+    setOpenDialog(true);
+  };
+
+  const handleDelete = async (node) => {
+    if (!confirm("¿Eliminar este elemento?")) return;
+    await deleteDetalle(node.id);
+  };
+
+  const toggleCollapse = (id) => {
+    setCollapsed(prev => {
+      const next = new Set(prev);
+      next.has(id) ? next.delete(id) : next.add(id);
+      return next;
+    });
+  };
+
   if (loadingDetalles) {
     return <p className="text-muted-foreground">Cargando estructura...</p>;
   }
 
   return (
-    <div className="space-y-4 p-2 rounded-lg border bg-card text-card-foreground shadow-sm">
-      {/* HEADER */}
+    <div className="space-y-4 p-2 rounded-lg border bg-card shadow-sm">
       <div className="flex justify-end">
         <Button onClick={() => handleAdd(null)} className="gap-2">
           <Plus size={16} />
@@ -137,17 +111,18 @@ const AdminEstructuraPlan = () => {
         </Button>
       </div>
 
-      {/* CONTENIDO */}
       {tree.length === 0 ? (
         <p className="text-muted-foreground italic">
           Este plan aún no tiene estructura definida
         </p>
       ) : (
         <div className="space-y-2">
-          {tree.map((node) => (
+          {tree.map(node => (
             <EstructuraItem
               key={node.id}
               node={node}
+              collapsed={collapsed}
+              onToggle={toggleCollapse}
               onAdd={handleAdd}
               onEdit={handleEdit}
               onDelete={handleDelete}
@@ -156,22 +131,28 @@ const AdminEstructuraPlan = () => {
         </div>
       )}
 
-      {/* MODAL DETALLE */}
       <ItemDialog
         open={openDialog}
         onOpenChange={setOpenDialog}
         onSave={handleSave}
         isEditing={!!editingNode}
         initialData={editingNode}
-        parentLabel={parentNode?.nombre}
-        suggestedCode={suggestedCode}
+        parentNode={parentNode}
+        tipo={currentTipo}
       />
 
-      {/* MODAL META */}
       <MetaDialog
         open={openMetaDialog}
         onOpenChange={setOpenMetaDialog}
-        onSave={handleSaveMeta}
+        onSave={async (data) => {
+          await createMeta({
+            ...data,
+            id_detalle: currentIniciativa.id,
+          });
+          await fetchMetasByDetalle(currentIniciativa.id);
+          setOpenMetaDialog(false);
+          setCurrentIniciativa(null);
+        }}
       />
     </div>
   );

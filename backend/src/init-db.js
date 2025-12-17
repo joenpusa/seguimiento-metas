@@ -113,6 +113,7 @@ const run = async () => {
       CREATE TABLE IF NOT EXISTS detalles_plan (
         id_detalle INTEGER PRIMARY KEY AUTOINCREMENT,
         id_plan INTEGER NOT NULL,
+        tipo VARRCHAR(20) NOT NULL,
         codigo VARRCHAR(20) NOT NULL,
         nombre_detalle VARCHAR(200) NOT NULL,
         id_detalle_padre INTEGER NULL,
@@ -138,7 +139,7 @@ const run = async () => {
         valor4 DOUBLE DEFAULT 0,
         recurrente INTEGER DEFAULT 0,
         id_secretaria INTEGER NOT NULL,
-        fecha_limite VARCHAR(10) NOT NULL,
+        fecha_limite VARCHAR(10),
 
         cantidad_0_5 INTEGER DEFAULT 0,
         cantidad_6_12 INTEGER DEFAULT 0,

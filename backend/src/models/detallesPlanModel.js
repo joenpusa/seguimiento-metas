@@ -16,6 +16,7 @@ export const DetallesPlanModel = {
         nombre_detalle,
         id_detalle_padre,
         codigo,
+        tipo,
         created_at
       FROM detalles_plan
       WHERE id_plan = ?
@@ -42,6 +43,7 @@ export const DetallesPlanModel = {
         nombre_detalle,
         id_detalle_padre,
         codigo,
+        tipo,
         created_at
       FROM detalles_plan
       WHERE id_detalle = ?
@@ -63,7 +65,8 @@ export const DetallesPlanModel = {
       id_plan,
       nombre_detalle,
       id_detalle_padre,
-      codigo
+      codigo,
+      tipo
     } = data;
 
     // 🔍 Validar código duplicado en el plan
@@ -89,14 +92,16 @@ export const DetallesPlanModel = {
         id_plan,
         nombre_detalle,
         id_detalle_padre,
-        codigo
-      ) VALUES (?, ?, ?, ?)
+        codigo,
+        tipo
+      ) VALUES (?, ?, ?, ?, ?)
       `,
       [
         id_plan,
         nombre_detalle,
         id_detalle_padre || null,
-        codigo
+        codigo,
+        tipo
       ]
     );
 

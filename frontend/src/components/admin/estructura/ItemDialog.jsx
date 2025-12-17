@@ -5,7 +5,6 @@ import {
   DialogHeader,
   DialogTitle,
   DialogFooter,
-  DialogDescription,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -17,27 +16,49 @@ const ItemDialog = ({
   onSave,
   isEditing,
   initialData,
-  parentLabel,
-  suggestedCode,
+  parentNode,
+  tipo
 }) => {
   const [nombre, setNombre] = useState("");
   const [codigo, setCodigo] = useState("");
 
   useEffect(() => {
-    if (isEditing && initialData) {
-      setNombre(initialData.nombre);
-      setCodigo(initialData.codigo);
-    } else {
-      setNombre("");
-      setCodigo(suggestedCode || "");
+    if (open) {
+      if (isEditing && initialData) {
+        setNombre(initialData.nombre);
+        setCodigo(initialData.codigo);
+      } else {
+        setNombre("");
+        setCodigo("");
+      }
     }
-  }, [isEditing, initialData, suggestedCode]);
+  }, [open, isEditing, initialData]);
+
+  const tipoLabel = {
+    linea: "Línea estratégica",
+    componente: "Componente",
+    apuesta: "Apuesta",
+    iniciativa: "Iniciativa",
+  }[tipo] || "";
+
+  const isCodigoValido = (codigo, parent) => {
+    if (!parent) return !codigo.includes(".");
+    return codigo.startsWith(parent.codigo + ".");
+  };
 
   const handleSubmit = () => {
-    if (!nombre.trim()) return;
-    if (!codigo.trim()) return;
+    if (!nombre.trim() || !codigo.trim()) return;
 
-    onSave({ nombre, codigo });
+    if (!isCodigoValido(codigo, parentNode)) {
+      alert(
+        parentNode
+          ? `El código debe iniciar con "${parentNode.codigo}."`
+          : "Una línea estratégica no debe contener puntos"
+      );
+      return;
+    }
+
+    onSave({ nombre, codigo, tipo });
   };
 
   return (
@@ -47,12 +68,12 @@ const ItemDialog = ({
           <DialogTitle>
             {isEditing ? "Editar elemento" : "Nuevo elemento"}
           </DialogTitle>
-          <DialogDescription>
-            {parentLabel
-              ? `Pertenece a: ${parentLabel}`
-              : "Elemento de nivel raíz"}
-          </DialogDescription>
         </DialogHeader>
+
+        <div className="space-y-2">
+          <Label>Tipo</Label>
+          <Input value={tipoLabel} disabled />
+        </div>
 
         <div className="space-y-4 py-2">
           <div className="space-y-2">

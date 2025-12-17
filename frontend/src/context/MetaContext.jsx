@@ -20,6 +20,7 @@ export const MetaProvider = ({ children }) => {
   // ===============================
   const normalizeMeta = (m) => ({
     id: m.id_meta,
+    codigo:m.codigo,
     nombre: m.nombre,
     descripcion: m.descripcion,
     cantidad: m.cantidad,
@@ -44,7 +45,7 @@ export const MetaProvider = ({ children }) => {
 
     setLoadingMetas(true);
     try {
-      const res = await api.get(`/metas/iniciativa/${idDetalle}`);
+      const res = await api.get(`/metas/detalle/${idDetalle}`);
 
       setMetasByDetalle((prev) => ({
         ...prev,
