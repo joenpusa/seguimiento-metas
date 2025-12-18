@@ -163,4 +163,90 @@ export const MetasModel = {
     await db.close();
     return true;
   },
+
+  async getFiltered(filters = {}) {
+    const db = await openDb();
+
+    let sql = `
+      SELECT DISTINCT
+        m.*,
+        s.nombre AS nombre_secretaria,
+        dp.id_plan
+      FROM metas m
+      INNER JOIN detalles_plan dp ON dp.id_detalle = m.id_detalle
+      INNER JOIN planes_desarrollo p ON p.id_plan = dp.id_plan
+      LEFT JOIN secretarias s ON s.id_secretaria = m.id_secretaria
+      LEFT JOIN metasxmunicipio mxm ON mxm.id_meta = m.id_meta
+      LEFT JOIN municipios mun ON mun.id_municipio = mxm.id_municipio
+      WHERE 1 = 1
+    `;
+
+    const params = [];
+
+    // ===============================
+    // 🔴 FILTRO BASE OBLIGATORIO: PLAN
+    // ===============================
+    if (!filters.idPlan) {
+      throw new Error("idPlan es obligatorio para filtrar metas");
+    }
+
+    sql += " AND dp.id_plan = ?";
+    params.push(filters.idPlan);
+
+    // ===============================
+    // 🧑 SECRETARÍA
+    // ===============================
+    if (filters.responsableId) {
+      sql += " AND m.id_secretaria = ?";
+      params.push(filters.responsableId);
+    }
+
+    // ===============================
+    // 🗺️ MUNICIPIO
+    // ===============================
+    if (filters.municipioId) {
+      sql += " AND mxm.id_municipio = ?";
+      params.push(filters.municipioId);
+    }
+
+    // ===============================
+    // 🔍 TEXTO LIBRE
+    // ===============================
+    if (filters.q) {
+      sql += `
+        AND (
+          m.nombre LIKE ?
+          OR m.descripcion LIKE ?
+          OR m.codigo LIKE ?
+        )
+      `;
+      params.push(
+        `%${filters.q}%`,
+        `%${filters.q}%`,
+        `%${filters.q}%`
+      );
+    }
+
+    // ===============================
+    // 📊 ESTADO PROGRESO
+    // ===============================
+    
+    //falta por definir
+
+    // ===============================
+    // 🔹 LIMIT solo si no hay filtros adicionales
+    // ===============================
+    const filtrosOpcionales =
+      filters.responsableId ||
+      filters.municipioId ||
+      filters.q ||
+      filters.estadoProgreso;
+
+    if (!filtrosOpcionales) {
+      sql += " LIMIT 50";
+    }
+
+    return db.all(sql, params);
+  },
+
 };

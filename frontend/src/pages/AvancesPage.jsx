@@ -1,10 +1,10 @@
 import React, { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
-import { useMetas } from '@/context/MetasContext';
+import { useMeta } from '@/context/MetaContext';
 import { usePlan } from '@/context/PlanContext';
 import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
-import { Plus, Edit, Trash2 } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import AvanceForm from '@/components/AvanceForm';
 import AvanceFilters from '@/components/avances/AvanceFilters';
 import AvanceList from '@/components/avances/AvanceList';
@@ -17,94 +17,156 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "@/components/ui/alert-dialog"; 
+} from "@/components/ui/alert-dialog";
 
 const AvancesPage = () => {
-  const { metas: todasLasMetas, loading: metasLoading } = useMetas();
-  const { 
-    getActivePlan, 
-    loading: planLoading, 
-    registrarAvanceContext, 
-    updateAvanceContext, 
+  /* =========================
+     CONTEXTOS
+  ========================== */
+  const { metas, loading: metasLoading } = useMeta();
+
+  const {
+    getActivePlan,
+    loading: planLoading,
+    registrarAvanceContext,
+    updateAvanceContext,
     deleteAvanceContext,
     listaResponsables
   } = usePlan();
+
   const { currentUser } = useAuth();
 
+  /* =========================
+     ESTADOS
+  ========================== */
   const [openForm, setOpenForm] = useState(false);
   const [avanceToEdit, setAvanceToEdit] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
-  const [filters, setFilters] = useState({ metaId: '', anio: '', trimestre: '', responsableId: '' });
+  const [filters, setFilters] = useState({
+    metaId: '',
+    anio: '',
+    trimestre: '',
+    responsableId: ''
+  });
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [avanceToDelete, setAvanceToDelete] = useState(null);
 
   const activePlan = getActivePlan();
   const loading = metasLoading || planLoading;
 
+  /* =========================
+     METAS VISIBLES SEGÚN ROL
+  ========================== */
   const metasVisibles = useMemo(() => {
     if (!currentUser || currentUser.rol === 'admin') {
-      return todasLasMetas;
+      return metas;
     }
     if (currentUser.rol === 'responsable') {
-      return todasLasMetas.filter(meta => meta.responsable === currentUser.nombre);
+      return metas.filter(meta => meta.responsable === currentUser.nombre);
     }
     return [];
-  }, [todasLasMetas, currentUser]);
+  }, [metas, currentUser]);
 
+  /* =========================
+     FLATTEN DE AVANCES
+  ========================== */
   const todosLosAvancesDelPlan = useMemo(() => {
-    return metasVisibles.flatMap(meta => 
+    return metasVisibles.flatMap(meta =>
       (meta.avances || []).map(avance => ({
         ...avance,
         metaNombre: meta.nombreMeta,
         metaId: meta.idMeta,
         metaUnidadMedida: meta.unidadMedida,
         metaNumero: meta.numeroMetaManual,
-        metaResponsable: meta.responsable 
+        metaResponsable: meta.responsable
       }))
     );
   }, [metasVisibles]);
 
+  /* =========================
+     AÑOS DISPONIBLES
+  ========================== */
   const availableYears = useMemo(() => {
-    const years = new Set(todosLosAvancesDelPlan.map(a => a.anioAvance).filter(Boolean));
-    return Array.from(years).sort((a,b) => b - a);
+    const years = new Set(
+      todosLosAvancesDelPlan.map(a => a.anioAvance).filter(Boolean)
+    );
+    return Array.from(years).sort((a, b) => b - a);
   }, [todosLosAvancesDelPlan]);
 
+  /* =========================
+     FILTRO + ORDEN
+  ========================== */
   const avancesFiltradosYOrdenados = useMemo(() => {
     const filtrados = todosLosAvancesDelPlan.filter(avance => {
       const searchLower = searchTerm.toLowerCase();
-      const matchesSearch = 
+
+      const matchesSearch =
         avance.descripcion.toLowerCase().includes(searchLower) ||
         avance.metaNombre.toLowerCase().includes(searchLower) ||
-        (avance.metaNumero && avance.metaNumero.toLowerCase().includes(searchLower));
-      const matchesMeta = filters.metaId ? avance.metaId === filters.metaId : true;
-      const matchesAnio = filters.anio ? avance.anioAvance === parseInt(filters.anio) : true;
-      const matchesTrimestre = filters.trimestre ? avance.trimestreAvance === filters.trimestre : true;
-      
+        (avance.metaNumero &&
+          avance.metaNumero.toLowerCase().includes(searchLower));
+
+      const matchesMeta = filters.metaId
+        ? avance.metaId === filters.metaId
+        : true;
+
+      const matchesAnio = filters.anio
+        ? avance.anioAvance === parseInt(filters.anio)
+        : true;
+
+      const matchesTrimestre = filters.trimestre
+        ? avance.trimestreAvance === filters.trimestre
+        : true;
+
       let matchesResponsable = true;
-      if (currentUser && currentUser.rol === 'admin') {
-        matchesResponsable = filters.responsableId ? avance.metaResponsable === filters.responsableId : true;
-      } else if (currentUser && currentUser.rol === 'responsable') {
-         matchesResponsable = avance.metaResponsable === currentUser.nombre;
+      if (currentUser?.rol === 'admin') {
+        matchesResponsable = filters.responsableId
+          ? avance.metaResponsable === filters.responsableId
+          : true;
+      } else if (currentUser?.rol === 'responsable') {
+        matchesResponsable =
+          avance.metaResponsable === currentUser.nombre;
       }
 
-
-      return matchesSearch && matchesMeta && matchesAnio && matchesTrimestre && matchesResponsable;
+      return (
+        matchesSearch &&
+        matchesMeta &&
+        matchesAnio &&
+        matchesTrimestre &&
+        matchesResponsable
+      );
     });
 
     return [...filtrados].sort((a, b) => {
-      const numA = a.metaNumero ? parseInt(a.metaNumero.replace(/\D/g,''), 10) : Infinity;
-      const numB = b.metaNumero ? parseInt(b.metaNumero.replace(/\D/g,''), 10) : Infinity;
-      
+      const numA = a.metaNumero
+        ? parseInt(a.metaNumero.replace(/\D/g, ''), 10)
+        : Infinity;
+      const numB = b.metaNumero
+        ? parseInt(b.metaNumero.replace(/\D/g, ''), 10)
+        : Infinity;
+
       if (numA !== numB) return numA - numB;
-      if (b.anioAvance !== a.anioAvance) return b.anioAvance - a.anioAvance;
-      if (b.trimestreAvance !== a.trimestreAvance) return (b.trimestreAvance || "").localeCompare(a.trimestreAvance || "");
+      if (b.anioAvance !== a.anioAvance)
+        return b.anioAvance - a.anioAvance;
+      if (b.trimestreAvance !== a.trimestreAvance)
+        return (b.trimestreAvance || '').localeCompare(
+          a.trimestreAvance || ''
+        );
+
       return new Date(b.fecha) - new Date(a.fecha);
     });
   }, [todosLosAvancesDelPlan, searchTerm, filters, currentUser]);
 
+  /* =========================
+     HANDLERS
+  ========================== */
   const handleSaveAvance = (avanceData) => {
     if (avanceToEdit) {
-      updateAvanceContext(avanceData.metaId, avanceToEdit.idAvance, avanceData);
+      updateAvanceContext(
+        avanceData.metaId,
+        avanceToEdit.idAvance,
+        avanceData
+      );
     } else {
       registrarAvanceContext(avanceData.metaId, avanceData);
     }
@@ -123,24 +185,33 @@ const AvancesPage = () => {
   };
 
   const confirmDeleteAvance = () => {
-    if(avanceToDelete) {
-      deleteAvanceContext(avanceToDelete.metaId, avanceToDelete.idAvance);
+    if (avanceToDelete) {
+      deleteAvanceContext(
+        avanceToDelete.metaId,
+        avanceToDelete.idAvance
+      );
     }
     setShowDeleteConfirm(false);
     setAvanceToDelete(null);
   };
 
+  /* =========================
+     LOADING
+  ========================== */
   if (loading) {
     return (
       <div className="flex items-center justify-center h-[calc(100vh-100px)]">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto" />
           <p className="mt-4 text-gray-500">Cargando datos...</p>
         </div>
       </div>
     );
   }
 
+  /* =========================
+     RENDER
+  ========================== */
   return (
     <div className="space-y-6">
       <motion.div
@@ -151,19 +222,34 @@ const AvancesPage = () => {
       >
         <div>
           <h1 className="text-2xl font-bold tracking-tight">
-            Avances del Plan: {activePlan ? activePlan.nombrePlan : "N/A"}
+            Avances del Plan:{' '}
+            {activePlan ? activePlan.nombrePlan : 'N/A'}
           </h1>
           <p className="text-muted-foreground">
-            Registro y seguimiento de avances en las metas del plan activo.
-            {currentUser && currentUser.rol === 'responsable' && ` Solo metas de: ${currentUser.nombre}`}
+            Registro y seguimiento de avances en las metas del plan
+            activo.
+            {currentUser?.rol === 'responsable' &&
+              ` Solo metas de: ${currentUser.nombre}`}
           </p>
         </div>
+
         <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-          <Button onClick={() => { setAvanceToEdit(null); setOpenForm(true); }} className="gap-2" disabled={metasVisibles.length === 0}>
+          <Button
+            onClick={() => {
+              setAvanceToEdit(null);
+              setOpenForm(true);
+            }}
+            className="gap-2"
+            disabled={metasVisibles.length === 0}
+          >
             <Plus className="h-4 w-4" />
             <span>Registrar Avance</span>
           </Button>
-          {metasVisibles.length === 0 && <p className="text-xs text-red-500 mt-1">No hay metas asignadas a usted para registrar avances.</p>}
+          {metasVisibles.length === 0 && (
+            <p className="text-xs text-red-500 mt-1">
+              No hay metas asignadas para registrar avances.
+            </p>
+          )}
         </motion.div>
       </motion.div>
 
@@ -172,39 +258,56 @@ const AvancesPage = () => {
         setSearchTerm={setSearchTerm}
         filters={filters}
         setFilters={setFilters}
-        metas={metasVisibles} 
+        metas={metasVisibles}
         availableYears={availableYears}
         listaResponsables={listaResponsables}
         currentUser={currentUser}
       />
-      
+
       <AvanceList
         avances={avancesFiltradosYOrdenados}
         loading={loading}
-        activePlanNombre={activePlan ? activePlan.nombrePlan : "seleccionado"}
+        activePlanNombre={
+          activePlan ? activePlan.nombrePlan : 'seleccionado'
+        }
         onEdit={handleEditAvance}
         onDelete={handleDeleteRequest}
       />
 
-      <AvanceForm 
-        open={openForm} 
-        onOpenChange={setOpenForm} 
+      <AvanceForm
+        open={openForm}
+        onOpenChange={setOpenForm}
         onSave={handleSaveAvance}
         metas={metasVisibles}
         avanceToEdit={avanceToEdit}
       />
 
-      <AlertDialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
+      <AlertDialog
+        open={showDeleteConfirm}
+        onOpenChange={setShowDeleteConfirm}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Confirmar Eliminación</AlertDialogTitle>
+            <AlertDialogTitle>
+              Confirmar Eliminación
+            </AlertDialogTitle>
             <AlertDialogDescription>
-              ¿Estás seguro de que deseas eliminar este avance? Esta acción no se puede deshacer.
+              ¿Estás seguro de que deseas eliminar este avance?
+              Esta acción no se puede deshacer.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => setAvanceToDelete(null)}>Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={confirmDeleteAvance} className="bg-red-500 hover:bg-red-600">Eliminar</AlertDialogAction>
+            <AlertDialogCancel
+              onClick={() => setAvanceToDelete(null)}
+            >
+              Cancelar
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmDeleteAvance}
+              className="bg-red-500 hover:bg-red-600"
+            >
+              Eliminar
+            </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

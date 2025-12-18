@@ -12,7 +12,7 @@ import ChangePasswordPage from "@/pages/ChangePasswordPage";
 
 import { AuthProvider, useAuth } from "@/context/AuthContext";
 import { PlanProvider } from "@/context/PlanContext";
-import { MetasProvider } from "@/context/MetasContext";
+import { MetaProvider } from "@/context/MetaContext";
 import { SecretariaProvider } from "@/context/SecretariaContext";
 import { MunicipioProvider } from "@/context/MunicipioContext";
 import { UnidadProvider } from "@/context/UnidadContext";
@@ -58,7 +58,7 @@ function App() {
         <SecretariaProvider>
           <MunicipioProvider>
             <PlanProvider>
-              <MetasProvider>
+              <MetaProvider>
                 <Routes>
                   {/* 🔓 Público */}
                   <Route path="/login" element={<LoginPage />} />
@@ -88,7 +88,7 @@ function App() {
                     />
                   </Route>
                 </Routes>
-              </MetasProvider>
+              </MetaProvider>
             </PlanProvider>
           </MunicipioProvider>
         </SecretariaProvider>

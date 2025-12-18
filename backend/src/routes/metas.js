@@ -88,4 +88,47 @@ router.delete(
   }
 );
 
+// ===============================
+// METAS SEGÚN FILTROS
+// ===============================
+router.get("/", async (req, res) => {
+  try {
+    const {
+      idPlan,
+      responsableId,
+      municipioId,
+      q,
+      estadoProgreso,
+    } = req.query;
+
+    // 🔴 VALIDACIÓN OBLIGATORIA
+    if (!idPlan) {
+      return res.status(400).json({
+        message: "El parámetro idPlan es obligatorio",
+      });
+    }
+
+    const metas = await MetasModel.getFiltered({
+      idPlan: Number(idPlan),
+      responsableId: responsableId ? Number(responsableId) : null,
+      municipioId: municipioId ? Number(municipioId) : null,
+      q: q?.trim() || null,
+      estadoProgreso: estadoProgreso || null,
+    });
+
+    res.json(metas);
+  } catch (error) {
+    console.error("❌ Error obteniendo metas filtradas:", error);
+
+    // Error de validación desde el modelo
+    if (error.message?.includes("idPlan")) {
+      return res.status(400).json({ message: error.message });
+    }
+
+    res.status(500).json({
+      message: "Error obteniendo metas",
+    });
+  }
+});
+
 export default router;
