@@ -18,7 +18,7 @@ export const AuthProvider = ({ children }) => {
   // SESIÓN
   // ===============================
   const [currentUser, setCurrentUser] = useState(null);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   // ===============================
   // USUARIOS (ADMIN)
@@ -44,13 +44,16 @@ export const AuthProvider = ({ children }) => {
   // ===============================
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
-    const storedToken = localStorage.getItem("accessToken");
+    const accessToken = localStorage.getItem("accessToken");
+    const refreshToken = localStorage.getItem("refreshToken");
 
-    if (storedUser && storedToken) {
+    if (storedUser && accessToken) {
+      setAuthTokens(accessToken, refreshToken); // ✅ CLAVE
       setCurrentUser(JSON.parse(storedUser));
     }
-  }, []);
 
+    setLoading(false); // ✅ FIN DE REHIDRATACIÓN
+  }, []);
   // ===============================
   // CARGAR USUARIOS (ADMIN)
   // ===============================
@@ -136,7 +139,7 @@ export const AuthProvider = ({ children }) => {
     setLoading(true);
     try {
       await api.post("/auth/change-password", {
-        userId: currentUser.id_usuario,
+        userId: currentUser.id,
         currentPassword,
         newPassword,
       });

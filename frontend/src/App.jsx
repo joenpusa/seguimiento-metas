@@ -17,7 +17,6 @@ import { SecretariaProvider } from "@/context/SecretariaContext";
 import { MunicipioProvider } from "@/context/MunicipioContext";
 import { UnidadProvider } from "@/context/UnidadContext";
 
-
 /* ===============================
    RUTA PROTEGIDA
 ================================ */
@@ -53,7 +52,6 @@ const ProtectedRoute = ({ children, requiredRole = null }) => {
 function App() {
   return (
     <AuthProvider>
-      {/* Catálogos y administración */}
       <UnidadProvider>
         <SecretariaProvider>
           <MunicipioProvider>
@@ -77,14 +75,9 @@ function App() {
                     <Route path="avances" element={<AvancesPage />} />
                     <Route path="informes" element={<InformesPage />} />
                     <Route path="admin-plan" element={<AdminPlanPage />} />
-
                     <Route
                       path="change-password"
-                      element={
-                        <ProtectedRoute>
-                          <ChangePasswordPage />
-                        </ProtectedRoute>
-                      }
+                      element={<ChangePasswordPage />}
                     />
                   </Route>
                 </Routes>

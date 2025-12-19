@@ -1,28 +1,36 @@
 import axios from "axios";
 
+const API_URL =
+  import.meta.env.VITE_API_URL || "http://localhost:4000/api";
+
 let isRefreshing = false;
 let refreshSubscribers = [];
 
-// Función auxiliar: notifica a las solicitudes en espera cuando se renueva el token
+// ===============================
+// UTILIDADES REFRESH
+// ===============================
 const onRefreshed = (newToken) => {
-  refreshSubscribers.forEach((callback) => callback(newToken));
+  refreshSubscribers.forEach((cb) => cb(newToken));
   refreshSubscribers = [];
 };
 
-// Suscribe solicitudes que esperan a que se refresque el token
 const addRefreshSubscriber = (callback) => {
   refreshSubscribers.push(callback);
 };
 
-// Crear la instancia principal de Axios
+// ===============================
+// INSTANCIA AXIOS
+// ===============================
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || "http://localhost:4000/api",
+  baseURL: API_URL,
   headers: {
     "Content-Type": "application/json",
   },
 });
 
-// Interceptor de petición: agrega el token si existe
+// ===============================
+// REQUEST INTERCEPTOR
+// ===============================
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem("accessToken");
@@ -34,56 +42,54 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// Interceptor de respuesta: maneja expiración de token
+// ===============================
+// RESPONSE INTERCEPTOR
+// ===============================
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config;
 
-    // Si es un error 401 y no hemos intentado refrescar todavía
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    if (
+      error.response?.status === 401 &&
+      !originalRequest._retry
+    ) {
       originalRequest._retry = true;
+
+      const refreshToken = localStorage.getItem("refreshToken");
+      if (!refreshToken) {
+        clearSession();
+        return Promise.reject(error);
+      }
 
       if (!isRefreshing) {
         isRefreshing = true;
-        const refreshToken = localStorage.getItem("refreshToken");
-
-        if (!refreshToken) {
-          console.warn("No hay refresh token disponible");
-          isRefreshing = false;
-          return Promise.reject(error);
-        }
 
         try {
-          // Llamada para refrescar el token
-          const response = await axios.post(
-            `${import.meta.env.VITE_API_URL || "http://localhost:5000/api"}/auth/refresh-token`,
+          const res = await axios.post(
+            `${API_URL}/auth/refresh-token`,
             { refreshToken }
           );
 
-          const { accessToken: newToken } = response.data;
+          const { accessToken: newToken } = res.data;
 
-          // Guardar nuevo token
-          localStorage.setItem("accessToken", newToken);
+          setAuthTokens(newToken, refreshToken);
 
-          // Notificar a todas las solicitudes en espera
+          // 🔹 Actualizar headers globales
+          api.defaults.headers.common.Authorization = `Bearer ${newToken}`;
+
           onRefreshed(newToken);
 
-          // Volver a ejecutar las solicitudes en cola
           return api(originalRequest);
-        } catch (refreshError) {
-          console.error("Error al refrescar token:", refreshError);
-          localStorage.removeItem("accessToken");
-          localStorage.removeItem("refreshToken");
-          localStorage.removeItem("user");
-          window.location.href = "/login";
-          return Promise.reject(refreshError);
+        } catch (err) {
+          clearSession();
+          return Promise.reject(err);
         } finally {
           isRefreshing = false;
         }
       }
 
-      // Si ya hay una solicitud de refresh en curso, espera a que termine
+      // Esperar a que termine el refresh
       return new Promise((resolve) => {
         addRefreshSubscriber((newToken) => {
           originalRequest.headers.Authorization = `Bearer ${newToken}`;
@@ -96,12 +102,25 @@ api.interceptors.response.use(
   }
 );
 
-// Función dinámica para setear o limpiar tokens desde AuthContext
+// ===============================
+// SESIÓN
+// ===============================
+const clearSession = () => {
+  localStorage.removeItem("accessToken");
+  localStorage.removeItem("refreshToken");
+  localStorage.removeItem("user");
+};
+
+// ===============================
+// API PÚBLICA
+// ===============================
 export const setAuthTokens = (accessToken, refreshToken) => {
-  if (accessToken) localStorage.setItem("accessToken", accessToken);
+  if (accessToken)
+    localStorage.setItem("accessToken", accessToken);
   else localStorage.removeItem("accessToken");
 
-  if (refreshToken) localStorage.setItem("refreshToken", refreshToken);
+  if (refreshToken)
+    localStorage.setItem("refreshToken", refreshToken);
   else localStorage.removeItem("refreshToken");
 };
 

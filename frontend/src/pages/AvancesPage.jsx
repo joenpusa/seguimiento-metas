@@ -31,7 +31,7 @@ const AvancesPage = () => {
     registrarAvanceContext,
     updateAvanceContext,
     deleteAvanceContext,
-    listaResponsables
+    listaResponsables = []
   } = usePlan();
 
   const { currentUser } = useAuth();
