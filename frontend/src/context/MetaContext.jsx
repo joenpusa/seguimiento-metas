@@ -18,6 +18,12 @@ export const MetaProvider = ({ children }) => {
   const [loading, setLoading] = useState(false);
 
   // ===============================
+  // 🔹 META SELECCIONADA (DETALLE)
+  // ===============================
+  const [selectedMeta, setSelectedMeta] = useState(null);
+  const [loadingSelectedMeta, setLoadingSelectedMeta] = useState(false);
+
+  // ===============================
   // 🔹 METAS POR INICIATIVA (Admin)
   // ===============================
   const [metasByDetalle, setMetasByDetalle] = useState({});
@@ -46,6 +52,69 @@ export const MetaProvider = ({ children }) => {
     municipios: m.municipios || [],
     numeroMetaManual: m.numero_meta_manual,
   });
+
+  const normalizeMetaDetail = (m) => ({
+    id: m.id_meta,
+    codigo: m.codigo,
+    nombre: m.nombre,
+    descripcion: m.descripcion,
+    cantidad: m.cantidad,
+    fechaLimite: m.fecha_limite,
+    progreso: m.progreso ?? 0,
+
+    valores: {
+      valor1: m.valor,
+      valor2: m.valor2,
+      valor3: m.valor3,
+      valor4: m.valor4,
+    },
+
+    unidad: {
+      id: m.id_unidad,
+      nombre: m.unidad_nombre,
+    },
+
+    secretaria: {
+      id: m.id_secretaria,
+      nombre: m.secretaria_nombre,
+    },
+
+    municipios: Array.isArray(m.municipios) ? m.municipios : [],
+
+    // 🌳 ÁRBOL JERÁRQUICO (CORREGIDO)
+    linea: m.linea_id
+      ? {
+          id: m.linea_id,
+          codigo: m.linea_codigo,
+          nombre: m.linea_nombre,
+        }
+      : null,
+
+    componente: m.componente_id
+      ? {
+          id: m.componente_id,
+          codigo: m.componente_codigo,
+          nombre: m.componente_nombre,
+        }
+      : null,
+
+    apuesta: m.apuesta_id
+      ? {
+          id: m.apuesta_id,
+          codigo: m.apuesta_codigo,
+          nombre: m.apuesta_nombre,
+        }
+      : null,
+
+    iniciativa: m.iniciativa_id
+      ? {
+          id: m.iniciativa_id,
+          codigo: m.iniciativa_codigo,
+          nombre: m.iniciativa_nombre,
+        }
+      : null,
+  });
+
 
   // =====================================================
   // 🔹 METAS GLOBALES CON FILTROS (NUEVO)
@@ -112,6 +181,33 @@ export const MetaProvider = ({ children }) => {
   };
 
   // ===============================
+  // 🔹 OBTENER META POR ID
+  // ===============================
+  const fetchMetaById = async (idMeta) => {
+    if (!idMeta) return;
+
+    setLoadingSelectedMeta(true);
+    setSelectedMeta(null);
+
+    try {
+      const res = await api.get(`/metas/${idMeta}`);
+      setSelectedMeta(normalizeMetaDetail(res.data));
+    } catch (err) {
+      toast({
+        title: "Meta",
+        description: "No se pudo cargar la información de la meta",
+        variant: "destructive",
+      });
+    } finally {
+      setLoadingSelectedMeta(false);
+    }
+  };
+
+  const clearSelectedMeta = () => {
+    setSelectedMeta(null);
+  };
+
+  // ===============================
   // CRUD
   // ===============================
   const createMeta = async (data) => {
@@ -174,6 +270,13 @@ export const MetaProvider = ({ children }) => {
         metasByDetalle,
         loadingMetas,
         fetchMetasByDetalle,
+
+        // Meta detalle
+        selectedMeta,
+        loadingSelectedMeta,
+        fetchMetaById,
+        clearSelectedMeta,
+        setSelectedMeta,
 
         // CRUD
         createMeta,

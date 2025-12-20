@@ -177,6 +177,24 @@ const run = async () => {
       );
 
       -- ============================================
+      -- PROGRAMACIONES
+      -- ============================================
+      CREATE TABLE IF NOT EXISTS programaciones (
+        id_programacion INTEGER PRIMARY KEY AUTOINCREMENT,
+        anio VARCHAR(4) NOT NULL,
+        trimestre VARCHAR(2) NOT NULL,
+        id_meta INTEGER NOT NULL,
+        cantidad INTEGER DEFAULT 0,
+        gasto INTEGER DEFAULT 0,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+
+        FOREIGN KEY(id_meta) REFERENCES metas(id_meta)
+      );
+
+      CREATE UNIQUE INDEX IF NOT EXISTS idx_programaciones_meta_anio_trimestre
+      ON programaciones (id_meta, anio, trimestre);
+
+      -- ============================================
       -- AVANCES
       -- ============================================
       CREATE TABLE IF NOT EXISTS avances (

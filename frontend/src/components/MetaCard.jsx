@@ -20,16 +20,19 @@ import {
 } from "lucide-react";
 
 import MetaForm from "@/components/MetaForm";
+import { useMeta } from "@/context/MetaContext";
 import ProgramacionTrimestralForm from "@/components/ProgramacionTrimestralForm";
 import ProgramacionTrimestralList from "@/components/ProgramacionTrimestralList";
 import { usePlan } from "@/context/PlanContext";
 import { useAuth } from "@/context/AuthContext";
 
 const MetaCard = ({ meta, viewMode = "grid" }) => {
-  const [showDetails, setShowDetails] = useState(false);
+  // console.log(meta);
+  const [openMetaForm, setOpenMetaForm] = useState(false);
   const [showProgramacion, setShowProgramacion] = useState(false);
   const [showProgramacionList, setShowProgramacionList] = useState(false);
 
+  const { fetchMetaById } = useMeta(); 
   const { getActivePlan, programarTrimestre } = usePlan();
   const { currentUser } = useAuth();
 
@@ -39,9 +42,8 @@ const MetaCard = ({ meta, viewMode = "grid" }) => {
      NORMALIZACIÓN DE DATOS
   ========================== */
   const nombreMeta = meta.nombre || "Meta sin nombre";
-
   const nombreResponsable =
-    meta.secretaria?.nombre || "Sin responsable";
+    meta.secretaria_nombre|| "Sin responsable";
 
   const nombresMunicipios = Array.isArray(meta.municipios)
     ? meta.municipios.map((m) => m.nombre).join(", ")
@@ -49,7 +51,7 @@ const MetaCard = ({ meta, viewMode = "grid" }) => {
 
   const fechaLimite = meta.fecha_limite;
 
-  const unidadMedida = meta.unidad?.nombre || "";
+  const unidadMedida = meta.unidad_nombre || "";
 
   const presupuestoTotal =
     (meta.valor || 0) +
@@ -80,11 +82,6 @@ const MetaCard = ({ meta, viewMode = "grid" }) => {
     );
   };
 
-  const handleProgramarTrimestre = (data) => {
-    programarTrimestre(meta.id, data);
-    setShowProgramacion(false);
-  };
-
   const canManageProgramacion = () => {
     if (!currentUser) return false;
     if (currentUser.rol === "admin") return true;
@@ -96,119 +93,22 @@ const MetaCard = ({ meta, viewMode = "grid" }) => {
     return false;
   };
 
+const handleViewMeta = async () => {
+    await fetchMetaById(meta.id);
+    setOpenMetaForm(true);
+  };
+
+  const handleProgramarTrimestre = (data) => {
+    programarTrimestre(meta.id, data);
+    setShowProgramacion(false);
+  };
+
   const formatCurrency = (amount) =>
     new Intl.NumberFormat("es-CO", {
       style: "currency",
       currency: "COP",
       minimumFractionDigits: 0,
     }).format(amount);
-
-  /* =========================
-     VISTA LISTA
-  ========================== */
-  if (viewMode === "list") {
-    return (
-      <>
-        <motion.div whileHover={{ scale: 1.01 }}>
-          <Card className="shadow-sm hover:shadow-md">
-            <CardContent className="p-4">
-              <div className="flex justify-between gap-4">
-                <div className="flex-1">
-                  <h3 className="font-semibold text-lg">
-                    {nombreMeta}
-                  </h3>
-                  {getStatusBadge(meta.progreso || 0)}
-
-                  <div className="grid md:grid-cols-3 gap-2 mt-2 text-sm text-muted-foreground">
-                    <div className="flex gap-1">
-                      <User className="h-4 w-4" />
-                      {nombreResponsable}
-                    </div>
-                    <div className="flex gap-1">
-                      <MapPin className="h-4 w-4" />
-                      {nombresMunicipios}
-                    </div>
-                    <div className="flex gap-1">
-                      <Calendar className="h-4 w-4" />
-                      {fechaLimite
-                        ? new Date(fechaLimite).toLocaleDateString()
-                        : "Sin fecha"}
-                    </div>
-                  </div>
-                </div>
-
-                <div className="min-w-[160px] text-right">
-                  <Progress
-                    value={meta.progreso || 0}
-                    className="h-2"
-                    indicatorClassName={getProgressColor(
-                      meta.progreso || 0
-                    )}
-                  />
-                  <p className="text-xs mt-1">
-                    {meta.cantidad} {unidadMedida}
-                  </p>
-
-                  <div className="flex justify-end gap-1 mt-2">
-                    <Button
-                      size="icon"
-                      variant="ghost"
-                      onClick={() => setShowDetails(true)}
-                    >
-                      <Eye className="h-4 w-4" />
-                    </Button>
-
-                    {canManageProgramacion() && (
-                      <>
-                        <Button
-                          size="icon"
-                          variant="ghost"
-                          onClick={() =>
-                            setShowProgramacionList(true)
-                          }
-                        >
-                          <Calendar className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          size="icon"
-                          variant="ghost"
-                          onClick={() => setShowProgramacion(true)}
-                        >
-                          <CalendarPlus className="h-4 w-4" />
-                        </Button>
-                      </>
-                    )}
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
-
-        <MetaForm
-          open={showDetails}
-          onOpenChange={setShowDetails}
-          metaToEdit={meta}
-          onSave={() => {}}
-        />
-
-        <ProgramacionTrimestralForm
-          open={showProgramacion}
-          onOpenChange={setShowProgramacion}
-          onSave={handleProgramarTrimestre}
-          meta={meta}
-          activePlan={activePlan}
-        />
-
-        {showProgramacionList && (
-          <ProgramacionTrimestralList
-            meta={meta}
-            onClose={() => setShowProgramacionList(false)}
-          />
-        )}
-      </>
-    );
-  }
 
   /* =========================
      VISTA GRID
@@ -218,12 +118,18 @@ const MetaCard = ({ meta, viewMode = "grid" }) => {
       <motion.div whileHover={{ scale: 1.02 }}>
         <Card className="h-full shadow-md hover:shadow-lg">
           <CardHeader>
-            <CardTitle className="text-lg">
-              {nombreMeta}
-            </CardTitle>
-            {getStatusBadge(meta.progreso || 0)}
+            <div className="flex justify-between items-start">
+              <div className="flex-1 min-w-0">
+                <CardTitle className="text-lg leading-tight">
+                  <span className="text-primary block text-sm font-normal mb-1">
+                    Meta {meta.codigo}
+                  </span>
+                  {nombreMeta}
+                </CardTitle>
+              </div>
+              {getStatusBadge(meta.progreso || 0)}
+            </div>
           </CardHeader>
-
           <CardContent className="space-y-3">
             <Progress
               value={meta.progreso || 0}
@@ -246,18 +152,14 @@ const MetaCard = ({ meta, viewMode = "grid" }) => {
                 <User className="h-4 w-4" />
                 {nombreResponsable}
               </div>
-              <div className="flex gap-2">
-                <MapPin className="h-4 w-4" />
-                {nombresMunicipios}
-              </div>
             </div>
 
             <div className="flex gap-2">
               <Button
-                size="sm"
-                variant="outline"
-                onClick={() => setShowDetails(true)}
-                className="flex-1"
+                size="icon"
+                variant="ghost"
+                onClick={handleViewMeta}
+                className="flex-1 border"
               >
                 <Eye className="h-4 w-4 mr-1" />
                 Ver
@@ -278,7 +180,9 @@ const MetaCard = ({ meta, viewMode = "grid" }) => {
                   <Button
                     size="sm"
                     variant="outline"
-                    onClick={() => setShowProgramacion(true)}
+                    onClick={() =>
+                      setShowProgramacion(true)
+                    }
                     className="flex-1"
                   >
                     +
@@ -289,6 +193,42 @@ const MetaCard = ({ meta, viewMode = "grid" }) => {
           </CardContent>
         </Card>
       </motion.div>
+      {/* llamado a la modal de ver detalles de meta */}
+      <MetaForm open={openMetaForm} onOpenChange={setOpenMetaForm} /> 
+      {/* llamado a la lista de programaciones */}
+      {showProgramacionList && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-lg max-w-2xl w-full max-h-[80vh] overflow-y-auto">
+            <div className="p-4 border-b">
+              <h2 className="text-lg font-semibold">
+                Programación - {nombreMeta}
+              </h2>
+            </div>
+            <div className="p-4">
+              <ProgramacionTrimestralList 
+                meta={meta} 
+                onProgramar={() => {
+                  setShowProgramacionList(false);
+                  setShowProgramacion(true);
+                }}
+              />
+            </div>
+            <div className="p-4 border-t">
+              <Button onClick={() => setShowProgramacionList(false)} className="w-full">
+                Cerrar
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+        {/* formulario de crear una programacioin trimestral */}
+       <ProgramacionTrimestralForm
+          open={showProgramacion}
+          onOpenChange={setShowProgramacion}
+          onSave={handleProgramarTrimestre}
+          meta={meta}
+          activePlan={activePlan}
+        />
     </>
   );
 };

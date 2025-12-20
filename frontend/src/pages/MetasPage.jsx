@@ -67,13 +67,13 @@ const MetasPage = () => {
         </div>
 
         <div className="flex gap-2">
-          <Button
+          {/* <Button
             size="icon"
             variant={viewMode === "list" ? "secondary" : "outline"}
             onClick={() => setViewMode("list")}
           >
             <List className="h-4 w-4" />
-          </Button>
+          </Button> */}
           <Button
             size="icon"
             variant={viewMode === "grid" ? "secondary" : "outline"}

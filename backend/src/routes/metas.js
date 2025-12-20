@@ -6,6 +6,35 @@ import { MetasModel } from "../models/metasModel.js";
 const router = express.Router();
 
 // ===============================
+// GET /api/metas/:id
+// Obtener una meta por ID
+// ===============================
+router.get(
+  "/:id",
+  authenticateToken,
+  async (req, res) => {
+    try {
+      const { id } = req.params;
+
+      const meta = await MetasModel.getById(id);
+
+      if (!meta) {
+        return res
+          .status(404)
+          .json({ message: "Meta no encontrada" });
+      }
+
+      res.json(meta);
+    } catch (err) {
+      console.error("Error al obtener la meta:", err);
+      res
+        .status(500)
+        .json({ message: "Error al obtener la meta" });
+    }
+  }
+);
+
+// ===============================
 // GET /api/metas/detalle/:id
 // ===============================
 router.get(

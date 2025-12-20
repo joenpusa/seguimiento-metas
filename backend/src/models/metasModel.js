@@ -3,6 +3,63 @@ import { openDb } from "../db.js";
 
 export const MetasModel = {
   // =========================
+  // OBTENER UNA META
+  // =========================
+  async getById(idMeta) {
+    const db = await openDb();
+
+    const sql = `
+      SELECT
+        m.*,
+
+        i.id_detalle   AS iniciativa_id,
+        i.codigo       AS iniciativa_codigo,
+        i.nombre_detalle AS iniciativa_nombre,
+
+        a.id_detalle   AS apuesta_id,
+        a.codigo       AS apuesta_codigo,
+        a.nombre_detalle AS apuesta_nombre,
+
+        c.id_detalle   AS componente_id,
+        c.codigo       AS componente_codigo,
+        c.nombre_detalle AS componente_nombre,
+
+        l.id_detalle   AS linea_id,
+        l.codigo       AS linea_codigo,
+        l.nombre_detalle AS linea_nombre,
+
+        s.nombre AS secretaria_nombre,
+        u.nombre AS unidad_nombre,
+
+        GROUP_CONCAT(mu.id_municipio) AS municipios
+
+      FROM metas m
+
+      INNER JOIN detalles_plan i ON i.id_detalle = m.id_detalle
+      LEFT JOIN detalles_plan a ON a.id_detalle = i.id_detalle_padre
+      LEFT JOIN detalles_plan c ON c.id_detalle = a.id_detalle_padre
+      LEFT JOIN detalles_plan l ON l.id_detalle = c.id_detalle_padre
+      LEFT JOIN secretarias s ON s.id_secretaria = m.id_secretaria
+      LEFT JOIN unidades u ON u.id_unidad = m.id_unidad
+      LEFT JOIN metasxmunicipio mxm ON mxm.id_meta = m.id_meta
+      LEFT JOIN municipios mu ON mu.id_municipio = mxm.id_municipio
+      WHERE m.id_meta = ?
+      GROUP BY m.id_meta
+    `;
+
+    const meta = await db.get(sql, [idMeta]);
+
+    if (!meta) return null;
+
+    return {
+      ...meta,
+      municipios: meta.municipios
+        ? meta.municipios.split(",").map(Number)
+        : [],
+    };
+  },
+
+  // =========================
   // OBTENER METAS POR DETALLE
   // =========================
   async getByDetalle(id_detalle) {
@@ -12,8 +69,8 @@ export const MetasModel = {
       `
       SELECT 
         m.*,
-        u.nombre AS unidad_nombre,
         s.nombre AS secretaria_nombre,
+        u.nombre AS unidad_nombre,
         GROUP_CONCAT(mx.id_municipio) AS municipios
       FROM metas m
       JOIN unidades u ON u.id_unidad = m.id_unidad
@@ -170,13 +227,15 @@ export const MetasModel = {
     let sql = `
       SELECT DISTINCT
         m.*,
-        s.nombre AS nombre_secretaria,
+        s.nombre AS secretaria_nombre,
+        u.nombre AS unidad_nombre,
         dp.id_plan
       FROM metas m
       INNER JOIN detalles_plan dp ON dp.id_detalle = m.id_detalle
       INNER JOIN planes_desarrollo p ON p.id_plan = dp.id_plan
       LEFT JOIN secretarias s ON s.id_secretaria = m.id_secretaria
       LEFT JOIN metasxmunicipio mxm ON mxm.id_meta = m.id_meta
+      LEFT JOIN unidades u ON u.id_unidad = m.id_unidad
       LEFT JOIN municipios mun ON mun.id_municipio = mxm.id_municipio
       WHERE 1 = 1
     `;
