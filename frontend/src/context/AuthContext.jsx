@@ -7,6 +7,7 @@ import React, {
 import api, { setAuthTokens } from "@/api/axiosConfig";
 import { useToast } from "@/components/ui/use-toast";
 import { useNavigate } from "react-router-dom";
+import { SESSION_EXPIRED_EVENT } from "@/utils/sessionEvents";
 
 const AuthContext = createContext();
 
@@ -54,6 +55,35 @@ export const AuthProvider = ({ children }) => {
 
     setLoading(false); // ✅ FIN DE REHIDRATACIÓN
   }, []);
+
+  // ===============================
+  // ESCUCHAR EXPIRACIÓN DE SESIÓN
+  // ===============================
+  useEffect(() => {
+    const handleSessionExpired = () => {
+      toast({
+        title: "Sesión expirada",
+        description:
+          "Tu sesión ha expirado, por favor inicia sesión nuevamente",
+        variant: "destructive",
+      });
+
+      logout(); // limpia estado + navega a /login
+    };
+    
+    window.addEventListener(
+      SESSION_EXPIRED_EVENT,
+      handleSessionExpired
+    );
+
+    return () => {
+      window.removeEventListener(
+        SESSION_EXPIRED_EVENT,
+        handleSessionExpired
+      );
+    };
+  }, []);
+
   // ===============================
   // CARGAR USUARIOS (ADMIN)
   // ===============================

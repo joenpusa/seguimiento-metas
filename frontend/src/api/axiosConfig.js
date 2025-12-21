@@ -1,4 +1,6 @@
 import axios from "axios";
+import { emitSessionExpired } from "@/utils/sessionEvents";
+
 
 const API_URL =
   import.meta.env.VITE_API_URL || "http://localhost:4000/api";
@@ -51,7 +53,8 @@ api.interceptors.response.use(
     const originalRequest = error.config;
 
     if (
-      error.response?.status === 401 &&
+      (error.response?.status === 401 ||
+      error.response?.status === 403) &&
       !originalRequest._retry
     ) {
       originalRequest._retry = true;
@@ -109,6 +112,7 @@ const clearSession = () => {
   localStorage.removeItem("accessToken");
   localStorage.removeItem("refreshToken");
   localStorage.removeItem("user");
+  emitSessionExpired(); 
 };
 
 // ===============================
