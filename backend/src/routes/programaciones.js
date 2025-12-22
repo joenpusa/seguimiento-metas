@@ -107,4 +107,29 @@ router.put(
   }
 );
 
+// =========================
+// GET /api/siguiente/:idMeta
+// =========================
+router.get(
+  "/siguiente/:idMeta",
+  authenticateToken,
+  async (req, res) => {
+    try {
+      const { idMeta } = req.params;
+      const { anioInicio, anioFin } = req.query;
+
+      const siguiente =
+        await ProgramacionesModel.getSiguienteTrimestre(
+          idMeta,
+          Number(anioInicio),
+          Number(anioFin)
+        );
+
+      res.json(siguiente);
+    } catch (err) {
+      res.status(500).json({ message: "Error calculando siguiente trimestre" });
+    }
+  }
+);
+
 export default router;

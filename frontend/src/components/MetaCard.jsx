@@ -25,6 +25,7 @@ import ProgramacionTrimestralForm from "@/components/ProgramacionTrimestralForm"
 import ProgramacionTrimestralList from "@/components/ProgramacionTrimestralList";
 import { usePlan } from "@/context/PlanContext";
 import { useAuth } from "@/context/AuthContext";
+import { useProgramacion } from "@/context/ProgramacionContext";
 
 const MetaCard = ({ meta, viewMode = "grid" }) => {
   // console.log(meta);
@@ -33,8 +34,9 @@ const MetaCard = ({ meta, viewMode = "grid" }) => {
   const [showProgramacionList, setShowProgramacionList] = useState(false);
 
   const { fetchMetaById } = useMeta(); 
-  const { getActivePlan, programarTrimestre } = usePlan();
+  const { getActivePlan } = usePlan();
   const { currentUser } = useAuth();
+  const { createProgramacion } = useProgramacion();
 
   const activePlan = getActivePlan();
 
@@ -98,9 +100,11 @@ const handleViewMeta = async () => {
     setOpenMetaForm(true);
   };
 
-  const handleProgramarTrimestre = (data) => {
-    programarTrimestre(meta.id, data);
-    setShowProgramacion(false);
+  const handleProgramarTrimestre = async (data) => {
+    const ok = await createProgramacion(data);
+    if (ok) {
+      setShowProgramacion(false);
+    }
   };
 
   const formatCurrency = (amount) =>
@@ -175,6 +179,7 @@ const handleViewMeta = async () => {
                     }
                     className="flex-1"
                   >
+                    <Calendar className="h-4 w-4 mr-1" />
                     Prog.
                   </Button>
                   <Button
@@ -185,6 +190,7 @@ const handleViewMeta = async () => {
                     }
                     className="flex-1"
                   >
+                    <CalendarPlus className="h-4 w-4 mr-1" />
                     +
                   </Button>
                 </>

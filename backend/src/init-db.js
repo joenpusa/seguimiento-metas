@@ -230,6 +230,9 @@ const run = async () => {
         FOREIGN KEY(id_meta) REFERENCES metas(id_meta)
       );
 
+      CREATE UNIQUE INDEX IF NOT EXISTS idx_avances_meta_anio_trimestre
+      ON avances (id_meta, anio, trimestre);
+
     `);
 
     // ===============================

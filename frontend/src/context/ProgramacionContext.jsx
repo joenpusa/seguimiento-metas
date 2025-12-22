@@ -110,6 +110,24 @@ export const ProgramacionProvider = ({ children }) => {
   };
 
   // ===============================
+  // SIGUIENTE PROGRAMACION
+  // ===============================
+  const getSiguienteTrimestre = async (idMeta, plan) => {
+    if (!idMeta || !plan) return null;
+    const res = await api.get(
+      `/programaciones/siguiente/${idMeta}`,
+      {
+        params: {
+          anioInicio: plan.vigenciaInicio.split("-")[0],
+          anioFin: plan.vigenciaFin.split("-")[0],
+        },
+      }
+    );
+
+    return res.data;
+  };
+
+  // ===============================
   // LIMPIAR
   // ===============================
   const clearProgramaciones = () => {
@@ -129,6 +147,7 @@ export const ProgramacionProvider = ({ children }) => {
         createProgramacion,
         updateProgramacion,
         clearProgramaciones,
+        getSiguienteTrimestre,
       }}
     >
       {children}

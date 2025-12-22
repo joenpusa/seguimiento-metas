@@ -20,10 +20,13 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Calendar, Target, DollarSign } from 'lucide-react';
+import { useProgramacion } from "@/context/ProgramacionContext";
+
 
 const ProgramacionTrimestralForm = ({ open, onOpenChange, onSave, meta, activePlan }) => {
   const { toast } = useToast();
-  
+  const { getSiguienteTrimestre } = useProgramacion();
+
   const [formData, setFormData] = useState({
     anio: '',
     trimestre: '',
@@ -31,54 +34,26 @@ const ProgramacionTrimestralForm = ({ open, onOpenChange, onSave, meta, activePl
     presupuestoProgramado: 0
   });
 
-  const getTrimestresDisponibles = () => {
-    if (!activePlan) return [];
-    
-    const anioInicio = new Date(activePlan.vigenciaInicio).getFullYear();
-    const anioFin = new Date(activePlan.vigenciaFin).getFullYear();
-    const trimestres = ['T1', 'T2', 'T3', 'T4'];
-    
-    const programacionExistente = meta?.programacionTrimestral || [];
-    const programados = new Set(programacionExistente.map(p => `${p.anio}-${p.trimestre}`));
-    
-    const disponibles = [];
-    for (let anio = anioInicio; anio <= anioFin; anio++) {
-      for (const trimestre of trimestres) {
-        const key = `${anio}-${trimestre}`;
-        if (!programados.has(key)) {
-          disponibles.push({ anio, trimestre, key });
-        }
-      }
-    }
-    
-    return disponibles;
-  };
-
-  const getSiguienteTrimestre = () => {
-    const disponibles = getTrimestresDisponibles();
-    return disponibles.length > 0 ? disponibles[0] : null;
-  };
-
+  const [siguiente, setSiguiente] = useState(null);
   useEffect(() => {
-    if (open && meta) {
-      const siguiente = getSiguienteTrimestre();
-      if (siguiente) {
-        setFormData({
-          anio: siguiente.anio.toString(),
-          trimestre: siguiente.trimestre,
-          cantidadProgramada: 0,
-          presupuestoProgramado: 0
+    if (open && meta && activePlan) {
+      getSiguienteTrimestre(meta.id, activePlan)
+        .then(res => {
+          if (res) {
+            setSiguiente(res);
+            setFormData({
+              anio: res.anio.toString(),
+              trimestre: res.trimestre,
+              cantidadProgramada: 0,
+              presupuestoProgramado: 0,
+            });
+          } else {
+            setSiguiente(null);
+          }
         });
-      } else {
-        setFormData({
-          anio: '',
-          trimestre: '',
-          cantidadProgramada: 0,
-          presupuestoProgramado: 0
-        });
-      }
     }
-  }, [open, meta]);
+  }, [open, meta, activePlan]);
+
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -119,28 +94,17 @@ const ProgramacionTrimestralForm = ({ open, onOpenChange, onSave, meta, activePl
       return;
     }
 
-    const siguiente = getSiguienteTrimestre();
-    if (!siguiente || siguiente.anio.toString() !== formData.anio || siguiente.trimestre !== formData.trimestre) {
-      toast({
-        title: "Error de Orden",
-        description: "Debe programar los trimestres en orden cronológico.",
-        variant: "destructive",
-      });
-      return;
-    }
-
     onSave({
-      ...formData,
-      anio: parseInt(formData.anio),
-      cantidadProgramada: parseFloat(formData.cantidadProgramada),
-      presupuestoProgramado: parseFloat(formData.presupuestoProgramado)
+      id_meta: meta.id,
+      anio: Number(formData.anio),
+      trimestre: formData.trimestre,
+      cantidad: Number(formData.cantidadProgramada),
+      gasto: Number(formData.presupuestoProgramado),
     });
+
     
     onOpenChange(false);
   };
-
-  const disponibles = getTrimestresDisponibles();
-  const siguiente = getSiguienteTrimestre();
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -154,13 +118,13 @@ const ProgramacionTrimestralForm = ({ open, onOpenChange, onSave, meta, activePl
             Programe las metas esperadas para el siguiente trimestre. 
             {meta && (
               <span className="block mt-1 font-medium">
-                Meta: {meta.numeroMetaManual ? `(${meta.numeroMetaManual}) ` : ''}{meta.nombreMeta}
+                Meta: {meta.codigo} - {meta.nombre}
               </span>
             )}
           </DialogDescription>
         </DialogHeader>
         
-        {disponibles.length === 0 ? (
+        {!siguiente ? (
           <div className="text-center py-6">
             <Target className="h-12 w-12 mx-auto text-green-500 mb-3" />
             <p className="text-lg font-medium text-green-700">¡Programación Completa!</p>
