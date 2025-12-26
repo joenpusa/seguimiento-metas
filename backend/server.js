@@ -10,6 +10,7 @@ import unidadesRouter from "./src/routes/unidades.js";
 import detallesPlanRoutes from "./src/routes/detallesPlan.js";
 import metasRoutes from "./src/routes/metas.js";
 import programacionesRoutes from "./src/routes/programaciones.js";
+import avancesRoutes from "./src/routes/avances.js";
 
 
 dotenv.config();
@@ -27,6 +28,7 @@ app.use("/api/unidades", unidadesRouter);
 app.use("/api/detalles-plan", detallesPlanRoutes);
 app.use("/api/metas", metasRoutes);
 app.use("/api/programaciones", programacionesRoutes);
+app.use("/api/avances", avancesRoutes);
 
 const port = process.env.PORT || 4000;
 app.listen(port, () => console.log(`API escuchando en http://localhost:${port}`));

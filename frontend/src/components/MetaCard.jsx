@@ -28,7 +28,6 @@ import { useAuth } from "@/context/AuthContext";
 import { useProgramacion } from "@/context/ProgramacionContext";
 
 const MetaCard = ({ meta, viewMode = "grid" }) => {
-  // console.log(meta);
   const [openMetaForm, setOpenMetaForm] = useState(false);
   const [showProgramacion, setShowProgramacion] = useState(false);
   const [showProgramacionList, setShowProgramacionList] = useState(false);

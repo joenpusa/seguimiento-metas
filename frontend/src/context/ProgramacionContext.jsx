@@ -20,19 +20,29 @@ export const ProgramacionProvider = ({ children }) => {
   const normalizeProgramacion = (p) => ({
     id: p.id_programacion,
     idMeta: p.id_meta,
-    anio: p.anio,
+    anio: Number(p.anio),
     trimestre: p.trimestre,
-    cantidad: p.cantidad,
-    gasto: p.gasto,
+
+    // Programado
+    cantidadProgramada: p.cantidad_programada ?? p.cantidad,
+    presupuestoProgramado: p.gasto_programado ?? p.gasto,
+
+    // Avance (pueden ser null)
+    cantidadAvanzada: p.cantidad_avance ?? 0,
+    gastoAvanzado: p.gasto_avance ?? 0,
+
+    // Calculado en backend
+    estado: p.estado,
+
     createdAt: p.created_at,
   });
+
 
   // ===============================
   // LISTAR POR META
   // ===============================
   const fetchProgramacionesByMeta = async (idMeta) => {
     if (!idMeta) return;
-
     setLoadingProgramaciones(true);
     try {
       const res = await api.get(
@@ -42,6 +52,10 @@ export const ProgramacionProvider = ({ children }) => {
       setProgramaciones(
         res.data.map(normalizeProgramacion)
       );
+      // console.error("esto fue lo que llego");
+      // console.log(res.data);
+      // console.error("esto fue lo normalice");
+      // console.log(programaciones);
     } catch (err) {
       toast({
         title: "Programaciones",
