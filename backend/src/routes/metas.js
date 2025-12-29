@@ -130,7 +130,7 @@ router.get("/", async (req, res) => {
       estadoProgreso,
     } = req.query;
 
-    // 🔴 VALIDACIÓN OBLIGATORIA
+    // VALIDACIÓN OBLIGATORIA
     if (!idPlan) {
       return res.status(400).json({
         message: "El parámetro idPlan es obligatorio",
@@ -147,7 +147,7 @@ router.get("/", async (req, res) => {
 
     res.json(metas);
   } catch (error) {
-    console.error("❌ Error obteniendo metas filtradas:", error);
+    console.error(" Error obteniendo metas filtradas:", error);
 
     // Error de validación desde el modelo
     if (error.message?.includes("idPlan")) {

@@ -12,9 +12,9 @@ import { Search } from "lucide-react";
 import { motion } from "framer-motion";
 
 const ESTADO_PROGRESO_OPTIONS = [
-  { id: "sinIniciar", nombre: "Sin Iniciar (0%)" },
-  { id: "enProgreso", nombre: "En Progreso (1–99%)" },
-  { id: "completada", nombre: "Completada (100%)" },
+  { id: "SIN_INICIAR", nombre: "Sin iniciar (0%)" },
+  { id: "EN_EJECUCION", nombre: "En ejecución (1–99%)" },
+  { id: "COMPLETADA", nombre: "Completada (100%)" },
 ];
 
 const MetasFilterControls = ({
@@ -36,7 +36,7 @@ const MetasFilterControls = ({
       transition={{ duration: 0.3, delay: 0.1 }}
       className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 items-end"
     >
-      {/* 🔍 BUSCADOR */}
+      {/* BUSCADOR */}
       {/* <div className="relative md:col-span-2 lg:col-span-1">
         <Label htmlFor="searchMeta" className="sr-only">
           Buscar
@@ -51,7 +51,7 @@ const MetasFilterControls = ({
         />
       </div> */}
 
-      {/* 🧑 RESPONSABLE */}
+      {/* RESPONSABLE */}
       <div>
         <Label
           htmlFor="filterResponsableMeta"
@@ -134,7 +134,7 @@ const MetasFilterControls = ({
         </Select>
       </div>
 
-      {/* 📊 ESTADO */}
+      {/* ESTADO */}
       <div>
         <Label
           htmlFor="filterEstadoProgreso"

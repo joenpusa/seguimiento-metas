@@ -116,7 +116,7 @@ export const MetasModel = {
     );
     if (!secretaria) throw new Error("Secretaría no existe");
 
-    // 🔹 Insert meta
+    // Insert meta
     const result = await db.run(
       `
       INSERT INTO metas (
@@ -191,7 +191,7 @@ export const MetasModel = {
 
     const id_meta = result.lastID;
 
-    // 🔹 Insert municipios
+    // Insert municipios
     if (Array.isArray(data.municipios)) {
       for (const id_municipio of data.municipios) {
         await db.run(
@@ -229,10 +229,52 @@ export const MetasModel = {
         m.*,
         s.nombre AS secretaria_nombre,
         u.nombre AS unidad_nombre,
-        dp.id_plan
+        dp.id_plan,
+
+        -- PORCENTAJES
+        CASE
+          WHEN m.cantidad > 0
+          THEN ROUND(COALESCE(av.total_cantidad, 0) * 100.0 / m.cantidad, 2)
+          ELSE 0
+        END AS porcentaje_fisico,
+
+        CASE
+          WHEN (m.valor + m.valor2 + m.valor3 + m.valor4) > 0
+          THEN ROUND(
+            COALESCE(av.total_gasto, 0) * 100.0 /
+            (m.valor + m.valor2 + m.valor3 + m.valor4),
+            2
+          )
+          ELSE 0
+        END AS porcentaje_financiero,
+
+        -- Estado de progreso
+        CASE
+          WHEN
+            COALESCE(av.total_cantidad, 0) = 0
+            OR m.cantidad = 0
+          THEN 'SIN_INICIAR'
+
+          WHEN
+            ROUND(COALESCE(av.total_cantidad, 0) * 100.0 / m.cantidad, 2) >= 100
+          THEN 'COMPLETADA'
+
+          ELSE 'EN_EJECUCION'
+        END AS estadoProgreso
+
       FROM metas m
       INNER JOIN detalles_plan dp ON dp.id_detalle = m.id_detalle
       INNER JOIN planes_desarrollo p ON p.id_plan = dp.id_plan
+
+      LEFT JOIN (
+        SELECT
+          id_meta,
+          SUM(cantidad) AS total_cantidad,
+          SUM(gasto) AS total_gasto
+        FROM avances
+        GROUP BY id_meta
+      ) av ON av.id_meta = m.id_meta
+
       LEFT JOIN secretarias s ON s.id_secretaria = m.id_secretaria
       LEFT JOIN metasxmunicipio mxm ON mxm.id_meta = m.id_meta
       LEFT JOIN unidades u ON u.id_unidad = m.id_unidad
@@ -243,7 +285,7 @@ export const MetasModel = {
     const params = [];
 
     // ===============================
-    // 🔴 FILTRO BASE OBLIGATORIO: PLAN
+    // PLAN (OBLIGATORIO)
     // ===============================
     if (!filters.idPlan) {
       throw new Error("idPlan es obligatorio para filtrar metas");
@@ -253,7 +295,7 @@ export const MetasModel = {
     params.push(filters.idPlan);
 
     // ===============================
-    // 🧑 SECRETARÍA
+    // SECRETARÍA
     // ===============================
     if (filters.responsableId) {
       sql += " AND m.id_secretaria = ?";
@@ -261,7 +303,7 @@ export const MetasModel = {
     }
 
     // ===============================
-    // 🗺️ MUNICIPIO
+    // MUNICIPIO
     // ===============================
     if (filters.municipioId) {
       sql += " AND mxm.id_municipio = ?";
@@ -269,7 +311,7 @@ export const MetasModel = {
     }
 
     // ===============================
-    // 🔍 TEXTO LIBRE
+    // TEXTO LIBRE
     // ===============================
     if (filters.q) {
       sql += `
@@ -287,13 +329,28 @@ export const MetasModel = {
     }
 
     // ===============================
-    // 📊 ESTADO PROGRESO
+    // FILTRO POR ESTADO DE PROGRESO
     // ===============================
-    
-    //falta por definir
+    if (filters.estadoProgreso) {
+      sql += `
+        AND (
+          CASE
+            WHEN
+              COALESCE(av.total_cantidad, 0) = 0
+              OR m.cantidad = 0
+            THEN 'SIN_INICIAR'
+            WHEN
+              ROUND(COALESCE(av.total_cantidad, 0) * 100.0 / m.cantidad, 2) >= 100
+            THEN 'COMPLETADA'
+            ELSE 'EN_EJECUCION'
+          END
+        ) = ?
+      `;
+      params.push(filters.estadoProgreso);
+    }
 
     // ===============================
-    // 🔹 LIMIT solo si no hay filtros adicionales
+    // LIMIT
     // ===============================
     const filtrosOpcionales =
       filters.responsableId ||
@@ -302,10 +359,11 @@ export const MetasModel = {
       filters.estadoProgreso;
 
     if (!filtrosOpcionales) {
-      sql += " LIMIT 50";
+      sql += " LIMIT 100";
     }
 
     return db.all(sql, params);
   },
+
 
 };

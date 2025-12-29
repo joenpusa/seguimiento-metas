@@ -12,19 +12,19 @@ export const MetaProvider = ({ children }) => {
   const { toast } = useToast();
 
   // ===============================
-  // 🔹 METAS GLOBALES (MetasPage)
+  // METAS GLOBALES (MetasPage)
   // ===============================
   const [metas, setMetas] = useState([]);
   const [loading, setLoading] = useState(false);
 
   // ===============================
-  // 🔹 META SELECCIONADA (DETALLE)
+  // META SELECCIONADA (DETALLE)
   // ===============================
   const [selectedMeta, setSelectedMeta] = useState(null);
   const [loadingSelectedMeta, setLoadingSelectedMeta] = useState(false);
 
   // ===============================
-  // 🔹 METAS POR INICIATIVA (Admin)
+  // METAS POR INICIATIVA (Admin)
   // ===============================
   const [metasByDetalle, setMetasByDetalle] = useState({});
   const [loadingMetas, setLoadingMetas] = useState(false);
@@ -37,36 +37,55 @@ export const MetaProvider = ({ children }) => {
     codigo: m.codigo,
     nombre: m.nombre,
     descripcion: m.descripcion,
-    cantidad: m.cantidad,
-    valor: m.valor,
-    valor2: m.valor2,
-    valor3: m.valor3,
-    valor4: m.valor4,
+
+    // 🎯 META
+    cantidad: Number(m.cantidad) || 0,
+
+    valores: {
+      valor1: Number(m.valor) || 0,
+      valor2: Number(m.valor2) || 0,
+      valor3: Number(m.valor3) || 0,
+      valor4: Number(m.valor4) || 0,
+    },
+
     recurrente: m.recurrente,
-    progreso: m.progreso,
+
+    // 📊 AVANCES (NUEVOS)
+    porcentajeFisico: Number(m.porcentaje_fisico) || 0,
+    porcentajeFinanciero: Number(m.porcentaje_financiero) || 0,
+    estadoProgreso: m.estadoProgreso || "SIN_INICIAR",
+
+    // 🧭 RELACIONES
     id_detalle: m.id_detalle,
     id_unidad: m.id_unidad,
     unidad_nombre: m.unidad_nombre,
     id_secretaria: m.id_secretaria,
     secretaria_nombre: m.secretaria_nombre,
+
     municipios: m.municipios || [],
     numeroMetaManual: m.numero_meta_manual,
   });
+
 
   const normalizeMetaDetail = (m) => ({
     id: m.id_meta,
     codigo: m.codigo,
     nombre: m.nombre,
     descripcion: m.descripcion,
-    cantidad: m.cantidad,
+
+    cantidad: Number(m.cantidad) || 0,
     fechaLimite: m.fecha_limite,
-    progreso: m.progreso ?? 0,
+
+    // 📊 AVANCES
+    porcentajeFisico: Number(m.porcentaje_fisico) || 0,
+    porcentajeFinanciero: Number(m.porcentaje_financiero) || 0,
+    estadoProgreso: m.estadoProgreso || "SIN_INICIAR",
 
     valores: {
-      valor1: m.valor,
-      valor2: m.valor2,
-      valor3: m.valor3,
-      valor4: m.valor4,
+      valor1: Number(m.valor) || 0,
+      valor2: Number(m.valor2) || 0,
+      valor3: Number(m.valor3) || 0,
+      valor4: Number(m.valor4) || 0,
     },
 
     unidad: {
@@ -81,43 +100,27 @@ export const MetaProvider = ({ children }) => {
 
     municipios: Array.isArray(m.municipios) ? m.municipios : [],
 
-    // 🌳 ÁRBOL JERÁRQUICO (CORREGIDO)
     linea: m.linea_id
-      ? {
-          id: m.linea_id,
-          codigo: m.linea_codigo,
-          nombre: m.linea_nombre,
-        }
+      ? { id: m.linea_id, codigo: m.linea_codigo, nombre: m.linea_nombre }
       : null,
 
     componente: m.componente_id
-      ? {
-          id: m.componente_id,
-          codigo: m.componente_codigo,
-          nombre: m.componente_nombre,
-        }
+      ? { id: m.componente_id, codigo: m.componente_codigo, nombre: m.componente_nombre }
       : null,
 
     apuesta: m.apuesta_id
-      ? {
-          id: m.apuesta_id,
-          codigo: m.apuesta_codigo,
-          nombre: m.apuesta_nombre,
-        }
+      ? { id: m.apuesta_id, codigo: m.apuesta_codigo, nombre: m.apuesta_nombre }
       : null,
 
     iniciativa: m.iniciativa_id
-      ? {
-          id: m.iniciativa_id,
-          codigo: m.iniciativa_codigo,
-          nombre: m.iniciativa_nombre,
-        }
+      ? { id: m.iniciativa_id, codigo: m.iniciativa_codigo, nombre: m.iniciativa_nombre }
       : null,
   });
 
 
+
   // =====================================================
-  // 🔹 METAS GLOBALES CON FILTROS (NUEVO)
+  // METAS GLOBALES CON FILTROS (NUEVO)
   // =====================================================
   const fetchMetas = async (filters = {}) => {
     if (!filters.idPlan) return;

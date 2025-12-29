@@ -7,15 +7,13 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import {
-  MapPin,
   User,
-  Calendar,
   Target,
   DollarSign,
   Eye,
+  Calendar,
   CalendarPlus,
 } from "lucide-react";
 
@@ -32,7 +30,7 @@ const MetaCard = ({ meta, viewMode = "grid" }) => {
   const [showProgramacion, setShowProgramacion] = useState(false);
   const [showProgramacionList, setShowProgramacionList] = useState(false);
 
-  const { fetchMetaById } = useMeta(); 
+  const { fetchMetaById } = useMeta();
   const { getActivePlan } = usePlan();
   const { currentUser } = useAuth();
   const { createProgramacion } = useProgramacion();
@@ -42,47 +40,48 @@ const MetaCard = ({ meta, viewMode = "grid" }) => {
   /* =========================
      NORMALIZACIÓN DE DATOS
   ========================== */
-  const nombreMeta = meta.nombre || "Meta sin nombre";
-  const nombreResponsable =
-    meta.secretaria_nombre|| "Sin responsable";
+  const nombreMeta = meta.nombre ?? "Meta sin nombre";
+  const nombreResponsable = meta.secretaria_nombre ?? "Sin responsable";
+  const unidadMedida = meta.unidad_nombre ?? "";
 
-  const nombresMunicipios = Array.isArray(meta.municipios)
-    ? meta.municipios.map((m) => m.nombre).join(", ")
-    : "Sin municipios";
+  const porcentajeFisico = Number(meta.porcentajeFisico ?? 0);
+  const estadoProgreso = meta.estadoProgreso ?? "SIN_INICIAR";
 
-  const fechaLimite = meta.fecha_limite;
+  const presupuestoTotal = Object.values(meta.valores ?? {}).reduce(
+    (acc, val) => acc + Number(val || 0),
+    0
+  );
 
-  const unidadMedida = meta.unidad_nombre || "";
+  /* =========================
+     UI HELPERS
+  ========================== */
+  const ESTADO_META_UI = {
+    SIN_INICIAR: {
+      label: "Sin iniciar",
+      variant: "secondary",
+    },
+    EN_EJECUCION: {
+      label: "En ejecución",
+      variant: "default",
+    },
+    COMPLETADA: {
+      label: "Completada",
+      variant: "outline",
+      className: "border-green-500 text-green-700",
+    },
+  };
 
-  const presupuestoTotal =
-    (meta.valor || 0) +
-    (meta.valor2 || 0) +
-    (meta.valor3 || 0) +
-    (meta.valor4 || 0);
-
-  /* ========================= */
-
-  const getProgressColor = (progress) => {
-    if (progress < 30) return "bg-red-500";
-    if (progress < 70) return "bg-yellow-500";
+  const getProgressColor = (value) => {
+    if (value < 30) return "bg-red-500";
+    if (value < 70) return "bg-yellow-500";
     return "bg-green-500";
   };
 
-  const getStatusBadge = (progress) => {
-    if (progress === 0)
-      return <Badge variant="secondary">Sin iniciar</Badge>;
-    if (progress < 100)
-      return <Badge variant="default">En progreso</Badge>;
-    return (
-      <Badge
-        variant="outline"
-        className="border-green-500 text-green-700"
-      >
-        Completada
-      </Badge>
-    );
-  };
+  const estadoUI = ESTADO_META_UI[estadoProgreso];
 
+  /* =========================
+     PERMISOS
+  ========================== */
   const canManageProgramacion = () => {
     if (!currentUser) return false;
     if (currentUser.rol === "admin") return true;
@@ -94,16 +93,17 @@ const MetaCard = ({ meta, viewMode = "grid" }) => {
     return false;
   };
 
-const handleViewMeta = async () => {
+  /* =========================
+     HANDLERS
+  ========================== */
+  const handleViewMeta = async () => {
     await fetchMetaById(meta.id);
     setOpenMetaForm(true);
   };
 
   const handleProgramarTrimestre = async (data) => {
     const ok = await createProgramacion(data);
-    if (ok) {
-      setShowProgramacion(false);
-    }
+    if (ok) setShowProgramacion(false);
   };
 
   const formatCurrency = (amount) =>
@@ -114,7 +114,7 @@ const handleViewMeta = async () => {
     }).format(amount);
 
   /* =========================
-     VISTA GRID
+     RENDER
   ========================== */
   return (
     <>
@@ -130,27 +130,40 @@ const handleViewMeta = async () => {
                   {nombreMeta}
                 </CardTitle>
               </div>
-              {getStatusBadge(meta.progreso || 0)}
+
+              {estadoUI && (
+                <Badge
+                  variant={estadoUI.variant}
+                  className={estadoUI.className}
+                >
+                  {estadoUI.label}
+                </Badge>
+              )}
             </div>
           </CardHeader>
+
           <CardContent className="space-y-3">
-            <Progress
-              value={meta.progreso || 0}
-              className="h-2"
-              indicatorClassName={getProgressColor(
-                meta.progreso || 0
-              )}
-            />
+            {/* Barra de progreso */}
+            <div className="h-2 w-full rounded-full bg-muted overflow-hidden">
+              <div
+                className={`h-full transition-all ${getProgressColor(
+                  porcentajeFisico
+                )}`}
+                style={{ width: `${porcentajeFisico}%` }}
+              />
+            </div>
 
             <div className="text-sm space-y-1">
               <div className="flex gap-2">
                 <Target className="h-4 w-4" />
                 {meta.cantidad} {unidadMedida}
               </div>
+
               <div className="flex gap-2">
                 <DollarSign className="h-4 w-4" />
                 {formatCurrency(presupuestoTotal)}
               </div>
+
               <div className="flex gap-2">
                 <User className="h-4 w-4" />
                 {nombreResponsable}
@@ -173,20 +186,17 @@ const handleViewMeta = async () => {
                   <Button
                     size="sm"
                     variant="outline"
-                    onClick={() =>
-                      setShowProgramacionList(true)
-                    }
+                    onClick={() => setShowProgramacionList(true)}
                     className="flex-1"
                   >
                     <Calendar className="h-4 w-4 mr-1" />
                     Prog.
                   </Button>
+
                   <Button
                     size="sm"
                     variant="outline"
-                    onClick={() =>
-                      setShowProgramacion(true)
-                    }
+                    onClick={() => setShowProgramacion(true)}
                     className="flex-1"
                   >
                     <CalendarPlus className="h-4 w-4 mr-1" />
@@ -198,9 +208,11 @@ const handleViewMeta = async () => {
           </CardContent>
         </Card>
       </motion.div>
-      {/* llamado a la modal de ver detalles de meta */}
-      <MetaForm open={openMetaForm} onOpenChange={setOpenMetaForm} /> 
-      {/* llamado a la lista de programaciones */}
+
+      {/* Modal ver meta */}
+      <MetaForm open={openMetaForm} onOpenChange={setOpenMetaForm} />
+
+      {/* Lista programaciones */}
       {showProgramacionList && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-lg max-w-2xl w-full max-h-[80vh] overflow-y-auto">
@@ -209,31 +221,37 @@ const handleViewMeta = async () => {
                 Programación - {nombreMeta}
               </h2>
             </div>
+
             <div className="p-4">
-              <ProgramacionTrimestralList 
-                meta={meta} 
+              <ProgramacionTrimestralList
+                meta={meta}
                 onProgramar={() => {
                   setShowProgramacionList(false);
                   setShowProgramacion(true);
                 }}
               />
             </div>
+
             <div className="p-4 border-t">
-              <Button onClick={() => setShowProgramacionList(false)} className="w-full">
+              <Button
+                onClick={() => setShowProgramacionList(false)}
+                className="w-full"
+              >
                 Cerrar
               </Button>
             </div>
           </div>
         </div>
       )}
-        {/* formulario de crear una programacioin trimestral */}
-       <ProgramacionTrimestralForm
-          open={showProgramacion}
-          onOpenChange={setShowProgramacion}
-          onSave={handleProgramarTrimestre}
-          meta={meta}
-          activePlan={activePlan}
-        />
+
+      {/* Crear programación */}
+      <ProgramacionTrimestralForm
+        open={showProgramacion}
+        onOpenChange={setShowProgramacion}
+        onSave={handleProgramarTrimestre}
+        meta={meta}
+        activePlan={activePlan}
+      />
     </>
   );
 };

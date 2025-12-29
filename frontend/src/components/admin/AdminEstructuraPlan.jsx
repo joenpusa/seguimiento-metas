@@ -45,7 +45,7 @@ const AdminEstructuraPlan = () => {
     const tipo = parent ? NEXT_TIPO[parent.tipo] : "linea";
 
     if (!tipo) {
-      console.error("❌ Tipo inválido para agregar hijo", parent);
+      console.error("❌FT: Tipo inválido para agregar hijo", parent);
       return;
     }
 
