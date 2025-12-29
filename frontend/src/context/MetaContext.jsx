@@ -38,7 +38,7 @@ export const MetaProvider = ({ children }) => {
     nombre: m.nombre,
     descripcion: m.descripcion,
 
-    // 🎯 META
+    //  META
     cantidad: Number(m.cantidad) || 0,
 
     valores: {
@@ -50,12 +50,12 @@ export const MetaProvider = ({ children }) => {
 
     recurrente: m.recurrente,
 
-    // 📊 AVANCES (NUEVOS)
+    //  AVANCES (NUEVOS)
     porcentajeFisico: Number(m.porcentaje_fisico) || 0,
     porcentajeFinanciero: Number(m.porcentaje_financiero) || 0,
     estadoProgreso: m.estadoProgreso || "SIN_INICIAR",
 
-    // 🧭 RELACIONES
+    //  RELACIONES
     id_detalle: m.id_detalle,
     id_unidad: m.id_unidad,
     unidad_nombre: m.unidad_nombre,
@@ -64,6 +64,22 @@ export const MetaProvider = ({ children }) => {
 
     municipios: m.municipios || [],
     numeroMetaManual: m.numero_meta_manual,
+
+    linea: m.linea_id
+      ? { id: m.linea_id, codigo: m.linea_codigo, nombre: m.linea_nombre }
+      : null,
+
+    componente: m.componente_id
+      ? { id: m.componente_id, codigo: m.componente_codigo, nombre: m.componente_nombre }
+      : null,
+
+    apuesta: m.apuesta_id
+      ? { id: m.apuesta_id, codigo: m.apuesta_codigo, nombre: m.apuesta_nombre }
+      : null,
+
+    iniciativa: m.iniciativa_id
+      ? { id: m.iniciativa_id, codigo: m.iniciativa_codigo, nombre: m.iniciativa_nombre }
+      : null,
   });
 
 

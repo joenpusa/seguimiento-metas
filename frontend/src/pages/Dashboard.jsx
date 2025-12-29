@@ -1,11 +1,16 @@
-import React from 'react';
-import { motion } from 'framer-motion';
-import { useMeta } from '@/context/MetaContext';
-import DashboardStats from '@/components/DashboardStats';
-import DashboardChart from '@/components/DashboardChart';
-import DashboardTable from '@/components/DashboardTable';
+import React from "react";
+import { motion } from "framer-motion";
+import { useMeta } from "@/context/MetaContext";
+import DashboardStats from "@/components/DashboardStats";
+import DashboardChart from "@/components/DashboardChart";
+import DashboardTable from "@/components/DashboardTable";
 import { Progress } from "@/components/ui/progress";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 
 const Dashboard = () => {
   const { metas, loading } = useMeta();
@@ -14,18 +19,24 @@ const Dashboard = () => {
     return (
       <div className="flex items-center justify-center h-[calc(100vh-100px)]">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
-          <p className="mt-4 text-gray-500">Cargando datos...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto" />
+          <p className="mt-4 text-gray-500">
+            Cargando datos...
+          </p>
         </div>
       </div>
     );
   }
 
+  /* =========================
+     MÉTRICAS GENERALES
+  ========================== */
   const promedioAvanceFisico =
     metas.length > 0
       ? Math.round(
           metas.reduce(
-            (acc, meta) => acc + (meta.progreso || 0),
+            (acc, meta) =>
+              acc + (meta.porcentajeFisico || 0),
             0
           ) / metas.length
         )
@@ -36,11 +47,15 @@ const Dashboard = () => {
       ? Math.round(
           metas.reduce(
             (acc, meta) =>
-              acc + (meta.progresoFinanciero || 0),
+              acc + (meta.porcentajeFinanciero || 0),
             0
           ) / metas.length
         )
       : 0;
+
+  const metasCompletadas = metas.filter(
+    (meta) => meta.estadoProgreso === "COMPLETADA"
+  ).length;
 
   return (
     <div className="space-y-6">
@@ -53,11 +68,12 @@ const Dashboard = () => {
           Dashboard
         </h1>
         <p className="text-muted-foreground">
-          Seguimiento al avance de metas del Plan de Desarrollo
-          Departamental
+          Seguimiento al avance de metas del Plan de
+          Desarrollo Departamental
         </p>
       </motion.div>
 
+      {/* 📊 KPIs */}
       <DashboardStats metas={metas} />
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -65,6 +81,7 @@ const Dashboard = () => {
         <DashboardTable metas={metas} />
       </div>
 
+      {/* 🧾 RESUMEN EJECUTIVO */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -76,22 +93,27 @@ const Dashboard = () => {
               Resumen Ejecutivo
             </CardTitle>
           </CardHeader>
+
           <CardContent>
             <div className="mb-4 space-y-2">
               <p>
-                El Plan de Desarrollo Departamental muestra
-                un avance general físico del{" "}
-                {promedioAvanceFisico}% y financiero del{" "}
-                {promedioAvanceFinanciero}%.
+                El Plan de Desarrollo Departamental
+                muestra un avance físico promedio del{" "}
+                <strong>
+                  {promedioAvanceFisico}%
+                </strong>{" "}
+                y un avance financiero promedio del{" "}
+                <strong>
+                  {promedioAvanceFinanciero}%
+                </strong>
+                .
               </p>
+
               <p>
-                Se han completado (físicamente){" "}
-                {
-                  metas.filter(
-                    meta => meta.progreso === 100
-                  ).length
-                }{" "}
-                metas de un total de {metas.length}.
+                Se han completado{" "}
+                <strong>{metasCompletadas}</strong>{" "}
+                metas de un total de{" "}
+                <strong>{metas.length}</strong>.
               </p>
             </div>
 
@@ -100,49 +122,51 @@ const Dashboard = () => {
                 .slice()
                 .sort(
                   (a, b) =>
-                    (a.progreso || 0) -
-                    (b.progreso || 0)
+                    (a.porcentajeFisico || 0) -
+                    (b.porcentajeFisico || 0)
                 )
-                .map(meta => (
+                .map((meta) => (
                   <div
-                    key={meta.idMeta || meta.id}
+                    key={meta.id}
                     className="p-3 bg-white/10 rounded-md"
                   >
                     <h4 className="font-semibold text-sm mb-1">
                       {meta.numeroMetaManual
                         ? `(${meta.numeroMetaManual}) `
-                        : ''}
-                      {meta.nombreMeta || meta.nombre}
+                        : ""}
+                      {meta.nombre}
                     </h4>
 
                     <div className="space-y-1.5">
+                      {/* AVANCE FÍSICO */}
                       <div>
                         <div className="flex justify-between text-xs mb-0.5">
                           <span>Avance Físico</span>
                           <span>
-                            {meta.progreso || 0}%
+                            {meta.porcentajeFisico || 0}%
                           </span>
                         </div>
                         <Progress
-                          value={meta.progreso || 0}
+                          value={meta.porcentajeFisico || 0}
                           className="h-1.5 bg-white/30 [&>div]:bg-sky-400"
                         />
                       </div>
 
+                      {/* AVANCE FINANCIERO */}
                       <div>
                         <div className="flex justify-between text-xs mb-0.5">
                           <span>
                             Avance Financiero
                           </span>
                           <span>
-                            {meta.progresoFinanciero ||
+                            {meta.porcentajeFinanciero ||
                               0}
                             %
                           </span>
                         </div>
                         <Progress
                           value={
-                            meta.progresoFinanciero ||
+                            meta.porcentajeFinanciero ||
                             0
                           }
                           className="h-1.5 bg-white/30 [&>div]:bg-emerald-400"

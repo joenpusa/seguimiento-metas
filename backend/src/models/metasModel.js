@@ -221,6 +221,9 @@ export const MetasModel = {
     return true;
   },
 
+  // =========================
+  // OBTENER METAS SEGUN FILTROS
+  // =========================
   async getFiltered(filters = {}) {
     const db = await openDb();
 
@@ -260,11 +263,32 @@ export const MetasModel = {
           THEN 'COMPLETADA'
 
           ELSE 'EN_EJECUCION'
-        END AS estadoProgreso
+        END AS estadoProgreso,
+
+        -- Arbol de jerarquia
+        i.id_detalle   AS iniciativa_id,
+        i.codigo       AS iniciativa_codigo,
+        i.nombre_detalle AS iniciativa_nombre,
+
+        a.id_detalle   AS apuesta_id,
+        a.codigo       AS apuesta_codigo,
+        a.nombre_detalle AS apuesta_nombre,
+
+        c.id_detalle   AS componente_id,
+        c.codigo       AS componente_codigo,
+        c.nombre_detalle AS componente_nombre,
+
+        l.id_detalle   AS linea_id,
+        l.codigo       AS linea_codigo,
+        l.nombre_detalle AS linea_nombre
 
       FROM metas m
       INNER JOIN detalles_plan dp ON dp.id_detalle = m.id_detalle
       INNER JOIN planes_desarrollo p ON p.id_plan = dp.id_plan
+      LEFT JOIN detalles_plan i ON i.id_detalle = m.id_detalle
+      LEFT JOIN detalles_plan a ON a.id_detalle = i.id_detalle_padre
+      LEFT JOIN detalles_plan c ON c.id_detalle = a.id_detalle_padre
+      LEFT JOIN detalles_plan l ON l.id_detalle = c.id_detalle_padre
 
       LEFT JOIN (
         SELECT
