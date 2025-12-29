@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import {
   Card,
@@ -6,23 +6,29 @@ import {
   CardTitle,
   CardContent,
 } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import {
   Calendar,
   Target,
-  DollarSign,
   CheckCircle,
   Clock,
   AlertCircle,
 } from "lucide-react";
 import { useProgramacion } from "@/context/ProgramacionContext";
+import AvanceFormulario from "@/components/avances/AvanceFormulario";
 
 const ProgramacionTrimestralList = ({ meta, onProgramar }) => {
-  const {
-    programaciones,
-    fetchProgramacionesByMeta,
-  } = useProgramacion();
+  const { programaciones, fetchProgramacionesByMeta } = useProgramacion();
+
+  const [openModal, setOpenModal] = useState(false);
+  const [programacionSeleccionada, setProgramacionSeleccionada] = useState(null);
 
   useEffect(() => {
     if (!meta?.id) return;
@@ -32,6 +38,7 @@ const ProgramacionTrimestralList = ({ meta, onProgramar }) => {
   const programacion = (programaciones || []).filter(
     (p) => p.idMeta === meta?.id
   );
+
   // ===============================
   // MAPEO VISUAL DE ESTADO
   // ===============================
@@ -98,6 +105,7 @@ const ProgramacionTrimestralList = ({ meta, onProgramar }) => {
     totalProgramado.presupuesto > 0
       ? (totalAvanzado.presupuesto / totalProgramado.presupuesto) * 100
       : 0;
+
   // ===============================
   // RENDER
   // ===============================
@@ -193,10 +201,8 @@ const ProgramacionTrimestralList = ({ meta, onProgramar }) => {
                             </div>
                           </div>
 
-                          <div className="text-right">
-                            <p
-                              className={`text-sm font-medium ${estado.color}`}
-                            >
+                          <div className="text-right space-y-1">
+                            <p className={`text-sm font-medium ${estado.color}`}>
                               {estado.label}
                             </p>
 
@@ -205,6 +211,20 @@ const ProgramacionTrimestralList = ({ meta, onProgramar }) => {
                                 Avanzado: {prog.cantidadAvanzada}{" "}
                                 {meta?.unidadMedida}
                               </p>
+                            )}
+
+                            {prog.estado === "vencido" && (
+                              <Button
+                                size="xs"
+                                variant="destructive"
+                                className="p-1 text-xs"
+                                onClick={() => {
+                                  setProgramacionSeleccionada(prog);
+                                  setOpenModal(true);
+                                }}
+                              >
+                                Reportar avance
+                              </Button>
                             )}
                           </div>
                         </div>
@@ -216,6 +236,21 @@ const ProgramacionTrimestralList = ({ meta, onProgramar }) => {
           )}
         </CardContent>
       </Card>
+
+      {/* MODAL */}
+      <Dialog open={openModal} onOpenChange={setOpenModal}>
+        <DialogContent className="max-w-6xl w-full max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Reportar avance trimestral</DialogTitle>
+          </DialogHeader>
+
+          <AvanceFormulario
+            meta={meta}
+            programacion={programacionSeleccionada}
+            onClose={() => setOpenModal(false)}
+          />
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

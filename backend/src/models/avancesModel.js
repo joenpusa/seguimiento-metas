@@ -9,7 +9,6 @@ export const AvancesModel = {
     const db = await openDb();
 
     const {
-      idPlan,
       idMeta,
       anio,
       trimestre,
@@ -39,15 +38,8 @@ export const AvancesModel = {
       params.push(idSecretaria);
     }
 
-    if (idPlan) {
-      conditions.push("m.id_plan = ?");
-      params.push(idPlan);
-    }
-
     const whereClause =
-      conditions.length > 0
-        ? `WHERE ${conditions.join(" AND ")}`
-        : "";
+      conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
 
     const rows = await db.all(
       `
@@ -61,32 +53,64 @@ export const AvancesModel = {
         a.cantidad,
         a.gasto,
         a.url_evidencia,
-
-        a.cantidad_0_5,
-        a.cantidad_6_12,
-        a.cantidad_13_17,
-        a.cantidad_18_24,
-        a.cantidad_25_62,
-        a.cantidad_65_mas,
-
-        a.cantesp_mujer,
-        a.cantesp_discapacidad,
-        a.cantesp_etnia,
-        a.cantesp_victima,
-        a.cantesp_desmovilizado,
-        a.cantesp_lgtbi,
-        a.cantesp_migrante,
-        a.cantesp_indigente,
-        a.cantesp_privado,
-
         a.created_at,
 
+        -- Datos de la meta
         m.nombre AS meta_nombre,
-        m.id_secretaria
+        m.cantidad AS meta_cantidad,
+
+        (IFNULL(m.valor,0) + IFNULL(m.valor2,0) + IFNULL(m.valor3,0) + IFNULL(m.valor4,0)) AS meta_presupuesto_total,
+
+        -- % avance financiero (trimestre)
+        ROUND(
+          CASE
+            WHEN (IFNULL(m.valor,0) + IFNULL(m.valor2,0) + IFNULL(m.valor3,0) + IFNULL(m.valor4,0)) > 0
+            THEN (a.gasto * 100.0) /
+                (IFNULL(m.valor,0) + IFNULL(m.valor2,0) + IFNULL(m.valor3,0) + IFNULL(m.valor4,0))
+            ELSE 0
+          END
+        , 2) AS porcentaje_financiero,
+
+        -- % avance físico (trimestre)
+        ROUND(
+          CASE
+            WHEN m.cantidad > 0
+            THEN (a.cantidad * 100.0) / m.cantidad
+            ELSE 0
+          END
+        , 2) AS porcentaje_fisico,
+
+        -- ¿Es el último avance?
+        CASE
+          WHEN a.id_avance = (
+            SELECT ax.id_avance
+            FROM avances ax
+            WHERE ax.id_meta = a.id_meta
+            ORDER BY
+              ax.anio DESC,
+              CASE ax.trimestre
+                WHEN 'T1' THEN 1
+                WHEN 'T2' THEN 2
+                WHEN 'T3' THEN 3
+                WHEN 'T4' THEN 4
+              END DESC
+            LIMIT 1
+          )
+          THEN 1
+          ELSE 0
+        END AS es_ultimo
+
       FROM avances a
       INNER JOIN metas m ON m.id_meta = a.id_meta
       ${whereClause}
-      ORDER BY a.created_at DESC
+      ORDER BY
+        a.anio DESC,
+        CASE a.trimestre
+          WHEN 'T1' THEN 1
+          WHEN 'T2' THEN 2
+          WHEN 'T3' THEN 3
+          WHEN 'T4' THEN 4
+        END DESC
       `,
       params
     );
@@ -94,6 +118,7 @@ export const AvancesModel = {
     await db.close();
     return rows;
   },
+
 
   // =============================================
   // 📌 Obtener avance por ID
@@ -145,7 +170,7 @@ export const AvancesModel = {
         cantesp_indigente,
         cantesp_privado
       )
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `,
       [
         data.anio,
@@ -259,4 +284,32 @@ export const AvancesModel = {
     await db.close();
     return true;
   },
+
+  // =============================================
+  // ultimo avance de una meta
+  // =============================================
+  async getUltimoAvancePorMeta(idMeta) {
+    const db = await openDb();
+
+    const row = await db.get(
+      `
+      SELECT id_avance
+      FROM avances
+      WHERE id_meta = ?
+      ORDER BY
+        anio DESC,
+        CASE trimestre
+          WHEN 'T1' THEN 1
+          WHEN 'T2' THEN 2
+          WHEN 'T3' THEN 3
+          WHEN 'T4' THEN 4
+        END DESC
+      LIMIT 1
+      `,
+      [idMeta]
+    );
+
+    await db.close();
+    return row;
+  }
 };

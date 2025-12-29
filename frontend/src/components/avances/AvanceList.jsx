@@ -16,18 +16,23 @@ const AvanceList = ({ avances = [], loading, onEdit, onDelete }) => {
   const { currentUser } = useAuth();
 
   if (loading) return null;
-
   const getMetaNombreCompleto = (avance) =>
     `${avance.metaNumero ? `(${avance.metaNumero}) ` : ""}${avance.metaNombre}`;
 
   const canEditOrDelete = (avance) => {
     if (!currentUser) return false;
+
+    if (!avance.esUltimo) return false;
+
     if (currentUser.rol === "admin") return true;
+
     if (
       currentUser.rol === "responsable" &&
       avance.metaResponsable === currentUser.nombre
-    )
+    ) {
       return true;
+    }
+
     return false;
   };
 
@@ -74,7 +79,13 @@ const AvanceList = ({ avances = [], loading, onEdit, onDelete }) => {
                       <p className="font-medium text-sm">
                         {new Date(avance.createdAt).toLocaleDateString()}
                       </p>
+                      {avance.esUltimo && (
+                      <span className="text-xs bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded">
+                        Último avance
+                      </span>
+                    )}
                     </div>
+                    
                   </div>
                 </CardHeader>
 
@@ -104,7 +115,7 @@ const AvanceList = ({ avances = [], loading, onEdit, onDelete }) => {
                         % Avance físico
                       </p>
                       <p className="font-semibold text-sm text-sky-600">
-                        {avance.porcentajeCalculado}%
+                        {avance.porcentajeFisico}%%
                       </p>
                     </div>
 
@@ -125,7 +136,7 @@ const AvanceList = ({ avances = [], loading, onEdit, onDelete }) => {
                         % Avance financiero
                       </p>
                       <p className="font-semibold text-sm text-emerald-600">
-                        {avance.porcentajeFinancieroCalculado}%
+                        {avance.porcentajeFinanciero}%
                       </p>
                     </div>
                   </div>

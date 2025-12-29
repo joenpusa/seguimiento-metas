@@ -29,7 +29,7 @@ const AvancesPage = () => {
      CONTEXTOS
   ========================== */
   const { secretarias = [], } = useSecretaria();
-  const { metas = [], loading: metasLoading } = useMeta();
+  const { metas = [], loading: metasLoading, fetchMetas } = useMeta();
   const { getActivePlan, loading: planLoading } =
     usePlan();
   const { currentUser } = useAuth();
@@ -60,15 +60,25 @@ const AvancesPage = () => {
 
   const activePlan = getActivePlan();
   const loading = metasLoading || planLoading || loadingAvances;
+  const activePlanId = activePlan?.id;
 
   /* =========================
      CARGA INICIAL
   ========================== */
   useEffect(() => {
-    if (activePlan?.idPlan) {
-      fetchAvances({ idPlan: activePlan.idPlan });
+    if (activePlanId) {
+      fetchAvances({ idPlan: activePlanId });
     }
-  }, [activePlan, fetchAvances]);
+  }, [activePlanId]);
+
+  useEffect(() => {
+    if (!activePlanId) return;
+
+    fetchMetas({
+      idPlan: activePlanId,
+    });
+  }, [activePlanId]);
+
 
   /* =========================
      METAS VISIBLES SEGÚN ROL
@@ -93,34 +103,23 @@ const AvancesPage = () => {
   ========================== */
   const avancesEnriquecidos = useMemo(() => {
     return avances.map((a) => {
-      const avancesEnriquecidos = useMemo(() => {
-        return avances.map((a) => {
-          const meta = metas.find(
-            (m) => Number(m.id) === Number(a.idMeta)
-          );
-
-          return {
-            ...a,
-            metaNombre: meta?.nombre ?? "N/A",
-            metaNumero: meta?.numeroMetaManual ?? "",
-            metaUnidadMedida: meta?.unidad_nombre ?? "",
-            metaResponsable: meta?.secretaria_nombre ?? "",
-          };
-        });
-      }, [avances, metas]);
-
+      const meta = metas.find(
+        (m) => Number(m.id) === Number(a.idMeta)
+      );
 
       return {
         ...a,
         idMeta: Number(a.idMeta),
         anio: Number(a.anio),
-        metaNombre: meta?.nombreMeta ?? "N/A",
+
+        metaNombre: meta?.nombre ?? "N/A",
         metaNumero: meta?.numeroMetaManual ?? "",
-        metaUnidadMedida: meta?.unidadMedida ?? "",
-        metaResponsable: meta?.responsable ?? "",
+        metaUnidadMedida: meta?.unidad_nombre ?? "",
+        metaResponsable: meta?.secretaria_nombre ?? "",
       };
     });
   }, [avances, metas]);
+
 
   /* =========================
      AÑOS DISPONIBLES

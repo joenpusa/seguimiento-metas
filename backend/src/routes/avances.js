@@ -70,13 +70,23 @@ router.put("/:id", authenticateToken, async (req, res) => {
   }
 });
 
-// 🔹 DELETE /api/avances/:id
+// DELETE /api/avances/:id
 router.delete("/:id", authenticateToken, async (req, res) => {
   try {
     const avance = await AvancesModel.getById(req.params.id);
 
     if (!avance) {
       return res.status(404).json({ message: "Avance no encontrado" });
+    }
+
+    // 🔒 Obtener el último avance de esa meta
+    const ultimo = await AvancesModel.getUltimoAvancePorMeta(avance.id_meta);
+
+    if (!ultimo || ultimo.id_avance !== avance.id_avance) {
+      return res.status(409).json({
+        message:
+          "Solo se puede eliminar el último avance registrado de la meta. Debe eliminar primero los avances más recientes.",
+      });
     }
 
     await AvancesModel.delete(req.params.id);

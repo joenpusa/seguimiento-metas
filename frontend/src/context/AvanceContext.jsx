@@ -20,15 +20,18 @@ export const AvanceProvider = ({ children }) => {
   // NORMALIZADOR
   // ===============================
     const normalizeAvance = (a) => ({
-    id: a.id_avance,
-    idMeta: Number(a.id_meta),
-    anio: Number(a.anio),
-    trimestre: a.trimestre,
-    descripcion: a.descripcion,
-    cantidadAvanzada: Number(a.cantidad),
-    gastoEjecutado: Number(a.gasto),
-    evidenciaURL: a.url_evidencia,
-    createdAt: a.created_at,
+      id: a.id_avance,
+      idMeta: Number(a.id_meta),
+      anio: Number(a.anio),
+      trimestre: a.trimestre,
+      descripcion: a.descripcion,
+      cantidadAvanzada: Number(a.cantidad),
+      gastoEjecutado: Number(a.gasto),
+      evidenciaURL: a.url_evidencia,
+      createdAt: a.created_at,
+      porcentajeFisico: Number(a.porcentaje_fisico ?? 0),
+      porcentajeFinanciero: Number(a.porcentaje_financiero ?? 0),
+      esUltimo: a.es_ultimo === 1,
     });
 
 
