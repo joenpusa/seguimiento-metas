@@ -1,102 +1,202 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { motion } from 'framer-motion';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardContent
+} from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 
 const ReportSummary = ({ data, chartType }) => {
-  const metasFiltradas = (data && data.filteredMetas && Array.isArray(data.filteredMetas)) 
-    ? data.filteredMetas 
-    : [];
+  const metas = data?.filteredMetas ?? [];
+  const avances = data?.filteredAvances ?? [];
 
-  const totalMetas = metasFiltradas.length;
-  const metasCompletadasFisico = metasFiltradas.filter(meta => (meta.progreso || 0) === 100).length;
-  const metasCompletadasFinanciero = metasFiltradas.filter(meta => (meta.progresoFinanciero || 0) === 100).length;
+  /**
+   * Agrupar avances por meta y tomar el último
+   * (el filtrado por año/trimestre ya viene hecho desde InformesPage)
+   */
+  const avancesPorMeta = useMemo(() => {
+    const map = new Map();
 
-  const promedioAvanceFisico = totalMetas > 0 
-    ? Math.round(metasFiltradas.reduce((acc, meta) => acc + (meta.progreso || 0), 0) / totalMetas) 
+    avances.forEach((av) => {
+      if (!map.has(av.metaId)) {
+        map.set(av.metaId, av);
+        return;
+      }
+
+      const actual = map.get(av.metaId);
+
+      // Comparar por año y trimestre
+      if (
+        av.anioAvance > actual.anioAvance ||
+        (av.anioAvance === actual.anioAvance &&
+          av.trimestreAvance > actual.trimestreAvance)
+      ) {
+        map.set(av.metaId, av);
+      }
+    });
+
+    return Array.from(map.values());
+  }, [avances]);
+
+  const totalMetas = metas.length;
+
+  const metasCompletadasFisico = metas.filter(
+    m => m.estadoProgreso === 'completada'
+  ).length;
+
+  const metasCompletadasFinanciero = avancesPorMeta.filter(
+    (a) => a.porcentajeFinanciero === 100
+  ).length;
+
+  const promedioAvanceFisico =
+  metas.length > 0
+    ? Math.round(
+        metas.reduce((acc, m) => acc + (m.porcentajeFisico || 0), 0) / metas.length
+      )
     : 0;
-  const promedioAvanceFinanciero = totalMetas > 0
-    ? Math.round(metasFiltradas.reduce((acc, meta) => acc + (meta.progresoFinanciero || 0), 0) / totalMetas)
-    : 0;
+
+  const promedioAvanceFinanciero =
+    avancesPorMeta.length > 0
+      ? Math.round(
+          avancesPorMeta.reduce(
+            (acc, a) => acc + (a.porcentajeFinanciero || 0),
+            0
+          ) / avancesPorMeta.length
+        )
+      : 0;
 
   const getBarColor = (value) => {
-    if (value < 30) return 'bg-red-500';
-    if (value < 70) return 'bg-yellow-500';
+    if (value === 0) return 'bg-gray-400';
+    if (value < 100) return 'bg-yellow-500';
     return 'bg-green-500';
   };
-  
-  const pieChartData = () => {
-    if (!Array.isArray(metasFiltradas)) return [];
-    const completadas = metasFiltradas.filter(meta => (meta.progreso || 0) === 100).length;
-    const enProceso = metasFiltradas.filter(meta => (meta.progreso || 0) >= 30 && (meta.progreso || 0) < 100).length;
-    const enRiesgo = metasFiltradas.filter(meta => (meta.progreso || 0) < 30).length;
-    
-    return [
-      { name: 'Completadas', value: completadas, color: '#22c55e' }, 
-      { name: 'En Proceso', value: enProceso, color: '#f59e0b' }, 
-      { name: 'En Riesgo', value: enRiesgo, color: '#ef4444' } 
-    ].filter(item => item.value > 0);
-  };
-  const currentPieData = pieChartData();
 
+  /**
+   * Distribución por estado físico
+   */
+  const estadoFisico = useMemo(() => {
+    const sinIniciar = avancesPorMeta.filter(
+      (a) => (a.porcentajeFisico || 0) === 0
+    ).length;
+
+    const enEjecucion = avancesPorMeta.filter(
+      (a) =>
+        (a.porcentajeFisico || 0) > 0 &&
+        (a.porcentajeFisico || 0) < 100
+    ).length;
+
+    const completadas = avancesPorMeta.filter(
+      (a) => a.porcentajeFisico === 100
+    ).length;
+
+    return [
+      { name: 'Sin iniciar', value: sinIniciar, color: '#9ca3af' },
+      { name: 'En ejecución', value: enEjecucion, color: '#f59e0b' },
+      { name: 'Completadas', value: completadas, color: '#22c55e' }
+    ].filter((e) => e.value > 0);
+  }, [avancesPorMeta]);
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
+      initial={{ opacity: 0, y: 15 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3, delay: 0.2 }}
+      transition={{ duration: 0.25 }}
       className="md:col-span-1"
     >
       <Card className="h-full">
         <CardHeader>
-          <CardTitle className="text-base">Resumen Filtrado</CardTitle>
+          <CardTitle className="text-base">
+            Resumen del Informe
+          </CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className="space-y-3">
-            <div>
-              <p className="text-xs text-gray-500 mb-0.5">Total de Metas (filtradas):</p>
-              <p className="text-xl font-bold">{totalMetas}</p>
-            </div>
-            <div>
-              <p className="text-xs text-gray-500 mb-0.5">Metas Completadas (Físicas):</p>
-              <p className="text-xl font-bold text-green-600">{metasCompletadasFisico}</p>
-            </div>
-             <div>
-              <p className="text-xs text-gray-500 mb-0.5">Metas Completadas (Financieras):</p>
-              <p className="text-xl font-bold text-emerald-600">{metasCompletadasFinanciero}</p>
-            </div>
-            <div>
-              <p className="text-xs text-gray-500 mb-0.5">Avance Físico General (filtrado):</p>
-              <div className="flex items-center gap-2">
-                <Progress value={promedioAvanceFisico} className="h-1.5 flex-1" indicatorClassName={getBarColor(promedioAvanceFisico)} />
-                <span className="text-sm font-bold">{promedioAvanceFisico}%</span>
-              </div>
-            </div>
-            <div>
-              <p className="text-xs text-gray-500 mb-0.5">Avance Financiero General (filtrado):</p>
-              <div className="flex items-center gap-2">
-                <Progress value={promedioAvanceFinanciero} className="h-1.5 flex-1" indicatorClassName={getBarColor(promedioAvanceFinanciero)} />
-                <span className="text-sm font-bold">{promedioAvanceFinanciero}%</span>
-              </div>
-            </div>
 
-            {currentPieData.length > 0 && chartType === 'pie' && totalMetas > 0 && (
+        <CardContent className="space-y-4">
+          <div>
+            <p className="text-xs text-muted-foreground">
+              Total de metas filtradas
+            </p>
+            <p className="text-2xl font-bold">{totalMetas}</p>
+          </div>
+
+          <div>
+            <p className="text-xs text-muted-foreground">
+              Metas completadas (físico)
+            </p>
+            <p className="text-xl font-bold text-green-600">
+              {metasCompletadasFisico}
+            </p>
+          </div>
+
+          <div>
+            <p className="text-xs text-muted-foreground">
+              Metas completadas (financiero)
+            </p>
+            <p className="text-xl font-bold text-emerald-600">
+              {metasCompletadasFinanciero}
+            </p>
+          </div>
+
+          <div>
+            <p className="text-xs text-muted-foreground mb-1">
+              Avance físico promedio
+            </p>
+            <div className="flex items-center gap-2">
+              <Progress
+                value={promedioAvanceFisico}
+                className="h-2 flex-1"
+                indicatorClassName={getBarColor(promedioAvanceFisico)}
+              />
+              <span className="text-sm font-semibold">
+                {promedioAvanceFisico}%
+              </span>
+            </div>
+          </div>
+
+          <div>
+            <p className="text-xs text-muted-foreground mb-1">
+              Avance financiero promedio
+            </p>
+            <div className="flex items-center gap-2">
+              <Progress
+                value={promedioAvanceFinanciero}
+                className="h-2 flex-1"
+                indicatorClassName={getBarColor(promedioAvanceFinanciero)}
+              />
+              <span className="text-sm font-semibold">
+                {promedioAvanceFinanciero}%
+              </span>
+            </div>
+          </div>
+
+          {chartType === 'pie' && estadoFisico.length > 0 && (
             <div className="pt-3 border-t">
-              <p className="text-xs text-gray-500 mb-1.5">Distribución por Estado (Físico):</p>
+              <p className="text-xs text-muted-foreground mb-2">
+                Estado físico de metas
+              </p>
+
               <div className="space-y-1 text-xs">
-                {currentPieData.map(entry => (
-                  <div key={entry.name} className="flex justify-between items-center">
-                    <div className="flex items-center gap-1.5">
-                      <div style={{backgroundColor: entry.color}} className="w-2 h-2 rounded-full"></div>
-                      <span>{entry.name}</span>
+                {estadoFisico.map((e) => (
+                  <div
+                    key={e.name}
+                    className="flex justify-between items-center"
+                  >
+                    <div className="flex items-center gap-2">
+                      <span
+                        className="w-2 h-2 rounded-full"
+                        style={{ backgroundColor: e.color }}
+                      />
+                      <span>{e.name}</span>
                     </div>
-                    <span className="font-medium">{entry.value} ({ (entry.value / totalMetas * 100).toFixed(1) }%)</span>
+                    <span className="font-medium">
+                      {e.value}
+                    </span>
                   </div>
                 ))}
               </div>
             </div>
-            )}
-          </div>
+          )}
         </CardContent>
       </Card>
     </motion.div>

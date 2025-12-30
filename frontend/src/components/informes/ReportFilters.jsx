@@ -1,24 +1,50 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Button } from '@/components/ui/button';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
+} from '@/components/ui/select';
 import { Filter } from 'lucide-react';
 
-const FilterSelect = ({ label, value, onChange, options, placeholder, disabled = false, isObject = true }) => (
-  <Select value={value} onValueChange={onChange} disabled={disabled}>
-    <SelectTrigger className="w-full text-xs h-9">
+/**
+ * Select genérico reutilizable
+ */
+const FilterSelect = ({
+  label,
+  value,
+  onChange,
+  options = [],
+  placeholder,
+  isObject = false,
+  valueKey = 'nombre',
+  labelKey = 'nombre'
+}) => (
+  <Select value={value ?? ''} onValueChange={onChange}>
+    <SelectTrigger className="w-full h-9 text-xs">
       <div className="flex items-center gap-1 truncate">
-        <Filter className="h-3 w-3 flex-shrink-0" />
+        <Filter className="h-3 w-3 shrink-0" />
         <SelectValue placeholder={placeholder} />
       </div>
     </SelectTrigger>
+
     <SelectContent>
-      <SelectItem value="">{`Todos ${label.toLowerCase()}`}</SelectItem>
-      {Array.isArray(options) && options.map(opt => (
-        <SelectItem key={isObject ? opt.nombre : opt} value={isObject ? opt.nombre : opt}>
-          {isObject ? opt.nombre : opt}
-        </SelectItem>
-      ))}
+      <SelectItem value="">
+        {`Todos ${label.toLowerCase()}`}
+      </SelectItem>
+
+      {options.map((opt) => {
+        const itemValue = isObject ? opt[valueKey] : opt;
+        const itemLabel = isObject ? opt[labelKey] : opt;
+
+        return (
+          <SelectItem key={itemValue} value={itemValue}>
+            {itemLabel}
+          </SelectItem>
+        );
+      })}
     </SelectContent>
   </Select>
 );
@@ -29,72 +55,92 @@ const ReportFilters = ({
   municipios = [],
   responsables = []
 }) => {
-  const handleFilterChange = (filterName, value) => {
-    onFilterChange({ [filterName]: value });
+  const handleChange = (key) => (value) => {
+    onFilterChange({ [key]: value });
   };
 
-  const TRIMESTRES_OPTIONS = [
+  const TRIMESTRES = [
     { id: 'T1', nombre: 'Trimestre 1' },
     { id: 'T2', nombre: 'Trimestre 2' },
     { id: 'T3', nombre: 'Trimestre 3' },
     { id: 'T4', nombre: 'Trimestre 4' }
   ];
 
-  const availableYears = [2024, 2025, 2026, 2027];
+  const YEARS = [2024, 2025, 2026, 2027];
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
+      initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3 }}
+      transition={{ duration: 0.25 }}
       className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3"
     >
+      {/* Municipio */}
       <FilterSelect
         label="Municipios"
         value={filters.municipio}
-        onChange={(v) => handleFilterChange('municipio', v)}
+        onChange={handleChange('municipio')}
         options={municipios}
         placeholder="Municipio"
-        isObject={false}
+        isObject={true}
+        valueKey="id"
+        labelKey="nombre"
       />
 
-      <Select value={filters.anio} onValueChange={(v) => handleFilterChange('anio', v)}>
-        <SelectTrigger className="w-full text-xs h-9">
+      {/* Año */}
+      <Select
+        value={filters.anio ?? ''}
+        onValueChange={handleChange('anio')}
+      >
+        <SelectTrigger className="w-full h-9 text-xs">
           <div className="flex items-center gap-1 truncate">
-            <Filter className="h-3 w-3 flex-shrink-0" />
-            <SelectValue placeholder="Año Avance" />
+            <Filter className="h-3 w-3 shrink-0" />
+            <SelectValue placeholder="Año del avance" />
           </div>
         </SelectTrigger>
+
         <SelectContent>
-          <SelectItem value="">Todos los Años</SelectItem>
-          {availableYears.map(year => (
-            <SelectItem key={year} value={year.toString()}>{year}</SelectItem>
+          <SelectItem value="">Todos los años</SelectItem>
+          {YEARS.map((year) => (
+            <SelectItem key={year} value={year.toString()}>
+              {year}
+            </SelectItem>
           ))}
         </SelectContent>
       </Select>
 
-      <Select value={filters.trimestre} onValueChange={(v) => handleFilterChange('trimestre', v)}>
-        <SelectTrigger className="w-full text-xs h-9">
+      {/* Trimestre */}
+      <Select
+        value={filters.trimestre ?? ''}
+        onValueChange={handleChange('trimestre')}
+      >
+        <SelectTrigger className="w-full h-9 text-xs">
           <div className="flex items-center gap-1 truncate">
-            <Filter className="h-3 w-3 flex-shrink-0" />
-            <SelectValue placeholder="Trimestre Avance" />
+            <Filter className="h-3 w-3 shrink-0" />
+            <SelectValue placeholder="Trimestre del avance" />
           </div>
         </SelectTrigger>
+
         <SelectContent>
-          <SelectItem value="">Todos los Trimestres</SelectItem>
-          {TRIMESTRES_OPTIONS.map(trim => (
-            <SelectItem key={trim.id} value={trim.id}>{trim.nombre}</SelectItem>
+          <SelectItem value="">Todos los trimestres</SelectItem>
+          {TRIMESTRES.map((t) => (
+            <SelectItem key={t.id} value={t.id}>
+              {t.nombre}
+            </SelectItem>
           ))}
         </SelectContent>
       </Select>
 
+      {/* Responsable */}
       <FilterSelect
         label="Responsables"
         value={filters.responsable}
-        onChange={(v) => handleFilterChange('responsable', v)}
+        onChange={handleChange('responsable')}
         options={responsables}
         placeholder="Responsable"
         isObject={true}
+        valueKey="id"
+        labelKey="nombre"
       />
     </motion.div>
   );

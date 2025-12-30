@@ -1,164 +1,176 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { motion } from 'framer-motion';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { 
-  BarChart as ReBarChart, 
-  Bar, 
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
-  Tooltip, 
-  ResponsiveContainer, 
-  PieChart as RePieChart, 
-  Pie, 
-  Cell, 
-  Legend 
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardContent
+} from '@/components/ui/card';
+
+import {
+  BarChart as ReBarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  PieChart as RePieChart,
+  Pie,
+  Cell,
+  Legend
 } from 'recharts';
 
-const ReportCharts = ({ metasFiltradas, filters, chartType }) => {
-  
-  const metasParaGraficar = Array.isArray(metasFiltradas) ? metasFiltradas : [];
+const ReportCharts = ({ metasFiltradas, avancesFiltrados = [], filters, chartType }) => {
+  const metas = Array.isArray(metasFiltradas) ? metasFiltradas : [];
+  const avances = Array.isArray(avancesFiltrados) ? avancesFiltrados : [];
 
-  const prepareBarChartData = () => {
-    // Agrupa por nombre de iniciativa si no hay otro filtro más específico
-    const dataByGroup = metasParaGraficar.reduce((acc, meta) => {
-      // El campo 'nombreIniciativa' se añade en getAllMetasFromActivePlan
-      const groupName = meta.nombreIniciativa || meta.nombreMeta || 'N/A'; 
+  /**
+   * Tomar el último avance por meta
+   */
+  const avancesPorMeta = useMemo(() => {
+    const map = new Map();
 
-      if (!acc[groupName]) {
-        acc[groupName] = { name: groupName, totalMetas: 0, avanceFisico: 0, avanceFinanciero: 0 };
+    avances.forEach((av) => {
+      if (!map.has(av.metaId)) {
+        map.set(av.metaId, av);
+        return;
       }
-      acc[groupName].totalMetas += 1;
-      acc[groupName].avanceFisico += (meta.progreso || 0);
-      acc[groupName].avanceFinanciero += (meta.progresoFinanciero || 0);
-      return acc;
-    }, {});
-    
-    return Object.values(dataByGroup).map(item => ({
-      name: item.name,
-      avanceFisico: item.totalMetas > 0 ? Math.round(item.avanceFisico / item.totalMetas) : 0,
-      avanceFinanciero: item.totalMetas > 0 ? Math.round(item.avanceFinanciero / item.totalMetas) : 0,
+
+      const actual = map.get(av.metaId);
+      if (
+        av.anioAvance > actual.anioAvance ||
+        (av.anioAvance === actual.anioAvance &&
+          av.trimestreAvance > actual.trimestreAvance)
+      ) {
+        map.set(av.metaId, av);
+      }
+    });
+
+    return Array.from(map.values());
+  }, [avances]);
+
+  /**
+   * -----------------------------
+   * DATA PARA GRÁFICO DE BARRAS
+   * -----------------------------
+   */
+  const barChartData = useMemo(() => {
+    const grouped = {};
+
+    metas.forEach(meta => {
+      const key =
+        filters.responsable
+          ? meta.unidad_nombre || meta.secretaria_nombre
+          : filters.municipio
+          ? filters.municipio
+          : meta.nombreIniciativa || meta.nombreMeta;
+
+      if (!grouped[key]) {
+        grouped[key] = { name: key, count: 0, fisico: 0, financiero: 0 };
+      }
+
+      grouped[key].count += 1;
+      grouped[key].fisico += meta.porcentajeFisico || 0;
+      grouped[key].financiero += meta.porcentajeFinanciero || 0;
+    });
+
+    return Object.values(grouped).map(g => ({
+      name: g.name,
+      avanceFisico: Math.round(g.fisico / g.count),
+      avanceFinanciero: Math.round(g.financiero / g.count)
     }));
-  };
+  }, [metas, filters]);
 
-  const preparePieChartDataFisico = () => {
-    const completadas = metasParaGraficar.filter(meta => (meta.progreso || 0) === 100).length;
-    const enProceso = metasParaGraficar.filter(meta => (meta.progreso || 0) >= 30 && (meta.progreso || 0) < 100).length;
-    const enRiesgo = metasParaGraficar.filter(meta => (meta.progreso || 0) < 30).length;
-    
+  /**
+   * -----------------------------
+   * DATA PARA GRÁFICO CIRCULAR
+   * -----------------------------
+   */
+  const pieChartData = useMemo(() => {
+    const sinIniciar = avancesPorMeta.filter(
+      (a) => (a.porcentajeFisico || 0) === 0
+    ).length;
+
+    const enEjecucion = avancesPorMeta.filter(
+      (a) =>
+        (a.porcentajeFisico || 0) > 0 &&
+        (a.porcentajeFisico || 0) < 100
+    ).length;
+
+    const completadas = avancesPorMeta.filter(
+      (a) => a.porcentajeFisico === 100
+    ).length;
+
     return [
-      { name: 'Completadas', value: completadas, color: '#22c55e' }, // green-500
-      { name: 'En Proceso', value: enProceso, color: '#f59e0b' }, // amber-500
-      { name: 'En Riesgo', value: enRiesgo, color: '#ef4444' }  // red-500
-    ].filter(item => item.value > 0);
-  };
+      { name: 'Sin iniciar', value: sinIniciar, color: '#9ca3af' },
+      { name: 'En ejecución', value: enEjecucion, color: '#f59e0b' },
+      { name: 'Completadas', value: completadas, color: '#22c55e' }
+    ].filter((e) => e.value > 0);
+  }, [avancesPorMeta]);
 
-  const barChartData = prepareBarChartData();
-  const pieChartDataFisico = preparePieChartDataFisico();
-  
-  const barChartTitle = () => {
-    if (filters.responsable) return `Avance de Metas para: ${filters.responsable}`;
-    if (filters.municipio) return `Avance de Metas para: ${filters.municipio}`;
-    return 'Avance General por Iniciativa'; // Título genérico
-  };
-
-  const CustomTooltip = ({ active, payload, label }) => {
-    if (active && payload && payload.length) {
-      return (
-        <div className="bg-background border p-2 rounded shadow-lg text-xs">
-          <p className="label font-bold">{`${label}`}</p>
-          {payload.map((entry, index) => (
-            <p key={`item-${index}`} style={{ color: entry.color }}>
-              {`${entry.name === 'avanceFisico' ? 'Av. Físico' : 'Av. Financ.'}: ${entry.value}%`}
-            </p>
-          ))}
-        </div>
-      );
-    }
-    return null;
-  };
-  
-  const CustomPieLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent, index, name, value }) => {
-    const RADIAN = Math.PI / 180;
-    const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
-    const x = cx + radius * Math.cos(-midAngle * RADIAN);
-    const y = cy + radius * Math.sin(-midAngle * RADIAN);
-    const percentage = (percent * 100).toFixed(0);
-    if (percentage < 5) return null;
-
-    return (
-      <text x={x} y={y} fill="white" textAnchor={x > cx ? 'start' : 'end'} dominantBaseline="central" fontSize="10px">
-        {`${name.substring(0,3)}. ${percentage}%`}
-      </text>
-    );
-  };
-
+  const title =
+    chartType === 'bar'
+      ? filters.responsable
+        ? `Avance por responsable`
+        : filters.municipio
+        ? `Avance por municipio`
+        : 'Avance general por iniciativa'
+      : 'Distribución de metas por estado físico';
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
+      initial={{ opacity: 0, y: 15 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3, delay: 0.3 }}
+      transition={{ duration: 0.25 }}
       className="md:col-span-2"
     >
       <Card className="h-full">
         <CardHeader>
-          <CardTitle className="text-base">
-            {chartType === 'bar' ? barChartTitle() : 'Distribución de Metas por Estado (Físico)'}
-          </CardTitle>
+          <CardTitle className="text-base">{title}</CardTitle>
         </CardHeader>
+
         <CardContent>
           <div className="h-[350px] w-full">
-          {metasParaGraficar.length > 0 ? (
-            <ResponsiveContainer width="100%" height="100%">
-              {chartType === 'bar' ? (
-                <ReBarChart
-                  data={barChartData}
-                  margin={{ top: 5, right: 10, left: -20, bottom: barChartData.length > 5 && barChartData.length <=10 ? 50 : barChartData.length > 10 ? 70 : 20 }}
-                  layout={barChartData.length > 10 ? "vertical" : "horizontal"}
-                >
-                  <CartesianGrid strokeDasharray="3 3" />
-                  {barChartData.length > 10 ? ( // Vertical layout
-                    <>
-                      <XAxis type="number" domain={[0, 100]} tick={{ fontSize: 10 }} />
-                      <YAxis type="category" dataKey="name" width={100} interval={0} tick={{ fontSize: 10 }} />
-                    </>
-                  ) : ( // Horizontal layout
-                     <>
-                      <XAxis dataKey="name" angle={barChartData.length > 3 ? -35 : 0} textAnchor={barChartData.length > 3 ? "end" : "middle"} interval={0} height={barChartData.length > 3 ? 60 : 30} tick={{ fontSize: 10 }} />
-                      <YAxis domain={[0, 100]} tick={{ fontSize: 10 }} />
-                    </>
-                  )}
-                  <Tooltip content={<CustomTooltip />} />
-                  <Legend wrapperStyle={{fontSize: "10px", paddingTop: barChartData.length > 5 ? "10px" : "0px"}}/>
-                  <Bar dataKey="avanceFisico" name="Av. Físico" fill="#38bdf8" barSize={barChartData.length > 10 ? 10 : undefined} />
-                  <Bar dataKey="avanceFinanciero" name="Av. Financ." fill="#34d399" barSize={barChartData.length > 10 ? 10 : undefined} />
-                </ReBarChart>
-              ) : (
-                <RePieChart>
-                  <Pie
-                    data={pieChartDataFisico}
-                    cx="50%"
-                    cy="50%"
-                    labelLine={false}
-                    outerRadius={120}
-                    fill="#8884d8"
-                    dataKey="value"
-                    label={CustomPieLabel}
-                  >
-                    {pieChartDataFisico.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} />
-                    ))}
-                  </Pie>
-                  <Tooltip formatter={(value, name, props) => [`${value} (${(props.payload.percent * 100).toFixed(1)}%)`, props.payload.name]} />
-                  {pieChartDataFisico.length > 1 && <Legend wrapperStyle={{fontSize: "12px"}}/>}
-                </RePieChart>
-              )}
-            </ResponsiveContainer>
-             ) : (
+            {barChartData.length === 0 && pieChartData.length === 0 ? (
               <div className="flex items-center justify-center h-full text-muted-foreground text-sm">
                 No hay datos para mostrar con los filtros seleccionados.
               </div>
+            ) : (
+              <ResponsiveContainer width="100%" height="100%">
+                {chartType === 'bar' ? (
+                  <ReBarChart data={barChartData}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="name" tick={{ fontSize: 10 }} interval={0} />
+                    <YAxis domain={[0, 100]} tick={{ fontSize: 10 }} />
+                    <Tooltip />
+                    <Legend />
+                    <Bar dataKey="avanceFisico" name="Av. Físico" fill="#38bdf8" />
+                    <Bar
+                      dataKey="avanceFinanciero"
+                      name="Av. Financiero"
+                      fill="#34d399"
+                    />
+                  </ReBarChart>
+                ) : (
+                  <RePieChart>
+                    <Pie
+                      data={pieChartData}
+                      cx="50%"
+                      cy="50%"
+                      outerRadius={120}
+                      dataKey="value"
+                      label
+                    >
+                      {pieChartData.map((e, i) => (
+                        <Cell key={i} fill={e.color} />
+                      ))}
+                    </Pie>
+                    <Tooltip />
+                    <Legend />
+                  </RePieChart>
+                )}
+              </ResponsiveContainer>
             )}
           </div>
         </CardContent>
