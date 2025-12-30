@@ -3,15 +3,19 @@ import React, {
   useState,
   useContext,
   useCallback,
+  useEffect,
 } from "react";
 
 import api from "@/api/axiosConfig";
 import { useToast } from "@/components/ui/use-toast";
+import { usePlan } from "@/context/PlanContext";
+
 
 const AvanceContext = createContext();
 
 export const AvanceProvider = ({ children }) => {
   const { toast } = useToast();
+  const { activePlan } = usePlan();
 
   const [avances, setAvances] = useState([]);
   const [loadingAvances, setLoadingAvances] = useState(false);
@@ -38,7 +42,7 @@ export const AvanceProvider = ({ children }) => {
   // ===============================
   // FETCH
   // ===============================
-  const fetchAvances = async (params = {}) => {
+  const fetchAvances = useCallback(async (params = {}) => {
     try {
       setLoadingAvances(true);
 
@@ -56,7 +60,20 @@ export const AvanceProvider = ({ children }) => {
     } finally {
       setLoadingAvances(false);
     }
-  };
+  }, [toast]);
+
+
+  // ===============================
+  // FETCH DE DATOS INICIALES
+  // ===============================
+  useEffect(() => {
+    if (!activePlan?.id) return;
+
+    fetchAvances({
+      idPlan: activePlan.id,
+    });
+  }, [activePlan?.id]);
+
 
   // ===============================
   // CRUD
@@ -65,6 +82,9 @@ export const AvanceProvider = ({ children }) => {
     try {
       await api.post("/avances", data);
       toast({ title: "Avance registrado correctamente" });
+      if (activePlan?.id) {
+        fetchAvances({ idPlan: activePlan.id });
+      }
       return true;
     } catch (err) {
       toast({
@@ -80,6 +100,9 @@ export const AvanceProvider = ({ children }) => {
     try {
       await api.put(`/avances/${id}`, data);
       toast({ title: "Avance actualizado correctamente" });
+      if (activePlan?.id) {
+        fetchAvances({ idPlan: activePlan.id });
+      }
       return true;
     } catch {
       toast({
@@ -107,7 +130,6 @@ export const AvanceProvider = ({ children }) => {
       return false;
     }
   };
-
   return (
     <AvanceContext.Provider
       value={{

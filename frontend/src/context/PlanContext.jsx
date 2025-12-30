@@ -43,8 +43,14 @@ export const PlanProvider = ({ children }) => {
 
         setPlanesDesarrollo(planes);
 
-        const activo = planes.find((p) => p.esActivo === 1);
-        setActivePlanId(activo?.id || planes[0]?.id || null);
+        const storedPlanId = localStorage.getItem("activePlanId");
+
+        if (storedPlanId && planes.some(p => p.id === Number(storedPlanId))) {
+          setActivePlanId(Number(storedPlanId));
+        } else {
+          const activo = planes.find((p) => p.esActivo === 1);
+          setActivePlanId(activo?.id || planes[0]?.id || null);
+        }
       } catch (err) {
         console.error("Error cargando planes:", err);
       } finally {
@@ -121,6 +127,8 @@ export const PlanProvider = ({ children }) => {
       console.warn("Error activando plan, solo local");
     }
 
+    localStorage.setItem("activePlanId", id);
+
     setActivePlanId(id);
     setPlanesDesarrollo((prev) =>
       prev.map((p) => ({
@@ -130,6 +138,10 @@ export const PlanProvider = ({ children }) => {
     );
   };
 
+  const activePlan = planesDesarrollo.find(
+    (p) => p.id === activePlanId
+  );
+
   return (
     <PlanContext.Provider
       value={{
@@ -137,6 +149,7 @@ export const PlanProvider = ({ children }) => {
         activePlanId,
         loading,
         getActivePlan,
+        activePlan,
         addPlanDesarrollo,
         updatePlanDesarrolloInfo,
         deletePlanDesarrollo,

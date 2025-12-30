@@ -2,15 +2,17 @@ import React, {
   createContext,
   useState,
   useContext,
+  useEffect,
 } from "react";
 import api from "@/api/axiosConfig";
 import { useToast } from "@/components/ui/use-toast";
+import { usePlan } from "@/context/PlanContext";
 
 const MetaContext = createContext();
 
 export const MetaProvider = ({ children }) => {
   const { toast } = useToast();
-
+  const { activePlan, loading: loadingPlan } = usePlan();
   // ===============================
   // METAS GLOBALES (MetasPage)
   // ===============================
@@ -92,7 +94,7 @@ export const MetaProvider = ({ children }) => {
     cantidad: Number(m.cantidad) || 0,
     fechaLimite: m.fecha_limite,
 
-    // 📊 AVANCES
+    // AVANCES
     porcentajeFisico: Number(m.porcentaje_fisico) || 0,
     porcentajeFinanciero: Number(m.porcentaje_financiero) || 0,
     estadoProgreso: m.estadoProgreso || "SIN_INICIAR",
@@ -133,7 +135,15 @@ export const MetaProvider = ({ children }) => {
       : null,
   });
 
+  // =====================================================
+  //  CARGA INICIAL AUTOMÁTICA DE METAS
+  // =====================================================
+  useEffect(() => {
+    if (loadingPlan) return;
+    if (!activePlan?.id) return;
 
+    fetchMetas({ idPlan: activePlan.id });
+  }, [loadingPlan, activePlan?.id]);
 
   // =====================================================
   // METAS GLOBALES CON FILTROS (NUEVO)
@@ -178,11 +188,14 @@ export const MetaProvider = ({ children }) => {
   // METAS POR INICIATIVA
   // ===============================
   const fetchMetasByDetalle = async (idDetalle) => {
-    if (!idDetalle) return;
+    if (!idDetalle || !activePlan?.id) return;
 
     setLoadingMetas(true);
     try {
-      const res = await api.get(`/metas/detalle/${idDetalle}`);
+      const res = await api.get(
+        `/metas/detalle/${idDetalle}`,
+        { params: { idPlan: activePlan.id } }
+      );
 
       setMetasByDetalle((prev) => ({
         ...prev,
@@ -234,6 +247,7 @@ export const MetaProvider = ({ children }) => {
       await api.post("/metas", data);
       toast({ title: "Meta creada correctamente" });
       await fetchMetasByDetalle(data.id_detalle);
+      await fetchMetas({ idPlan: activePlan.id });
       return true;
     } catch (err) {
       toast({
@@ -250,6 +264,7 @@ export const MetaProvider = ({ children }) => {
       await api.put(`/metas/${id}`, data);
       toast({ title: "Meta actualizada" });
       await fetchMetasByDetalle(data.id_detalle);
+      await fetchMetas({ idPlan: activePlan.id });
       return true;
     } catch {
       toast({
@@ -261,11 +276,14 @@ export const MetaProvider = ({ children }) => {
     }
   };
 
-  const deleteMeta = async (meta) => {
+  const deleteMeta = async (id, idDetalle) => {
     try {
-      await api.delete(`/metas/${meta.id}`);
+      await api.delete(`/metas/${id}`);
       toast({ title: "Meta eliminada" });
-      await fetchMetasByDetalle(meta.id_detalle);
+
+      await fetchMetasByDetalle(idDetalle);
+      await fetchMetas({ idPlan: activePlan.id });
+
       return true;
     } catch {
       toast({
