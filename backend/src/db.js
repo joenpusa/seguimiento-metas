@@ -1,30 +1,30 @@
 // src/db.js
-import sqlite3 from "sqlite3";
-import { open } from "sqlite";
-import path from "path";
-import fs from "fs";
-import { fileURLToPath } from "url";
+import mysql from "mysql2/promise";
+import dotenv from "dotenv";
 
-// 📍 Necesario para obtener rutas absolutas correctamente en módulos ESM
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+dotenv.config();
 
-// 📁 Ruta del archivo de base de datos
-const dbPath = path.join(__dirname, "../data/seguimiento.db");
+// Pool de conexiones (recomendado)
+const pool = mysql.createPool({
+  host: process.env.DB_HOST || "localhost",
+  port: process.env.DB_PORT || 3306,
+  user: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
+  database: process.env.DB_NAME,
 
-// 🧩 Crear carpeta automáticamente si no existe
-fs.mkdirSync(path.dirname(dbPath), { recursive: true });
+  waitForConnections: true,
+  connectionLimit: 10,
+  queueLimit: 0,
+  timezone: "Z",
+  charset: "utf8mb4",
+});
 
-// 🧠 Función para abrir la conexión a la base de datos
 export async function openDb() {
   try {
-    const db = await open({
-      filename: dbPath,
-      driver: sqlite3.Database,
-    });
-    return db;
+    const connection = await pool.getConnection();
+    return connection;
   } catch (err) {
-    console.error("❌ Error al abrir la base de datos:", err);
+    console.error("❌ Error al conectar a MySQL:", err);
     throw err;
   }
 }

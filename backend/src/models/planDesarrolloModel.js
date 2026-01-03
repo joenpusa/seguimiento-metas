@@ -6,19 +6,22 @@ import { openDb } from "../db.js";
 // =============================================
 export async function getAllPlanes() {
   const db = await openDb();
-  const planes = await db.all(`
-    SELECT 
-      id_plan,
-      nombre_plan,
-      vigencia_inicio,
-      vigencia_fin,
-      es_activo,
-      created_at
-    FROM planes_desarrollo
-    ORDER BY created_at DESC
-  `);
-  await db.close();
-  return planes;
+  try {
+    const [planes] = await db.query(`
+      SELECT 
+        id_plan,
+        nombre_plan,
+        vigencia_inicio,
+        vigencia_fin,
+        es_activo,
+        created_at
+      FROM planes_desarrollo
+      ORDER BY created_at DESC
+    `);
+    return planes;
+  } finally {
+    db.release();
+  }
 }
 
 // =============================================
@@ -26,20 +29,23 @@ export async function getAllPlanes() {
 // =============================================
 export async function getPlanById(id) {
   const db = await openDb();
-  const plan = await db.get(
-    `SELECT 
-        id_plan,
-        nombre_plan,
-        vigencia_inicio,
-        vigencia_fin,
-        es_activo,
-        created_at
-     FROM planes_desarrollo
-     WHERE id_plan = ?`,
-    [id]
-  );
-  await db.close();
-  return plan;
+  try {
+    const [rows] = await db.query(
+      `SELECT 
+          id_plan,
+          nombre_plan,
+          vigencia_inicio,
+          vigencia_fin,
+          es_activo,
+          created_at
+       FROM planes_desarrollo
+       WHERE id_plan = ?`,
+      [id]
+    );
+    return rows[0];
+  } finally {
+    db.release();
+  }
 }
 
 // =============================================
@@ -47,24 +53,25 @@ export async function getPlanById(id) {
 // =============================================
 export async function createPlan({ nombrePlan, vigenciaInicio, vigenciaFin }) {
   const db = await openDb();
+  try {
+    const [result] = await db.query(
+      `INSERT INTO planes_desarrollo (nombre_plan, vigencia_inicio, vigencia_fin, es_activo)
+       VALUES (?, ?, ?, 0)`,
+      [nombrePlan, vigenciaInicio, vigenciaFin]
+    );
 
-  const result = await db.run(
-    `INSERT INTO planes_desarrollo (nombre_plan, vigencia_inicio, vigencia_fin, es_activo)
-     VALUES (?, ?, ?, 0)`,
-    [nombrePlan, vigenciaInicio, vigenciaFin]
-  );
+    const id = result.insertId;
 
-  const id = result.lastID; // el id autogenerado de SQLite
-
-  await db.close();
-
-  return {
-    id_plan: id,
-    nombre_plan: nombrePlan,
-    vigencia_inicio: vigenciaInicio,
-    vigencia_fin: vigenciaFin,
-    es_activo: 0
-  };
+    return {
+      id_plan: id,
+      nombre_plan: nombrePlan,
+      vigencia_inicio: vigenciaInicio,
+      vigencia_fin: vigenciaFin,
+      es_activo: 0
+    };
+  } finally {
+    db.release();
+  }
 }
 
 // =============================================
@@ -72,22 +79,23 @@ export async function createPlan({ nombrePlan, vigenciaInicio, vigenciaFin }) {
 // =============================================
 export async function updatePlan(id, { nombrePlan, vigenciaInicio, vigenciaFin }) {
   const db = await openDb();
+  try {
+    await db.query(
+      `UPDATE planes_desarrollo
+       SET nombre_plan = ?, vigencia_inicio = ?, vigencia_fin = ?
+       WHERE id_plan = ?`,
+      [nombrePlan, vigenciaInicio, vigenciaFin, id]
+    );
 
-  await db.run(
-    `UPDATE planes_desarrollo
-     SET nombre_plan = ?, vigencia_inicio = ?, vigencia_fin = ?
-     WHERE id_plan = ?`,
-    [nombrePlan, vigenciaInicio, vigenciaFin, id]
-  );
-
-  await db.close();
-
-  return {
-    id_plan: id,
-    nombre_plan: nombrePlan,
-    vigencia_inicio: vigenciaInicio,
-    vigencia_fin: vigenciaFin
-  };
+    return {
+      id_plan: id,
+      nombre_plan: nombrePlan,
+      vigencia_inicio: vigenciaInicio,
+      vigencia_fin: vigenciaFin
+    };
+  } finally {
+    db.release();
+  }
 }
 
 // =============================================
@@ -95,9 +103,12 @@ export async function updatePlan(id, { nombrePlan, vigenciaInicio, vigenciaFin }
 // =============================================
 export async function deletePlan(id) {
   const db = await openDb();
-  await db.run(`DELETE FROM planes_desarrollo WHERE id_plan = ?`, [id]);
-  await db.close();
-  return true;
+  try {
+    await db.query(`DELETE FROM planes_desarrollo WHERE id_plan = ?`, [id]);
+    return true;
+  } finally {
+    db.release();
+  }
 }
 
 // =============================================
@@ -105,17 +116,18 @@ export async function deletePlan(id) {
 // =============================================
 export async function activatePlan(id) {
   const db = await openDb();
+  try {
+    // Desactivar todos
+    await db.query(`UPDATE planes_desarrollo SET es_activo = 0`);
 
-  // Desactivar todos
-  await db.run(`UPDATE planes_desarrollo SET es_activo = 0`);
+    // Activar el seleccionado
+    await db.query(`UPDATE planes_desarrollo SET es_activo = 1 WHERE id_plan = ?`, [id]);
 
-  // Activar el seleccionado
-  await db.run(`UPDATE planes_desarrollo SET es_activo = 1 WHERE id_plan = ?`, [id]);
-
-  await db.close();
-
-  return {
-    id_plan: id,
-    es_activo: 1
-  };
+    return {
+      id_plan: id,
+      es_activo: 1
+    };
+  } finally {
+    db.release();
+  }
 }

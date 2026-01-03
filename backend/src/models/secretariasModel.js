@@ -7,19 +7,20 @@ export const SecretariasModel = {
   // =============================================
   async getAll() {
     const db = await openDb();
-
-    const rows = await db.all(
-      `SELECT 
-         id_secretaria,
-         nombre,
-         es_activo,
-         created_at
-       FROM secretarias
-       ORDER BY nombre ASC`
-    );
-
-    await db.close();
-    return rows;
+    try {
+      const [rows] = await db.query(
+        `SELECT 
+           id_secretaria,
+           nombre,
+           es_activo,
+           created_at
+         FROM secretarias
+         ORDER BY nombre ASC`
+      );
+      return rows;
+    } finally {
+      db.release();
+    }
   },
 
   // =============================================
@@ -27,20 +28,21 @@ export const SecretariasModel = {
   // =============================================
   async getById(id) {
     const db = await openDb();
-
-    const row = await db.get(
-      `SELECT 
-         id_secretaria,
-         nombre,
-         es_activo,
-         created_at
-       FROM secretarias
-       WHERE id_secretaria = ?`,
-      [id]
-    );
-
-    await db.close();
-    return row;
+    try {
+      const [rows] = await db.query(
+        `SELECT 
+           id_secretaria,
+           nombre,
+           es_activo,
+           created_at
+         FROM secretarias
+         WHERE id_secretaria = ?`,
+        [id]
+      );
+      return rows[0];
+    } finally {
+      db.release();
+    }
   },
 
   // =============================================
@@ -48,19 +50,21 @@ export const SecretariasModel = {
   // =============================================
   async create(data) {
     const db = await openDb();
-    const { nombre, es_activo = 1 } = data;
+    try {
+      const { nombre, es_activo = 1 } = data;
 
-    const result = await db.run(
-      `INSERT INTO secretarias (nombre, es_activo)
-       VALUES (?, ?)`,
-      [nombre, es_activo]
-    );
+      const [result] = await db.query(
+        `INSERT INTO secretarias (nombre, es_activo)
+         VALUES (?, ?)`,
+        [nombre, es_activo]
+      );
 
-    await db.close();
-
-    return {
-      id: result.lastID
-    };
+      return {
+        id: result.insertId
+      };
+    } finally {
+      db.release();
+    }
   },
 
   // =============================================
@@ -68,17 +72,20 @@ export const SecretariasModel = {
   // =============================================
   async update(id, data) {
     const db = await openDb();
-    const { nombre, es_activo = 1 } = data;
+    try {
+      const { nombre, es_activo = 1 } = data;
 
-    await db.run(
-      `UPDATE secretarias
-       SET nombre = ?, es_activo = ?
-       WHERE id_secretaria = ?`,
-      [nombre, es_activo, id]
-    );
+      await db.query(
+        `UPDATE secretarias
+         SET nombre = ?, es_activo = ?
+         WHERE id_secretaria = ?`,
+        [nombre, es_activo, id]
+      );
 
-    await db.close();
-    return true;
+      return true;
+    } finally {
+      db.release();
+    }
   },
 
   // =============================================
@@ -86,13 +93,14 @@ export const SecretariasModel = {
   // =============================================
   async delete(id) {
     const db = await openDb();
-
-    await db.run(
-      `DELETE FROM secretarias WHERE id_secretaria = ?`,
-      [id]
-    );
-
-    await db.close();
-    return true;
+    try {
+      await db.query(
+        `DELETE FROM secretarias WHERE id_secretaria = ?`,
+        [id]
+      );
+      return true;
+    } finally {
+      db.release();
+    }
   },
 };

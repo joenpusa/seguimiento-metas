@@ -8,23 +8,24 @@ export const UsersModel = {
   // =============================================
   async getAll() {
     const db = await openDb();
-
-    const rows = await db.all(`
-      SELECT
-        id_usuario,
-        email,
-        nombre,
-        rol,
-        es_activo,
-        id_secretaria,
-        requiereCambioClave,
-        created_at
-      FROM users
-      ORDER BY nombre ASC
-    `);
-
-    await db.close();
-    return rows;
+    try {
+      const [rows] = await db.query(`
+        SELECT
+          id_usuario,
+          email,
+          nombre,
+          rol,
+          es_activo,
+          id_secretaria,
+          requiereCambioClave,
+          created_at
+        FROM users
+        ORDER BY nombre ASC
+      `);
+      return rows;
+    } finally {
+      db.release();
+    }
   },
 
   // =============================================
@@ -32,26 +33,27 @@ export const UsersModel = {
   // =============================================
   async getById(id) {
     const db = await openDb();
-
-    const row = await db.get(
-      `
-      SELECT
-        id_usuario,
-        email,
-        nombre,
-        rol,
-        es_activo,
-        id_secretaria,
-        requiereCambioClave,
-        created_at
-      FROM users
-      WHERE id_usuario = ?
-      `,
-      [id]
-    );
-
-    await db.close();
-    return row;
+    try {
+      const [rows] = await db.query(
+        `
+        SELECT
+          id_usuario,
+          email,
+          nombre,
+          rol,
+          es_activo,
+          id_secretaria,
+          requiereCambioClave,
+          created_at
+        FROM users
+        WHERE id_usuario = ?
+        `,
+        [id]
+      );
+      return rows[0];
+    } finally {
+      db.release();
+    }
   },
 
   // =============================================
@@ -59,26 +61,27 @@ export const UsersModel = {
   // =============================================
   async getByEmail(email) {
     const db = await openDb();
-
-    const row = await db.get(
-      `
-      SELECT
-        id_usuario,
-        email,
-        nombre,
-        rol,
-        es_activo,
-        id_secretaria,
-        password,
-        requiereCambioClave
-      FROM users
-      WHERE email = ?
-      `,
-      [email]
-    );
-
-    await db.close();
-    return row;
+    try {
+      const [rows] = await db.query(
+        `
+        SELECT
+          id_usuario,
+          email,
+          nombre,
+          rol,
+          es_activo,
+          id_secretaria,
+          password,
+          requiereCambioClave
+        FROM users
+        WHERE email = ?
+        `,
+        [email]
+      );
+      return rows[0];
+    } finally {
+      db.release();
+    }
   },
 
   // =============================================
@@ -86,72 +89,75 @@ export const UsersModel = {
   // =============================================
   async create(data) {
     const db = await openDb();
-    const {
-      email,
-      nombre,
-      rol,
-      id_secretaria,
-      passwordHash
-    } = data;
-
-    const result = await db.run(
-      `
-      INSERT INTO users (
+    try {
+      const {
         email,
         nombre,
         rol,
         id_secretaria,
-        password,
-        requiereCambioClave,
-        es_activo
-      ) VALUES (?, ?, ?, ?, ?, 1, 1)
-      `,
-      [email, nombre, rol, id_secretaria, passwordHash]
-    );
+        passwordHash
+      } = data;
 
-    await db.close();
-    return { id: result.lastID };
+      const [result] = await db.query(
+        `
+        INSERT INTO users (
+          email,
+          nombre,
+          rol,
+          id_secretaria,
+          password,
+          requiereCambioClave,
+          es_activo
+        ) VALUES (?, ?, ?, ?, ?, 1, 1)
+        `,
+        [email, nombre, rol, id_secretaria, passwordHash]
+      );
+      return { id: result.insertId };
+    } finally {
+      db.release();
+    }
   },
 
   // =============================================
   // 📌 Actualizar usuario
   // =============================================
- async update(id, data) {
+  async update(id, data) {
     const db = await openDb();
+    try {
+      const fields = [];
+      const values = [];
 
-    const fields = [];
-    const values = [];
+      if (data.email !== undefined) {
+        fields.push("email = ?");
+        values.push(data.email);
+      }
+      if (data.nombre !== undefined) {
+        fields.push("nombre = ?");
+        values.push(data.nombre);
+      }
+      if (data.rol !== undefined) {
+        fields.push("rol = ?");
+        values.push(data.rol);
+      }
+      if (data.es_activo !== undefined) {
+        fields.push("es_activo = ?");
+        values.push(data.es_activo);
+      }
+      if (data.id_secretaria !== undefined) {
+        fields.push("id_secretaria = ?");
+        values.push(data.id_secretaria);
+      }
 
-    if (data.email !== undefined) {
-      fields.push("email = ?");
-      values.push(data.email);
-    }
-    if (data.nombre !== undefined) {
-      fields.push("nombre = ?");
-      values.push(data.nombre);
-    }
-    if (data.rol !== undefined) {
-      fields.push("rol = ?");
-      values.push(data.rol);
-    }
-    if (data.es_activo !== undefined) {
-      fields.push("es_activo = ?");
-      values.push(data.es_activo);
-    }
-    if (data.id_secretaria !== undefined) {
-      fields.push("id_secretaria = ?");
-      values.push(data.id_secretaria);
-    }
+      values.push(id);
 
-    values.push(id);
-
-    await db.run(
-      `UPDATE users SET ${fields.join(", ")} WHERE id_usuario = ?`,
-      values
-    );
-
-    await db.close();
-    return true;
+      await db.query(
+        `UPDATE users SET ${fields.join(", ")} WHERE id_usuario = ?`,
+        values
+      );
+      return true;
+    } finally {
+      db.release();
+    }
   },
 
 
@@ -160,18 +166,28 @@ export const UsersModel = {
   // =============================================
   async updatePassword(id, passwordHash) {
     const db = await openDb();
+    try {
+      await db.query(`UPDATE users SET password = ?, requiereCambioClave = 0 WHERE id_usuario = ?`, [
+        passwordHash,
+        id,
+      ]);
+      return true;
+    } finally {
+      db.release();
+    }
+  },
 
-    await db.run(
-      `
-      UPDATE users
-      SET password = ?, requiereCambioClave = 0
-      WHERE id_usuario = ?
-      `,
-      [passwordHash, id]
-    );
-
-    await db.close();
-    return true;
+  async forcePasswordReset(id, passwordHash) {
+    const db = await openDb();
+    try {
+      await db.query(`UPDATE users SET password = ?, requiereCambioClave = 1 WHERE id_usuario = ?`, [
+        passwordHash,
+        id,
+      ]);
+      return true;
+    } finally {
+      db.release();
+    }
   },
 
   // =============================================
@@ -179,13 +195,14 @@ export const UsersModel = {
   // =============================================
   async deactivate(id) {
     const db = await openDb();
-
-    await db.run(
-      `UPDATE users SET es_activo = 0 WHERE id_usuario = ?`,
-      [id]
-    );
-
-    await db.close();
-    return true;
+    try {
+      await db.query(
+        `UPDATE users SET es_activo = 0 WHERE id_usuario = ?`,
+        [id]
+      );
+      return true;
+    } finally {
+      db.release();
+    }
   }
 };
