@@ -7,17 +7,25 @@ import { motion } from 'framer-motion';
 const AdminPlanesList = ({ planes, onEditPlan, onDeletePlan, onSelectPlan, activePlanId }) => {
   if (!planes || planes.length === 0) {
     return (
-      <motion.div 
-        initial={{ opacity: 0 }} 
-        animate={{ opacity: 1 }} 
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
         className="text-center py-10"
       >
-        <img  alt="No plans illustration" className="mx-auto h-40 w-40 text-gray-400" src="https://images.unsplash.com/photo-1661523892192-dc872b45c290" />
+        <img alt="No plans illustration" className="mx-auto h-40 w-40 text-gray-400" src="https://images.unsplash.com/photo-1661523892192-dc872b45c290" />
         <h3 className="mt-2 text-lg font-medium text-gray-900">No hay planes de desarrollo</h3>
         <p className="mt-1 text-sm text-gray-500">Comience creando un nuevo plan de desarrollo.</p>
       </motion.div>
     );
   }
+
+  // Helper para mostrar fecha sin afectar zona horaria
+  const formatDate = (dateString) => {
+    if (!dateString) return "";
+    const date = new Date(dateString);
+    // Usamos UTC para evitar que el navegador reste horas por la zona horaria
+    return new Date(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()).toLocaleDateString();
+  };
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -39,18 +47,13 @@ const AdminPlanesList = ({ planes, onEditPlan, onDeletePlan, onSelectPlan, activ
                 )}
               </div>
               <CardDescription>
-                Vigencia: {new Date(plan.vigenciaInicio).toLocaleDateString()} - {new Date(plan.vigenciaFin).toLocaleDateString()}
+                Vigencia: {formatDate(plan.vigenciaInicio)} - {formatDate(plan.vigenciaFin)}
               </CardDescription>
             </CardHeader>
-            <CardContent className="flex-grow">
-              <p className="text-xs text-muted-foreground">
-                Líneas Estratégicas: {plan.estructuraPDI?.lineasEstrategicas?.length || 0}
-              </p>
-            </CardContent>
             <CardFooter className="flex justify-between items-center gap-2 pt-4 border-t">
-              <Button 
-                variant={plan.id === activePlanId ? "default" : "outline"} 
-                size="sm" 
+              <Button
+                variant={plan.id === activePlanId ? "default" : "outline"}
+                size="sm"
                 className="flex-1"
                 onClick={() => onSelectPlan(plan.id)}
               >

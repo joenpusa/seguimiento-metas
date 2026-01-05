@@ -216,11 +216,139 @@ export const MetasModel = {
   },
 
   // =========================
+  // ACTUALIZAR META
+  // =========================
+  async update(id, data) {
+    const db = await openDb();
+    try {
+      // 1. Validar existencia
+      const [existing] = await db.query(
+        "SELECT id_meta FROM metas WHERE id_meta = ?",
+        [id]
+      );
+      if (existing.length === 0) {
+        throw new Error("Meta no encontrada");
+      }
+
+      // 2. Actualizar tabla metas
+      await db.query(
+        `
+        UPDATE metas
+        SET
+          codigo = ?,
+          nombre = ?,
+          descripcion = ?,
+          cantidad = ?,
+          id_unidad = ?,
+          valor = ?,
+          valor2 = ?,
+          valor3 = ?,
+          valor4 = ?,
+          recurrente = ?,
+          id_secretaria = ?,
+          fecha_limite = ?,
+
+          cantidad_0_5 = ?,
+          cantidad_6_12 = ?,
+          cantidad_13_17 = ?,
+          cantidad_18_24 = ?,
+          cantidad_25_62 = ?,
+          cantidad_65_mas = ?,
+
+          cantesp_mujer = ?,
+          cantesp_discapacidad = ?,
+          cantesp_etnia = ?,
+          cantesp_victima = ?,
+          cantesp_desmovilizado = ?,
+          cantesp_lgtbi = ?,
+          cantesp_migrante = ?,
+          cantesp_indigente = ?,
+          cantesp_privado = ?
+        WHERE id_meta = ?
+        `,
+        [
+          data.codigo,
+          data.nombre,
+          data.descripcion,
+          data.cantidad,
+          data.id_unidad,
+          data.valor,
+          data.valor2,
+          data.valor3,
+          data.valor4,
+          data.recurrente,
+          data.id_secretaria,
+          data.fecha_limite,
+
+          data.cantidad_0_5,
+          data.cantidad_6_12,
+          data.cantidad_13_17,
+          data.cantidad_18_24,
+          data.cantidad_25_62,
+          data.cantidad_65_mas,
+
+          data.cantesp_mujer,
+          data.cantesp_discapacidad,
+          data.cantesp_etnia,
+          data.cantesp_victima,
+          data.cantesp_desmovilizado,
+          data.cantesp_lgtbi,
+          data.cantesp_migrante,
+          data.cantesp_indigente,
+          data.cantesp_privado,
+          id,
+        ]
+      );
+
+      // 3. Actualizar Municipios (Borrar y re-insertar)
+      await db.query("DELETE FROM metasxmunicipio WHERE id_meta = ?", [id]);
+
+      if (Array.isArray(data.municipios)) {
+        for (const id_municipio of data.municipios) {
+          await db.query(
+            "INSERT INTO metasxmunicipio (id_meta, id_municipio) VALUES (?, ?)",
+            [id, id_municipio]
+          );
+        }
+      }
+
+      return true;
+    } finally {
+      db.release();
+    }
+  },
+
+  // =========================
+  // ELIMINAR META
+  // =========================
+  // =========================
   // ELIMINAR META
   // =========================
   async delete(id) {
     const db = await openDb();
     try {
+      // 1. Validar dependencias (Avances)
+      const [avances] = await db.query(
+        "SELECT id_avance FROM avances WHERE id_meta = ? LIMIT 1",
+        [id]
+      );
+      if (avances.length > 0) {
+        throw new Error(
+          "No se puede eliminar la meta porque tiene avances registrados."
+        );
+      }
+
+      // 2. Validar dependencias (Programaciones)
+      const [programaciones] = await db.query(
+        "SELECT id_programacion FROM programaciones WHERE id_meta = ? LIMIT 1",
+        [id]
+      );
+      if (programaciones.length > 0) {
+        throw new Error(
+          "No se puede eliminar la meta porque tiene programación registrada."
+        );
+      }
+
       await db.query(`DELETE FROM metasxmunicipio WHERE id_meta = ?`, [id]);
       await db.query(`DELETE FROM metas WHERE id_meta = ?`, [id]);
       return true;

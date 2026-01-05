@@ -43,6 +43,12 @@ export const MetaProvider = ({ children }) => {
     //  META
     cantidad: Number(m.cantidad) || 0,
 
+    // IMPORTANTE: Para el form pasamos valores planos
+    valor: Number(m.valor) || 0,
+    valor2: Number(m.valor2) || 0,
+    valor3: Number(m.valor3) || 0,
+    valor4: Number(m.valor4) || 0,
+
     valores: {
       valor1: Number(m.valor) || 0,
       valor2: Number(m.valor2) || 0,
@@ -50,7 +56,8 @@ export const MetaProvider = ({ children }) => {
       valor4: Number(m.valor4) || 0,
     },
 
-    recurrente: m.recurrente,
+    recurrente: m.recurrente ? true : false,
+    fecha_limite: m.fecha_limite,
 
     //  AVANCES (NUEVOS)
     porcentajeFisico: Number(m.porcentaje_fisico) || 0,
@@ -64,8 +71,27 @@ export const MetaProvider = ({ children }) => {
     id_secretaria: m.id_secretaria,
     secretaria_nombre: m.secretaria_nombre,
 
-    municipios: m.municipios || [],
+    municipios: m.municipios || [], // En lista general a veces viene string o array
     numeroMetaManual: m.numero_meta_manual,
+
+    // POBLACION (Solo si el query las trae, en "Filtered" vienen select *)
+    cantidad_0_5: m.cantidad_0_5 || 0,
+    cantidad_6_12: m.cantidad_6_12 || 0,
+    cantidad_13_17: m.cantidad_13_17 || 0,
+    cantidad_18_24: m.cantidad_18_24 || 0,
+    cantidad_25_62: m.cantidad_25_62 || 0,
+    cantidad_65_mas: m.cantidad_65_mas || 0,
+
+    cantesp_mujer: m.cantesp_mujer || 0,
+    cantesp_discapacidad: m.cantesp_discapacidad || 0,
+    cantesp_etnia: m.cantesp_etnia || 0,
+    cantesp_victima: m.cantesp_victima || 0,
+    cantesp_desmovilizado: m.cantesp_desmovilizado || 0,
+    cantesp_lgtbi: m.cantesp_lgtbi || 0,
+    cantesp_migrante: m.cantesp_migrante || 0,
+    cantesp_indigente: m.cantesp_indigente || 0,
+    cantesp_privado: m.cantesp_privado || 0,
+
 
     linea: m.linea_id
       ? { id: m.linea_id, codigo: m.linea_codigo, nombre: m.linea_nombre }
@@ -92,7 +118,14 @@ export const MetaProvider = ({ children }) => {
     descripcion: m.descripcion,
 
     cantidad: Number(m.cantidad) || 0,
-    fechaLimite: m.fecha_limite,
+    fecha_limite: m.fecha_limite, // Corregido nombre propiedad para coincidir con form
+
+    // Valores planos para form
+    valor: Number(m.valor) || 0,
+    valor2: Number(m.valor2) || 0,
+    valor3: Number(m.valor3) || 0,
+    valor4: Number(m.valor4) || 0,
+    recurrente: m.recurrente ? true : false,
 
     // AVANCES
     porcentajeFisico: Number(m.porcentaje_fisico) || 0,
@@ -106,6 +139,10 @@ export const MetaProvider = ({ children }) => {
       valor4: Number(m.valor4) || 0,
     },
 
+    // Relaciones ID para form
+    id_unidad: m.id_unidad,
+    id_secretaria: m.id_secretaria,
+
     unidad: {
       id: m.id_unidad,
       nombre: m.unidad_nombre,
@@ -117,6 +154,24 @@ export const MetaProvider = ({ children }) => {
     },
 
     municipios: Array.isArray(m.municipios) ? m.municipios : [],
+
+    // POBLACION
+    cantidad_0_5: m.cantidad_0_5 || 0,
+    cantidad_6_12: m.cantidad_6_12 || 0,
+    cantidad_13_17: m.cantidad_13_17 || 0,
+    cantidad_18_24: m.cantidad_18_24 || 0,
+    cantidad_25_62: m.cantidad_25_62 || 0,
+    cantidad_65_mas: m.cantidad_65_mas || 0,
+
+    cantesp_mujer: m.cantesp_mujer || 0,
+    cantesp_discapacidad: m.cantesp_discapacidad || 0,
+    cantesp_etnia: m.cantesp_etnia || 0,
+    cantesp_victima: m.cantesp_victima || 0,
+    cantesp_desmovilizado: m.cantesp_desmovilizado || 0,
+    cantesp_lgtbi: m.cantesp_lgtbi || 0,
+    cantesp_migrante: m.cantesp_migrante || 0,
+    cantesp_indigente: m.cantesp_indigente || 0,
+    cantesp_privado: m.cantesp_privado || 0,
 
     linea: m.linea_id
       ? { id: m.linea_id, codigo: m.linea_codigo, nombre: m.linea_nombre }
@@ -223,13 +278,16 @@ export const MetaProvider = ({ children }) => {
 
     try {
       const res = await api.get(`/metas/${idMeta}`);
-      setSelectedMeta(normalizeMetaDetail(res.data));
+      const normalized = normalizeMetaDetail(res.data);
+      setSelectedMeta(normalized);
+      return normalized; // Retornamos para uso directo
     } catch (err) {
       toast({
         title: "Meta",
         description: "No se pudo cargar la información de la meta",
         variant: "destructive",
       });
+      return null;
     } finally {
       setLoadingSelectedMeta(false);
     }

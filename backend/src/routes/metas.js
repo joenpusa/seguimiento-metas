@@ -77,7 +77,7 @@ router.post(
         !id_detalle ||
         !id_unidad ||
         !id_secretaria ||
-        !fecha_limite
+        !id_secretaria
       ) {
         return res
           .status(400)
@@ -94,6 +94,50 @@ router.post(
       console.error("Error al crear meta:", err);
       res.status(500).json({
         message: err.message || "Error al crear meta",
+      });
+    }
+  }
+);
+
+// ===============================
+// PUT /api/metas/:id
+// ===============================
+router.put(
+  "/:id",
+  authenticateToken,
+  requireRole("admin"),
+  async (req, res) => {
+    try {
+      const { id } = req.params;
+      const {
+        codigo,
+        nombre,
+        descripcion,
+        id_unidad,
+        id_secretaria,
+        fecha_limite,
+      } = req.body;
+
+      if (
+        !codigo ||
+        !nombre ||
+        !descripcion ||
+        !id_unidad ||
+        !id_secretaria ||
+        !id_secretaria
+      ) {
+        return res
+          .status(400)
+          .json({ message: "Campos requeridos faltantes" });
+      }
+
+      await MetasModel.update(id, req.body);
+
+      res.json({ message: "Meta actualizada correctamente" });
+    } catch (err) {
+      console.error("Error al actualizar meta:", err);
+      res.status(500).json({
+        message: err.message || "Error al actualizar meta",
       });
     }
   }

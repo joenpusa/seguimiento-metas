@@ -239,7 +239,7 @@ const ProgramacionTrimestralList = ({ meta, onProgramar }) => {
 
       {/* MODAL */}
       <Dialog open={openModal} onOpenChange={setOpenModal}>
-        <DialogContent className="max-w-6xl w-full max-h-[90vh] overflow-y-auto">
+        <DialogContent className="w-[90vw] max-w-none max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Reportar avance trimestral</DialogTitle>
           </DialogHeader>

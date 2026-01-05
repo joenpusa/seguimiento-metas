@@ -16,6 +16,7 @@ const initialPoblacion = {
   cantidad_18_24: 0,
   cantidad_25_62: 0,
   cantidad_65_mas: 0,
+
   cantesp_mujer: 0,
   cantesp_discapacidad: 0,
   cantesp_etnia: 0,
@@ -152,13 +153,49 @@ const AvanceFormulario = ({ meta, programacion, onClose }) => {
       </div>
 
       <div className="border-t pt-4">
-        <p className="font-semibold mb-3">Población beneficiada</p>
-
-        <div className="grid md:grid-cols-3 gap-3">
-          {Object.keys(initialPoblacion).map((key) => (
+        {/* GRUPO 1: EDADES */}
+        <p className="font-semibold mb-3">Caracterización de Población</p>
+        <div className="grid md:grid-cols-2 gap-4 mb-6">
+          {[
+            "cantidad_0_5",
+            "cantidad_6_12",
+            "cantidad_13_17",
+            "cantidad_18_24",
+            "cantidad_25_62",
+            "cantidad_65_mas",
+          ].map((key) => (
             <div key={key}>
-              <Label className="text-xs capitalize">
-                {key.replaceAll("_", " ")}
+              <Label className="text-sm capitalize">
+                {key.replace("cantidad_", "").replace(/_/g, " - ")} años
+              </Label>
+              <Input
+                type="number"
+                min={0}
+                name={key}
+                value={formData.poblacion[key]}
+                onChange={handlePoblacionChange}
+              />
+            </div>
+          ))}
+        </div>
+
+        {/* GRUPO 2: CONDICIONES */}
+        <p className="font-semibold mb-3">Condiciones especiales</p>
+        <div className="grid md:grid-cols-2 gap-4">
+          {[
+            "cantesp_mujer",
+            "cantesp_discapacidad",
+            "cantesp_etnia",
+            "cantesp_victima",
+            "cantesp_desmovilizado",
+            "cantesp_lgtbi",
+            "cantesp_migrante",
+            "cantesp_indigente",
+            "cantesp_privado",
+          ].map((key) => (
+            <div key={key}>
+              <Label className="text-sm capitalize">
+                {key.replace("cantesp_", "")}
               </Label>
               <Input
                 type="number"

@@ -145,13 +145,15 @@ const AdminEstructuraPlan = () => {
         open={openMetaDialog}
         onOpenChange={setOpenMetaDialog}
         onSave={async (data) => {
-          await createMeta({
+          const success = await createMeta({
             ...data,
             id_detalle: currentIniciativa.id,
           });
-          await fetchMetasByDetalle(currentIniciativa.id);
-          setOpenMetaDialog(false);
-          setCurrentIniciativa(null);
+          if (success) {
+            await fetchMetasByDetalle(currentIniciativa.id);
+            setOpenMetaDialog(false);
+            setCurrentIniciativa(null);
+          }
         }}
       />
     </div>
