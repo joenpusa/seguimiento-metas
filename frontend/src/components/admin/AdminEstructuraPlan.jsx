@@ -78,9 +78,9 @@ const AdminEstructuraPlan = () => {
     setCurrentTipo(null);
   };
 
-  const handleEdit = (node) => {
+  const handleEdit = (node, parent) => {
     setEditingNode(node);
-    setParentNode(null);
+    setParentNode(parent);
     setCurrentTipo(node.tipo);
     setOpenDialog(true);
   };

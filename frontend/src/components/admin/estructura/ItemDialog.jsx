@@ -52,7 +52,7 @@ const ItemDialog = ({
     if (!isCodigoValido(codigo, parentNode)) {
       alert(
         parentNode
-          ? `El código debe iniciar con "${parentNode.codigo}."`
+          ? `El código '${codigo}' debe iniciar con '${parentNode.codigo}.'`
           : "Una línea estratégica no debe contener puntos"
       );
       return;
@@ -70,12 +70,22 @@ const ItemDialog = ({
           </DialogTitle>
         </DialogHeader>
 
-        <div className="space-y-2">
-          <Label>Tipo</Label>
-          <Input value={tipoLabel} disabled />
-        </div>
+        <div className="space-y-4">
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label>Tipo</Label>
+              <Input value={tipoLabel} disabled />
+            </div>
+            <div className="space-y-2">
+              <Label>Padre</Label>
+              <Input
+                value={parentNode ? parentNode.codigo : "Raíz"}
+                disabled
+                className="bg-muted"
+              />
+            </div>
+          </div>
 
-        <div className="space-y-4 py-2">
           <div className="space-y-2">
             <Label>Código</Label>
             <Input

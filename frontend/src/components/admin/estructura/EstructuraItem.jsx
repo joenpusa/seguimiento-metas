@@ -4,6 +4,7 @@ import MetasTable from "./MetasTable";
 
 const EstructuraItem = ({
   node,
+  parent, // Nuevo prop
   collapsed,
   onToggle,
   onAdd,
@@ -50,7 +51,7 @@ const EstructuraItem = ({
             {isIniciativa && <span className="ml-1">Meta</span>}
           </Button>
 
-          <Button size="icon" variant="ghost" onClick={() => onEdit(node)}>
+          <Button size="icon" variant="ghost" onClick={() => onEdit(node, parent)}>
             <Pencil className="h-4 w-4" />
           </Button>
 
@@ -67,6 +68,7 @@ const EstructuraItem = ({
             <EstructuraItem
               key={child.id}
               node={child}
+              parent={node} // Pasamos el nodo actual como padre
               collapsed={collapsed}
               onToggle={onToggle}
               onAdd={onAdd}
