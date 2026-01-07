@@ -34,7 +34,7 @@ router.post(
         id_plan,
         nombre_detalle,
         id_detalle_padre,
-        codigo, 
+        codigo,
         tipo
       } = req.body;
 
@@ -60,7 +60,7 @@ router.post(
 
       res.status(201).json({
         message: "Detalle creado correctamente",
-        id_detalle: result.id
+        id_detalle: result.id_detalle
       });
     } catch (err) {
       console.error(err);

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useUnidad } from "@/context/UnidadContext";
 import { Button } from '@/components/ui/button';
@@ -17,8 +17,12 @@ import {
 import { useToast } from '@/components/ui/use-toast';
 
 const AdminUnidadesMedida = () => {
-const { unidades, addUnidad, removeUnidad } = useUnidad();
+  const { unidades, addUnidad, removeUnidad, fetchUnidades } = useUnidad();
   const { toast } = useToast();
+
+  useEffect(() => {
+    fetchUnidades();
+  }, [fetchUnidades]);
 
   const [openUnidadDialog, setOpenUnidadDialog] = useState(false);
   const [unidadName, setUnidadName] = useState('');
@@ -42,7 +46,7 @@ const { unidades, addUnidad, removeUnidad } = useUnidad();
   };
 
   const handleDeleteUnidad = (id) => {
-    removeUnidad(id); 
+    removeUnidad(id);
   };
 
   return (

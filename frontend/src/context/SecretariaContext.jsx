@@ -8,6 +8,7 @@ import React, {
 
 import { useToast } from "@/components/ui/use-toast";
 import api from "@/api/axiosConfig";
+import { useAuth } from "./AuthContext";
 
 const SecretariaContext = createContext();
 
@@ -32,8 +33,15 @@ export const SecretariaProvider = ({ children }) => {
   // ===============================
   // CARGA INICIAL
   // ===============================
+  const { isAuthenticated } = useAuth(); // Import useAuth hook
+
   useEffect(() => {
     const loadSecretarias = async () => {
+      if (!isAuthenticated) {
+        setSecretarias([]);
+        return;
+      }
+
       try {
         setLoadingSecretarias(true);
 
@@ -55,7 +63,7 @@ export const SecretariaProvider = ({ children }) => {
     };
 
     loadSecretarias();
-  }, [normalizeSecretaria, toast]);
+  }, [normalizeSecretaria, toast, isAuthenticated]);
 
   // ===============================
   // CRUD

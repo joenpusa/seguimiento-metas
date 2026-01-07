@@ -3,9 +3,11 @@ import React, {
   useState,
   useEffect,
   useContext,
+  useCallback,
 } from "react";
 import api from "@/api/axiosConfig";
 import { useToast } from "@/components/ui/use-toast";
+import { useAuth } from "./AuthContext";
 
 const MunicipioContext = createContext();
 
@@ -28,7 +30,14 @@ export const MunicipioProvider = ({ children }) => {
   // ===============================
   // CARGAR MUNICIPIOS
   // ===============================
-  const fetchMunicipios = async () => {
+  // ===============================
+  // CARGAR MUNICIPIOS
+  // ===============================
+  const { isAuthenticated } = useAuth();
+
+  const fetchMunicipios = useCallback(async () => {
+    if (!isAuthenticated) return;
+
     setLoadingMunicipios(true);
     try {
       const res = await api.get("/municipios");
@@ -43,11 +52,11 @@ export const MunicipioProvider = ({ children }) => {
     } finally {
       setLoadingMunicipios(false);
     }
-  };
+  }, [isAuthenticated, toast]);
 
   useEffect(() => {
     fetchMunicipios();
-  }, []);
+  }, [fetchMunicipios]);
 
   // ===============================
   // CREAR

@@ -8,6 +8,7 @@ import React, {
 
 import { useToast } from "@/components/ui/use-toast";
 import api from "@/api/axiosConfig";
+import { useAuth } from "./AuthContext";
 
 const PlanContext = createContext();
 
@@ -33,8 +34,23 @@ export const PlanProvider = ({ children }) => {
   // ===============================
   // CARGA INICIAL
   // ===============================
+  // ===============================
+  // AUTH
+  // ===============================
+  const { isAuthenticated } = useAuth(); // Import useAuth hook first! (Checking imports...)
+
+  // ===============================
+  // CARGA INICIAL
+  // ===============================
   useEffect(() => {
     const loadInitialData = async () => {
+      if (!isAuthenticated) {
+        setPlanesDesarrollo([]);
+        setActivePlanId(null);
+        setLoading(false);
+        return;
+      }
+
       try {
         setLoading(true);
 
@@ -59,7 +75,7 @@ export const PlanProvider = ({ children }) => {
     };
 
     loadInitialData();
-  }, []);
+  }, [isAuthenticated]);
 
   // ===============================
   // PLAN ACTIVO

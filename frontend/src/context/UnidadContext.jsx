@@ -3,9 +3,11 @@ import React, {
   useContext,
   useEffect,
   useState,
+  useCallback,
 } from "react";
 import api from "@/api/axiosConfig";
 import { useToast } from "@/components/ui/use-toast";
+import { useAuth } from "./AuthContext";
 
 const UnidadContext = createContext();
 
@@ -27,7 +29,14 @@ export const UnidadProvider = ({ children }) => {
   // ===============================
   // CARGAR UNIDADES
   // ===============================
-  const fetchUnidades = async () => {
+  const { isAuthenticated } = useAuth();
+
+  const fetchUnidades = useCallback(async () => {
+    if (!isAuthenticated) {
+      setUnidades([]);
+      return;
+    }
+
     setLoadingUnidades(true);
     try {
       const res = await api.get("/unidades");
@@ -42,11 +51,11 @@ export const UnidadProvider = ({ children }) => {
     } finally {
       setLoadingUnidades(false);
     }
-  };
+  }, [isAuthenticated, toast]);
 
   useEffect(() => {
     fetchUnidades();
-  }, []);
+  }, [fetchUnidades]);
 
   // ===============================
   // CREAR

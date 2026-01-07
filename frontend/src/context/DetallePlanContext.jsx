@@ -22,12 +22,12 @@ export const DetallePlanProvider = ({ planId, children }) => {
   // NORMALIZADOR (FIJO)
   // ===============================
   const normalizeDetalle = useCallback((d) => ({
-    id: d.id_detalle,
+    id: d.id_detalle || d.id, // Support both formats
     idPlan: d.id_plan,
-    nombre: d.nombre_detalle,
+    nombre: d.nombre_detalle || d.nombre, // Support both formats might be safer
     codigo: d.codigo,
-    idPadre: d.id_detalle_padre,
-    tipo: d.tipo, // 🔑 CRÍTICO
+    idPadre: d.id_detalle_padre || d.idPadre,
+    tipo: d.tipo,
   }), []);
 
   const tree = useMemo(() => buildTree(detalles), [detalles]);
@@ -67,14 +67,20 @@ export const DetallePlanProvider = ({ planId, children }) => {
         id_detalle_padre: idPadre ?? null,
       });
 
-      const nuevo = {
-        id: res.data.id_detalle,
-        idPlan: planId,
-        nombre,
+      const nuevo = normalizeDetalle({
+        ...res.data,
+        id_plan: planId,
+        nombre_detalle: nombre,
         codigo,
         tipo,
-        idPadre: idPadre ?? null,
-      };
+        id_detalle_padre: idPadre ?? null,
+      });
+
+      if (!nuevo.id) {
+        console.error("❌ Error: ID faltante en respuesta de creación", res.data);
+        toast({ title: "Error", description: "El servidor no devolvió un ID válido.", variant: "destructive" });
+        return false;
+      }
 
       setDetalles((prev) => [...prev, nuevo]);
 
