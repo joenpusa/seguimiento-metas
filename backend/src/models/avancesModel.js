@@ -14,10 +14,16 @@ export const AvancesModel = {
         anio,
         trimestre,
         idSecretaria,
+        idPlan // Nuevo filtro
       } = filters;
 
       const conditions = [];
       const params = [];
+
+      if (idPlan) {
+        conditions.push("d.id_plan = ?");
+        params.push(idPlan);
+      }
 
       if (idMeta) {
         conditions.push("a.id_meta = ?");
@@ -56,9 +62,10 @@ export const AvancesModel = {
           a.url_evidencia,
           a.created_at,
 
-          -- Datos de la meta
+          -- Datos de la meta y estructura
           m.nombre AS meta_nombre,
           m.cantidad AS meta_cantidad,
+          d.codigo AS meta_numero,
 
           (IFNULL(m.valor,0) + IFNULL(m.valor2,0) + IFNULL(m.valor3,0) + IFNULL(m.valor4,0)) AS meta_presupuesto_total,
 
@@ -81,7 +88,7 @@ export const AvancesModel = {
             END
           , 2) AS porcentaje_fisico,
 
-          -- ¿Es el último avance?
+          -- Es el último avance
           CASE
             WHEN a.id_avance = (
               SELECT ax.id_avance
@@ -103,6 +110,7 @@ export const AvancesModel = {
 
         FROM avances a
         INNER JOIN metas m ON m.id_meta = a.id_meta
+        INNER JOIN detalles_plan d ON d.id_detalle = m.id_detalle
         ${whereClause}
         ORDER BY
           a.anio DESC,

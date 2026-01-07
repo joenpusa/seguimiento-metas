@@ -80,12 +80,12 @@ const AvanceList = ({ avances = [], loading, onEdit, onDelete }) => {
                         {new Date(avance.createdAt).toLocaleDateString()}
                       </p>
                       {avance.esUltimo && (
-                      <span className="text-xs bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded">
-                        Último avance
-                      </span>
-                    )}
+                        <span className="text-xs bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded">
+                          Último avance
+                        </span>
+                      )}
                     </div>
-                    
+
                   </div>
                 </CardHeader>
 
@@ -115,7 +115,7 @@ const AvanceList = ({ avances = [], loading, onEdit, onDelete }) => {
                         % Avance físico
                       </p>
                       <p className="font-semibold text-sm text-sky-600">
-                        {avance.porcentajeFisico}%%
+                        {avance.porcentajeFisico}%
                       </p>
                     </div>
 

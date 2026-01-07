@@ -7,11 +7,17 @@ const router = express.Router();
 // 🔹 GET /api/avances
 router.get("/", authenticateToken, async (req, res) => {
   try {
+    const { idPlan } = req.query;
+
+    if (!idPlan) {
+      return res.status(400).json({ message: "El parámetro idPlan es obligatorio" });
+    }
+
     const data = await AvancesModel.getAll(req.query);
     res.json(data);
   } catch (err) {
     console.error("Error al obtener avances:", err);
-    res.status(500).json({ message: "Error al obtener avances" });
+    res.status(500).json({ message: "Error al obtener avances", error: err.message });
   }
 });
 

@@ -23,30 +23,38 @@ export const AvanceProvider = ({ children }) => {
   // ===============================
   // NORMALIZADOR
   // ===============================
-    const normalizeAvance = (a) => ({
-      id: a.id_avance,
-      idMeta: Number(a.id_meta),
-      anio: Number(a.anio),
-      trimestre: a.trimestre,
-      descripcion: a.descripcion,
-      cantidadAvanzada: Number(a.cantidad),
-      gastoEjecutado: Number(a.gasto),
-      evidenciaURL: a.url_evidencia,
-      createdAt: a.created_at,
-      porcentajeFisico: Number(a.porcentaje_fisico ?? 0),
-      porcentajeFinanciero: Number(a.porcentaje_financiero ?? 0),
-      esUltimo: a.es_ultimo === 1,
-    });
+  const normalizeAvance = (a) => ({
+    id: a.id_avance,
+    idMeta: Number(a.id_meta),
+    codigoMeta: a.meta_numero,
+    metaNumero: a.meta_numero, // Added as requested by implied usage
+    metaNombre: a.meta_nombre,
+    anio: Number(a.anio),
+    trimestre: a.trimestre,
+    descripcion: a.descripcion,
+    cantidadAvanzada: Number(a.cantidad),
+    gastoEjecutado: Number(a.gasto),
+    evidenciaURL: a.url_evidencia,
+    createdAt: a.created_at,
+    porcentajeFisico: Number(a.porcentaje_fisico ?? 0),
+    porcentajeFinanciero: Number(a.porcentaje_financiero ?? 0),
+    esUltimo: a.es_ultimo === 1,
+  });
 
 
   // ===============================
   // FETCH
   // ===============================
   const fetchAvances = useCallback(async (params = {}) => {
+    if (!activePlan?.id) return; // Guard clause
+
     try {
       setLoadingAvances(true);
 
-      const res = await api.get("/avances", { params });
+      const res = await api.get("/avances", {
+        params: { ...params, idPlan: activePlan.id }
+      });
+
       setAvances(res.data.map(normalizeAvance));
     } catch (err) {
       console.error("❌ Error cargando avances", err);
@@ -60,7 +68,7 @@ export const AvanceProvider = ({ children }) => {
     } finally {
       setLoadingAvances(false);
     }
-  }, [toast]);
+  }, [activePlan, toast]);
 
 
   // ===============================
