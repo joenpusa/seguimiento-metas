@@ -208,10 +208,11 @@ const AdminMunicipios = () => {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="Centro">Centro</SelectItem>
+                  <SelectItem value="Metropolitana">Metropolitana</SelectItem>
                   <SelectItem value="Norte">Norte</SelectItem>
-                  <SelectItem value="Sur">Sur</SelectItem>
-                  <SelectItem value="Oriente">Oriente</SelectItem>
                   <SelectItem value="Occidente">Occidente</SelectItem>
+                  <SelectItem value="Sur-oriental">Sur-oriental</SelectItem>
+                  <SelectItem value="Sur-occidental">Sur-occidental</SelectItem>
                 </SelectContent>
               </Select>
             </div>

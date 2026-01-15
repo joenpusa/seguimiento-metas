@@ -19,6 +19,79 @@ import { useUnidad } from "@/context/UnidadContext";
 import { useSecretaria } from "@/context/SecretariaContext";
 import { useMunicipio } from "@/context/MunicipioContext";
 
+const SOURCES = [
+  { key: "pro", label: "Propios" },
+  { key: "sgp", label: "SGP" },
+  { key: "reg", label: "Regalías" },
+  { key: "cre", label: "Crédito" },
+  { key: "mun", label: "Municipio" },
+  { key: "otr", label: "Otros" },
+];
+
+const TabsYearSelectorReadOnly = ({ meta }) => {
+  const [year, setYear] = useState(1);
+
+  if (!meta) return null;
+
+  // Calculate total for current year tab
+  const currentYearTotal = SOURCES.reduce(
+    (acc, src) => acc + (Number(meta[`val${year}_${src.key}`]) || 0),
+    0
+  );
+
+  const grandTotal = [1, 2, 3, 4].reduce((total, y) => {
+    return total + SOURCES.reduce((acc, src) => acc + (Number(meta[`val${y}_${src.key}`]) || 0), 0);
+  }, 0);
+
+  return (
+    <div className="flex flex-col gap-4">
+      {/* Tabs Header */}
+      <div className="flex gap-2 border-b pb-2 overflow-x-auto">
+        {[1, 2, 3, 4].map((y) => (
+          <div
+            key={y}
+            role="button"
+            onClick={() => setYear(y)}
+            className={`px-4 py-2 text-sm font-medium rounded-t-md transition-colors cursor-pointer select-none
+              ${year === y
+                ? "bg-white dark:bg-slate-800 border-b-2 border-primary text-primary shadow-sm"
+                : "text-muted-foreground hover:text-foreground hover:bg-slate-100 dark:hover:bg-slate-800"
+              }
+            `}
+          >
+            Año {y}
+          </div>
+        ))}
+      </div>
+
+      {/* Inputs Grid */}
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-x-4 gap-y-4 animate-in fade-in zoom-in-95 duration-200">
+        {SOURCES.map((src) => (
+          <div key={src.key} className="space-y-1">
+            <Label className="text-xs text-muted-foreground">{src.label}</Label>
+            <div className="relative">
+              <div className="flex items-center text-sm font-medium border rounded-md px-3 py-1.5 bg-slate-50 text-slate-700">
+                <span className="text-muted-foreground mr-1">$</span>
+                {(meta[`val${year}_${src.key}`] || 0).toLocaleString("es-CO")}
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Year Summary */}
+      <div className="flex justify-between items-center border-t pt-3 mt-2 border-dashed">
+        <div className="text-xs text-muted-foreground">
+          Total Año {year}: <span className="font-semibold text-foreground">${currentYearTotal.toLocaleString("es-CO")}</span>
+        </div>
+        <div className="text-sm font-bold">
+          Gran Total: ${grandTotal.toLocaleString("es-CO")}
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const MetaForm = ({ open, onOpenChange, onSave, metaToEdit = null }) => {
   const { toast } = useToast();
   const { selectedMeta } = useMeta();
@@ -92,7 +165,7 @@ const MetaForm = ({ open, onOpenChange, onSave, metaToEdit = null }) => {
       <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>
-             Detalles de la Meta (Modo Lectura)
+            Detalles de la Meta (Modo Lectura)
           </DialogTitle>
           <DialogDescription>
             Este formulario es solo para visualización. La gestión de metas se
@@ -211,53 +284,14 @@ const MetaForm = ({ open, onOpenChange, onSave, metaToEdit = null }) => {
                 {/* =========================
                     💰 PRESUPUESTO
                 ========================== */}
-                <div className="space-y-3">
-
-                  <Label className="text-sm font-semibold">
-                    Presupuesto por año
+                {/* =========================
+                    💰 PRESUPUESTO
+                ========================== */}
+                <div className="space-y-3 mt-4 border rounded-md p-4 bg-slate-50/50">
+                  <Label className="text-base font-semibold">
+                    Recursos Financieros
                   </Label>
-
-                  <div className="rounded-md border p-3 bg-slate-50 dark:bg-slate-800/50 space-y-2">
-
-                    {[
-                      { label: "Año 1", value: selectedMeta?.valores?.valor1 },
-                      { label: "Año 2", value: selectedMeta?.valores?.valor2 },
-                      { label: "Año 3", value: selectedMeta?.valores?.valor3 },
-                      { label: "Año 4", value: selectedMeta?.valores?.valor4 },
-                    ].map(({ label, value }) => (
-                      <div
-                        key={label}
-                        className="grid grid-cols-[1fr_auto] items-center"
-                      >
-                        <span className="text-sm text-muted-foreground">
-                          {label}
-                        </span>
-
-                        <span className="font-medium">
-                          {typeof value === "number"
-                            ? `$ ${value.toLocaleString("es-CO")}`
-                            : "—"}
-                        </span>
-                      </div>
-                    ))}
-
-                    {/* TOTAL */}
-                    <div className="border-t pt-2 mt-2 grid grid-cols-[1fr_auto]">
-                      <span className="text-sm font-semibold">
-                        Total
-                      </span>
-                      <span className="font-semibold">
-                        $
-                        {(
-                          (selectedMeta?.valores?.valor1 || 0) +
-                          (selectedMeta?.valores?.valor2 || 0) +
-                          (selectedMeta?.valores?.valor3 || 0) +
-                          (selectedMeta?.valores?.valor4 || 0)
-                        ).toLocaleString("es-CO")}
-                      </span>
-                    </div>
-
-                  </div>
+                  <TabsYearSelectorReadOnly meta={selectedMeta} />
                 </div>
                 {/* =========================
                     MUNICIPIOS
@@ -289,7 +323,7 @@ const MetaForm = ({ open, onOpenChange, onSave, metaToEdit = null }) => {
             </div>
           </fieldset>
 
-{/* 
+          {/* 
           <pre className="text-xs bg-muted p-3 rounded-md overflow-x-auto">
             {JSON.stringify(formData, null, 2)}
           </pre> */}

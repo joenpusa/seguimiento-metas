@@ -27,13 +27,15 @@ import { useProgramacion } from "@/context/ProgramacionContext";
 
 const MetaCard = ({ meta, viewMode = "grid" }) => {
   const [openMetaForm, setOpenMetaForm] = useState(false);
+  const [programacionToEdit, setProgramacionToEdit] = useState(null);
+  const { createProgramacion, updateProgramacion } = useProgramacion();
+
   const [showProgramacion, setShowProgramacion] = useState(false);
   const [showProgramacionList, setShowProgramacionList] = useState(false);
 
   const { fetchMetaById } = useMeta();
   const { getActivePlan } = usePlan();
   const { currentUser } = useAuth();
-  const { createProgramacion } = useProgramacion();
 
   const activePlan = getActivePlan();
 
@@ -101,11 +103,6 @@ const MetaCard = ({ meta, viewMode = "grid" }) => {
     setOpenMetaForm(true);
   };
 
-  const handleProgramarTrimestre = async (data) => {
-    const ok = await createProgramacion(data);
-    if (ok) setShowProgramacion(false);
-  };
-
   const formatCurrency = (amount) =>
     new Intl.NumberFormat("es-CO", {
       style: "currency",
@@ -113,9 +110,26 @@ const MetaCard = ({ meta, viewMode = "grid" }) => {
       minimumFractionDigits: 0,
     }).format(amount);
 
-  /* =========================
-     RENDER
-  ========================== */
+  const handleProgramarTrimestre = async (data) => {
+    let ok = false;
+    if (programacionToEdit) {
+      ok = await updateProgramacion(programacionToEdit.id, data);
+    } else {
+      ok = await createProgramacion(data);
+    }
+
+    if (ok) {
+      setShowProgramacion(false);
+      setProgramacionToEdit(null);
+    }
+  };
+
+  const handleEditProgramacion = (prog) => {
+    setProgramacionToEdit(prog);
+    setShowProgramacionList(false);
+    setShowProgramacion(true);
+  };
+
   return (
     <>
       <motion.div whileHover={{ scale: 1.02 }}>
@@ -196,7 +210,10 @@ const MetaCard = ({ meta, viewMode = "grid" }) => {
                   <Button
                     size="sm"
                     variant="outline"
-                    onClick={() => setShowProgramacion(true)}
+                    onClick={() => {
+                      setProgramacionToEdit(null);
+                      setShowProgramacion(true);
+                    }}
                     className="flex-1"
                   >
                     <CalendarPlus className="h-4 w-4 mr-1" />
@@ -227,8 +244,10 @@ const MetaCard = ({ meta, viewMode = "grid" }) => {
                 meta={meta}
                 onProgramar={() => {
                   setShowProgramacionList(false);
+                  setProgramacionToEdit(null);
                   setShowProgramacion(true);
                 }}
+                onEdit={handleEditProgramacion}
               />
             </div>
 
@@ -244,13 +263,17 @@ const MetaCard = ({ meta, viewMode = "grid" }) => {
         </div>
       )}
 
-      {/* Crear programación */}
+      {/* Crear/Editar programación */}
       <ProgramacionTrimestralForm
         open={showProgramacion}
-        onOpenChange={setShowProgramacion}
+        onOpenChange={(v) => {
+          setShowProgramacion(v);
+          if (!v) setProgramacionToEdit(null);
+        }}
         onSave={handleProgramarTrimestre}
         meta={meta}
         activePlan={activePlan}
+        programacionToEdit={programacionToEdit}
       />
     </>
   );

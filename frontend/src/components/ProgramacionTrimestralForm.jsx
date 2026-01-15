@@ -4,7 +4,7 @@ import { useToast } from '@/components/ui/use-toast';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { 
+import {
   Dialog,
   DialogContent,
   DialogHeader,
@@ -12,7 +12,7 @@ import {
   DialogFooter,
   DialogDescription
 } from '@/components/ui/dialog';
-import { 
+import {
   Select,
   SelectContent,
   SelectItem,
@@ -23,7 +23,7 @@ import { Calendar, Target, DollarSign } from 'lucide-react';
 import { useProgramacion } from "@/context/ProgramacionContext";
 
 
-const ProgramacionTrimestralForm = ({ open, onOpenChange, onSave, meta, activePlan }) => {
+const ProgramacionTrimestralForm = ({ open, onOpenChange, onSave, meta, activePlan, programacionToEdit }) => {
   const { toast } = useToast();
   const { getSiguienteTrimestre } = useProgramacion();
 
@@ -35,24 +35,40 @@ const ProgramacionTrimestralForm = ({ open, onOpenChange, onSave, meta, activePl
   });
 
   const [siguiente, setSiguiente] = useState(null);
+
   useEffect(() => {
-    if (open && meta && activePlan) {
-      getSiguienteTrimestre(meta.id, activePlan)
-        .then(res => {
-          if (res) {
-            setSiguiente(res);
-            setFormData({
-              anio: res.anio.toString(),
-              trimestre: res.trimestre,
-              cantidadProgramada: 0,
-              presupuestoProgramado: 0,
-            });
-          } else {
-            setSiguiente(null);
-          }
+    if (open) {
+      if (programacionToEdit) {
+        // MODO EDICIÓN
+        setSiguiente({
+          anio: programacionToEdit.anio,
+          trimestre: programacionToEdit.trimestre
         });
+        setFormData({
+          anio: programacionToEdit.anio.toString(),
+          trimestre: programacionToEdit.trimestre,
+          cantidadProgramada: programacionToEdit.cantidadProgramada || 0,
+          presupuestoProgramado: programacionToEdit.presupuestoProgramado || 0
+        });
+      } else if (meta && activePlan) {
+        // MODO CREACIÓN
+        getSiguienteTrimestre(meta.id, activePlan)
+          .then(res => {
+            if (res) {
+              setSiguiente(res);
+              setFormData({
+                anio: res.anio.toString(),
+                trimestre: res.trimestre,
+                cantidadProgramada: 0,
+                presupuestoProgramado: 0,
+              });
+            } else {
+              setSiguiente(null);
+            }
+          });
+      }
     }
-  }, [open, meta, activePlan]);
+  }, [open, meta, activePlan, programacionToEdit]);
 
 
   const handleChange = (e) => {
@@ -66,7 +82,7 @@ const ProgramacionTrimestralForm = ({ open, onOpenChange, onSave, meta, activePl
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    
+
     if (!formData.anio || !formData.trimestre) {
       toast({
         title: "Error de Validación",
@@ -76,10 +92,10 @@ const ProgramacionTrimestralForm = ({ open, onOpenChange, onSave, meta, activePl
       return;
     }
 
-    if (parseFloat(formData.cantidadProgramada) <= 0) {
+    if (parseFloat(formData.cantidadProgramada) < 0) {
       toast({
         title: "Error de Validación",
-        description: "La cantidad programada debe ser mayor a 0.",
+        description: "La cantidad programada no puede ser menor a 0.",
         variant: "destructive",
       });
       return;
@@ -102,7 +118,7 @@ const ProgramacionTrimestralForm = ({ open, onOpenChange, onSave, meta, activePl
       gasto: Number(formData.presupuestoProgramado),
     });
 
-    
+
     onOpenChange(false);
   };
 
@@ -112,10 +128,13 @@ const ProgramacionTrimestralForm = ({ open, onOpenChange, onSave, meta, activePl
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Calendar className="h-5 w-5" />
-            Programar Trimestre
+            {programacionToEdit ? "Editar Programación" : "Programar Trimestre"}
           </DialogTitle>
           <DialogDescription>
-            Programe las metas esperadas para el siguiente trimestre. 
+            {programacionToEdit
+              ? "Modifique los valores programados para este trimestre."
+              : "Programe las metas esperadas para el siguiente trimestre."
+            }
             {meta && (
               <span className="block mt-1 font-medium">
                 Meta: {meta.codigo} - {meta.nombre}
@@ -123,7 +142,7 @@ const ProgramacionTrimestralForm = ({ open, onOpenChange, onSave, meta, activePl
             )}
           </DialogDescription>
         </DialogHeader>
-        
+
         {!siguiente ? (
           <div className="text-center py-6">
             <Target className="h-12 w-12 mx-auto text-green-500 mb-3" />
@@ -136,7 +155,7 @@ const ProgramacionTrimestralForm = ({ open, onOpenChange, onSave, meta, activePl
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="bg-blue-50 p-3 rounded-lg border border-blue-200">
               <p className="text-sm font-medium text-blue-800">
-                Siguiente trimestre a programar: 
+                {programacionToEdit ? "Editando trimestre:" : "Siguiente trimestre a programar:"}
                 <span className="ml-1 font-bold">
                   {siguiente ? `${siguiente.anio} - ${siguiente.trimestre}` : 'Ninguno disponible'}
                 </span>
@@ -146,10 +165,10 @@ const ProgramacionTrimestralForm = ({ open, onOpenChange, onSave, meta, activePl
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <Label htmlFor="anio">Año</Label>
-                <Select 
-                  value={formData.anio} 
+                <Select
+                  value={formData.anio}
                   onValueChange={(value) => handleSelectChange('anio', value)}
-                  disabled={!siguiente}
+                  disabled={!siguiente || !!programacionToEdit}
                 >
                   <SelectTrigger id="anio">
                     <SelectValue placeholder="Seleccionar año" />
@@ -161,13 +180,13 @@ const ProgramacionTrimestralForm = ({ open, onOpenChange, onSave, meta, activePl
                   </SelectContent>
                 </Select>
               </div>
-              
+
               <div>
                 <Label htmlFor="trimestre">Trimestre</Label>
-                <Select 
-                  value={formData.trimestre} 
+                <Select
+                  value={formData.trimestre}
                   onValueChange={(value) => handleSelectChange('trimestre', value)}
-                  disabled={!siguiente}
+                  disabled={!siguiente || !!programacionToEdit}
                 >
                   <SelectTrigger id="trimestre">
                     <SelectValue placeholder="Seleccionar trimestre" />
@@ -231,14 +250,14 @@ const ProgramacionTrimestralForm = ({ open, onOpenChange, onSave, meta, activePl
                 </p>
               )}
             </div>
-            
+
             <DialogFooter>
               <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
                 Cancelar
               </Button>
               <motion.div whileTap={{ scale: 0.95 }}>
                 <Button type="submit" disabled={!siguiente}>
-                  Programar Trimestre
+                  {programacionToEdit ? "Guardar Cambios" : "Programar Trimestre"}
                 </Button>
               </motion.div>
             </DialogFooter>

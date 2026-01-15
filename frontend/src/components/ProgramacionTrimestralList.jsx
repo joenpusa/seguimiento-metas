@@ -24,7 +24,7 @@ import {
 import { useProgramacion } from "@/context/ProgramacionContext";
 import AvanceFormulario from "@/components/avances/AvanceFormulario";
 
-const ProgramacionTrimestralList = ({ meta, onProgramar }) => {
+const ProgramacionTrimestralList = ({ meta, onProgramar, onEdit }) => {
   const { programaciones, fetchProgramacionesByMeta } = useProgramacion();
 
   const [openModal, setOpenModal] = useState(false);
@@ -202,9 +202,38 @@ const ProgramacionTrimestralList = ({ meta, onProgramar }) => {
                           </div>
 
                           <div className="text-right space-y-1">
-                            <p className={`text-sm font-medium ${estado.color}`}>
-                              {estado.label}
-                            </p>
+                            <div className="flex items-center gap-2 justify-end">
+                              <p className={`text-sm font-medium ${estado.color}`}>
+                                {estado.label}
+                              </p>
+
+                              {/* BOTÓN EDITAR (Si no ha sido reportado) */}
+                              {prog.estado !== "reportado" && onEdit && (
+                                <Button
+                                  size="xs"
+                                  variant="ghost"
+                                  className="h-6 w-6 p-0"
+                                  onClick={() => onEdit(prog)}
+                                  title="Editar programación"
+                                >
+                                  <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    width="14"
+                                    height="14"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    strokeWidth="2"
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    className={estado.color}
+                                  >
+                                    <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z" />
+                                    <path d="m15 5 4 4" />
+                                  </svg>
+                                </Button>
+                              )}
+                            </div>
 
                             {prog.estado === "reportado" && (
                               <p className="text-xs text-gray-500">
