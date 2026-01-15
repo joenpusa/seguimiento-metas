@@ -26,7 +26,7 @@ const Header = ({ toggleSidebar, isDesktopSidebarVisible }) => {
             <Menu className="h-6 w-6" />
           </Button>
           {!isDesktopSidebarVisible && (
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.5 }}
@@ -53,9 +53,9 @@ const Header = ({ toggleSidebar, isDesktopSidebarVisible }) => {
                   <KeyRound className="mr-2 h-4 w-4" />
                   <span>Cambiar Contraseña</span>
                 </DropdownMenuItem>
-                <DropdownMenuItem className="cursor-not-allowed">
+                {/* <DropdownMenuItem className="cursor-not-allowed">
                   Perfil (Próximamente)
-                </DropdownMenuItem>
+                </DropdownMenuItem> */}
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={logout} disabled={loading} className="text-red-500 focus:text-red-500 focus:bg-red-50">
                   <LogOut className="mr-2 h-4 w-4" />
