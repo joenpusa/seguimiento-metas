@@ -58,7 +58,12 @@ export const AvancesModel = {
           a.fec_especifica,
           a.descripcion,
           a.cantidad,
-          a.gasto,
+          a.gasto_pro,
+          a.gasto_cre,
+          a.gasto_sgp,
+          a.gasto_reg,
+          a.gasto_otr,
+          a.gasto_mun,
           a.url_evidencia,
           a.created_at,
 
@@ -87,7 +92,9 @@ export const AvancesModel = {
                 IFNULL(m.val1_mun,0) + IFNULL(m.val2_mun,0) + IFNULL(m.val3_mun,0) + IFNULL(m.val4_mun,0) +
                 IFNULL(m.val1_otr,0) + IFNULL(m.val2_otr,0) + IFNULL(m.val3_otr,0) + IFNULL(m.val4_otr,0)
               ) > 0
-              THEN (a.gasto * 100.0) /
+              THEN (
+                (IFNULL(a.gasto_pro,0) + IFNULL(a.gasto_cre,0) + IFNULL(a.gasto_sgp,0) +
+                 IFNULL(a.gasto_reg,0) + IFNULL(a.gasto_otr,0) + IFNULL(a.gasto_mun,0)) * 100.0) /
                   (
                     IFNULL(m.val1_pro,0) + IFNULL(m.val2_pro,0) + IFNULL(m.val3_pro,0) + IFNULL(m.val4_pro,0) +
                     IFNULL(m.val1_sgp,0) + IFNULL(m.val2_sgp,0) + IFNULL(m.val3_sgp,0) + IFNULL(m.val4_sgp,0) +
@@ -182,7 +189,12 @@ export const AvancesModel = {
           fec_especifica,
           descripcion,
           cantidad,
-          gasto,
+          gasto_pro,
+          gasto_cre,
+          gasto_sgp,
+          gasto_reg,
+          gasto_otr,
+          gasto_mun,
           url_evidencia,
 
           cantidad_0_5,
@@ -202,7 +214,7 @@ export const AvancesModel = {
           cantesp_indigente,
           cantesp_privado
         )
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         `,
         [
           data.anio,
@@ -211,7 +223,12 @@ export const AvancesModel = {
           data.fec_especifica || null,
           data.descripcion,
           data.cantidad || 0,
-          data.gasto || 0,
+          data.gasto_pro || 0,
+          data.gasto_cre || 0,
+          data.gasto_sgp || 0,
+          data.gasto_reg || 0,
+          data.gasto_otr || 0,
+          data.gasto_mun || 0,
           data.url_evidencia,
 
           data.cantidad_0_5 || 0,
@@ -250,7 +267,12 @@ export const AvancesModel = {
           fec_especifica = ?,
           descripcion = ?,
           cantidad = ?,
-          gasto = ?,
+          gasto_pro = ?,
+          gasto_cre = ?,
+          gasto_sgp = ?,
+          gasto_reg = ?,
+          gasto_otr = ?,
+          gasto_mun = ?,
           url_evidencia = ?,
 
           cantidad_0_5 = ?,
@@ -275,7 +297,12 @@ export const AvancesModel = {
           data.fec_especifica || null,
           data.descripcion,
           data.cantidad || 0,
-          data.gasto || 0,
+          data.gasto_pro || 0,
+          data.gasto_cre || 0,
+          data.gasto_sgp || 0,
+          data.gasto_reg || 0,
+          data.gasto_otr || 0,
+          data.gasto_mun || 0,
           data.url_evidencia,
 
           data.cantidad_0_5 || 0,

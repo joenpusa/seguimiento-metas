@@ -28,27 +28,77 @@ const initialPoblacion = {
   cantesp_privado: 0,
 };
 
-const AvanceFormulario = ({ meta, programacion, onClose }) => {
+const SOURCES = [
+  { key: "gasto_pro", label: "Propios" },
+  { key: "gasto_sgp", label: "SGP" },
+  { key: "gasto_reg", label: "Regalías" },
+  { key: "gasto_cre", label: "Crédito" },
+  { key: "gasto_mun", label: "Municipio" },
+  { key: "gasto_otr", label: "Otros" },
+];
+
+const AvanceFormulario = ({ meta, programacion, onClose, avance = null, readOnly = false }) => {
   const { toast } = useToast();
-  const { addAvance } = useAvance();
+  const { addAvance, updateAvance } = useAvance();
 
   const [formData, setFormData] = useState({
     descripcion: "",
     cantidad: 0,
-    gasto: 0,
+    gasto_pro: 0,
+    gasto_sgp: 0,
+    gasto_reg: 0,
+    gasto_cre: 0,
+    gasto_mun: 0,
+    gasto_otr: 0,
     fec_especifica: "",
     url_evidencia: "",
     poblacion: initialPoblacion,
   });
 
+  useEffect(() => {
+    if (avance) {
+      setFormData({
+        descripcion: avance.descripcion || "",
+        cantidad: avance.cantidadAvanzada || 0,
+        gasto_pro: avance.gasto_pro || 0,
+        gasto_sgp: avance.gasto_sgp || 0,
+        gasto_reg: avance.gasto_reg || 0,
+        gasto_cre: avance.gasto_cre || 0,
+        gasto_mun: avance.gasto_mun || 0,
+        gasto_otr: avance.gasto_otr || 0,
+        fec_especifica: avance.fec_especifica || "",
+        url_evidencia: avance.evidenciaURL || "",
+        poblacion: {
+          cantidad_0_5: avance.cantidad_0_5 || 0,
+          cantidad_6_12: avance.cantidad_6_12 || 0,
+          cantidad_13_17: avance.cantidad_13_17 || 0,
+          cantidad_18_24: avance.cantidad_18_24 || 0,
+          cantidad_25_62: avance.cantidad_25_62 || 0,
+          cantidad_65_mas: avance.cantidad_65_mas || 0,
+          cantesp_mujer: avance.cantesp_mujer || 0,
+          cantesp_discapacidad: avance.cantesp_discapacidad || 0,
+          cantesp_etnia: avance.cantesp_etnia || 0,
+          cantesp_victima: avance.cantesp_victima || 0,
+          cantesp_desmovilizado: avance.cantesp_desmovilizado || 0,
+          cantesp_lgtbi: avance.cantesp_lgtbi || 0,
+          cantesp_migrante: avance.cantesp_migrante || 0,
+          cantesp_indigente: avance.cantesp_indigente || 0,
+          cantesp_privado: avance.cantesp_privado || 0,
+        }
+      });
+    }
+  }, [avance]);
+
   if (!meta || !programacion) return null;
 
   const handleChange = (e) => {
+    if (readOnly) return;
     const { name, value } = e.target;
     setFormData((p) => ({ ...p, [name]: value }));
   };
 
   const handlePoblacionChange = (e) => {
+    if (readOnly) return;
     const { name, value } = e.target;
     setFormData((p) => ({
       ...p,
@@ -61,6 +111,7 @@ const AvanceFormulario = ({ meta, programacion, onClose }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (readOnly) return;
 
     if (!formData.descripcion) {
       toast({
@@ -71,43 +122,70 @@ const AvanceFormulario = ({ meta, programacion, onClose }) => {
       return;
     }
 
+    if (formData.url_evidencia) {
+      try {
+        new URL(formData.url_evidencia);
+      } catch (_) {
+        toast({
+          title: "Error de validación",
+          description: "La URL de evidencia no es válida. Asegúrese de incluir http:// o https://",
+          variant: "destructive",
+        });
+        return;
+      }
+    }
+
     const payload = {
       id_meta: meta.id,
       anio: programacion.anio,
       trimestre: programacion.trimestre,
       descripcion: formData.descripcion,
       cantidad: Number(formData.cantidad),
-      gasto: Number(formData.gasto),
+
+      // Gastos individualizados
+      gasto_pro: Number(formData.gasto_pro),
+      gasto_sgp: Number(formData.gasto_sgp),
+      gasto_reg: Number(formData.gasto_reg),
+      gasto_cre: Number(formData.gasto_cre),
+      gasto_mun: Number(formData.gasto_mun),
+      gasto_otr: Number(formData.gasto_otr),
+
       fec_especifica: formData.fec_especifica || null,
       url_evidencia: formData.url_evidencia || null,
       ...formData.poblacion,
     };
 
-    const ok = await addAvance(payload);
+    let ok = false;
+    if (avance) {
+      ok = await updateAvance(avance.id, payload);
+    } else {
+      ok = await addAvance(payload);
+    }
+
     if (ok) onClose();
   };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      {/* CONTEXTO */}
-      <div className="rounded-md border bg-muted/40 p-4">
-        <p className="font-semibold">{meta.nombre}</p>
-        <p className="text-sm text-muted-foreground">
-          Año {programacion.anio} · {programacion.trimestre}
-        </p>
-      </div>
+      <fieldset disabled={readOnly} className="contents">
+        {/* CONTEXTO */}
+        <div className="rounded-md border bg-muted/40 p-4">
+          <p className="font-semibold">{meta.nombre}</p>
+          <p className="text-sm text-muted-foreground">
+            Año {programacion.anio} · {programacion.trimestre}
+          </p>
+        </div>
 
-      <div>
-        <Label>Descripción</Label>
-        <Textarea
-          name="descripcion"
-          value={formData.descripcion}
-          onChange={handleChange}
-          rows={3}
-        />
-      </div>
+        <div>
+          <Label>Descripción</Label>
+          <Textarea
+            name="descripcion"
+            value={formData.descripcion}
+            onChange={handleChange}
+            rows={3}
+          />
+        </div>
 
-      <div className="grid md:grid-cols-2 gap-4">
         <div>
           <Label>Cantidad ejecutada</Label>
           <Input
@@ -119,103 +197,129 @@ const AvanceFormulario = ({ meta, programacion, onClose }) => {
           />
         </div>
 
-        <div>
-          <Label>Gasto ejecutado</Label>
-          <Input
-            type="number"
-            name="gasto"
-            min={0}
-            value={formData.gasto}
-            onChange={handleChange}
-          />
-        </div>
-      </div>
-
-      <div className="grid md:grid-cols-2 gap-4">
-        <div>
-          <Label>Fecha específica</Label>
-          <Input
-            type="date"
-            name="fec_especifica"
-            value={formData.fec_especifica}
-            onChange={handleChange}
-          />
-        </div>
-
-        <div>
-          <Label>URL evidencia</Label>
-          <Input
-            name="url_evidencia"
-            value={formData.url_evidencia}
-            onChange={handleChange}
-          />
-        </div>
-      </div>
-
-      <div className="border-t pt-4">
-        {/* GRUPO 1: EDADES */}
-        <p className="font-semibold mb-3">Caracterización de Población</p>
-        <div className="grid md:grid-cols-2 gap-4 mb-6">
-          {[
-            "cantidad_0_5",
-            "cantidad_6_12",
-            "cantidad_13_17",
-            "cantidad_18_24",
-            "cantidad_25_62",
-            "cantidad_65_mas",
-          ].map((key) => (
-            <div key={key}>
-              <Label className="text-sm capitalize">
-                {key.replace("cantidad_", "").replace(/_/g, " - ")} años
-              </Label>
-              <Input
-                type="number"
-                min={0}
-                name={key}
-                value={formData.poblacion[key]}
-                onChange={handlePoblacionChange}
-              />
-            </div>
-          ))}
+        <div className="space-y-3 border rounded-md p-4 mt-2 bg-slate-50 dark:bg-slate-900/50">
+          <Label className="font-semibold">Ejecución Financiera (Valor en miles de millones)</Label>
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+            {SOURCES.map((src) => (
+              <div key={src.key}>
+                <Label className="text-xs text-muted-foreground">{src.label}</Label>
+                <div className="relative">
+                  <span className="absolute left-3 top-2 text-muted-foreground text-sm">$</span>
+                  <Input
+                    className="pl-6"
+                    type="number"
+                    name={src.key}
+                    min={0}
+                    value={formData[src.key]}
+                    onChange={handleChange}
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
+          <div className="text-right text-sm font-medium mt-2">
+            Total Gasto: $
+            {(
+              Number(formData.gasto_pro || 0) +
+              Number(formData.gasto_sgp || 0) +
+              Number(formData.gasto_reg || 0) +
+              Number(formData.gasto_cre || 0) +
+              Number(formData.gasto_mun || 0) +
+              Number(formData.gasto_otr || 0)
+            ).toLocaleString("es-CO")}
+          </div>
         </div>
 
-        {/* GRUPO 2: CONDICIONES */}
-        <p className="font-semibold mb-3">Condiciones especiales</p>
         <div className="grid md:grid-cols-2 gap-4">
-          {[
-            "cantesp_mujer",
-            "cantesp_discapacidad",
-            "cantesp_etnia",
-            "cantesp_victima",
-            "cantesp_desmovilizado",
-            "cantesp_lgtbi",
-            "cantesp_migrante",
-            "cantesp_indigente",
-            "cantesp_privado",
-          ].map((key) => (
-            <div key={key}>
-              <Label className="text-sm capitalize">
-                {key.replace("cantesp_", "")}
-              </Label>
-              <Input
-                type="number"
-                min={0}
-                name={key}
-                value={formData.poblacion[key]}
-                onChange={handlePoblacionChange}
-              />
-            </div>
-          ))}
+          <div>
+            <Label>Fecha específica</Label>
+            <Input
+              type="date"
+              name="fec_especifica"
+              value={formData.fec_especifica}
+              onChange={handleChange}
+            />
+          </div>
+
+          <div>
+            <Label>URL evidencia</Label>
+            <Input
+              name="url_evidencia"
+              value={formData.url_evidencia}
+              onChange={handleChange}
+            />
+          </div>
         </div>
-      </div>
+
+        <div className="border-t pt-4">
+          {/* GRUPO 1: EDADES */}
+          <p className="font-semibold mb-3">Caracterización de Población</p>
+          <div className="grid md:grid-cols-2 gap-4 mb-6">
+            {[
+              "cantidad_0_5",
+              "cantidad_6_12",
+              "cantidad_13_17",
+              "cantidad_18_24",
+              "cantidad_25_62",
+              "cantidad_65_mas",
+            ].map((key) => (
+              <div key={key}>
+                <Label className="text-sm capitalize">
+                  {key.replace("cantidad_", "").replace(/_/g, " - ")} años
+                </Label>
+                <Input
+                  type="number"
+                  min={0}
+                  name={key}
+                  value={formData.poblacion[key]}
+                  onChange={handlePoblacionChange}
+                />
+              </div>
+            ))}
+          </div>
+
+          {/* GRUPO 2: CONDICIONES */}
+          <p className="font-semibold mb-3">Condiciones especiales</p>
+          <div className="grid md:grid-cols-2 gap-4">
+            {[
+              "cantesp_mujer",
+              "cantesp_discapacidad",
+              "cantesp_etnia",
+              "cantesp_victima",
+              "cantesp_desmovilizado",
+              "cantesp_lgtbi",
+              "cantesp_migrante",
+              "cantesp_indigente",
+              "cantesp_privado",
+            ].map((key) => (
+              <div key={key}>
+                <Label className="text-sm capitalize">
+                  {key.replace("cantesp_", "")}
+                </Label>
+                <Input
+                  type="number"
+                  min={0}
+                  name={key}
+                  value={formData.poblacion[key]}
+                  onChange={handlePoblacionChange}
+                />
+              </div>
+            ))}
+          </div>
+        </div>
+      </fieldset>
 
       <div className="flex justify-end gap-2">
         <Button type="button" variant="outline" onClick={onClose}>
-          Cancelar
+          {readOnly ? "Cerrar" : "Cancelar"}
         </Button>
-        <motion.div whileTap={{ scale: 0.95 }}>
-          <Button type="submit">Registrar avance</Button>
-        </motion.div>
+        {!readOnly && (
+          <motion.div whileTap={{ scale: 0.95 }}>
+            <Button type="submit">
+              {avance ? "Guardar Cambios" : "Registrar avance"}
+            </Button>
+          </motion.div>
+        )}
       </div>
     </form>
   );

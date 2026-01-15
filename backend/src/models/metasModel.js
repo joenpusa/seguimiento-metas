@@ -459,7 +459,10 @@ export const MetasModel = {
           SELECT
             id_meta,
             SUM(cantidad) AS total_cantidad,
-            SUM(gasto) AS total_gasto
+            SUM(
+              IFNULL(gasto_pro,0) + IFNULL(gasto_cre,0) + IFNULL(gasto_sgp,0) +
+              IFNULL(gasto_reg,0) + IFNULL(gasto_otr,0) + IFNULL(gasto_mun,0)
+            ) AS total_gasto
           FROM avances
           GROUP BY id_meta
         ) av ON av.id_meta = m.id_meta

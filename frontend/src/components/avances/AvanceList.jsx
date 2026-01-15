@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/card";
 import { useAuth } from "@/context/AuthContext";
 
-const AvanceList = ({ avances = [], loading, onEdit, onDelete }) => {
+const AvanceList = ({ avances = [], loading, onEdit, onDelete, onView }) => {
   const { currentUser } = useAuth();
 
   if (loading) return null;
@@ -187,8 +187,9 @@ const AvanceList = ({ avances = [], loading, onEdit, onDelete }) => {
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="h-7 w-7 cursor-not-allowed"
-                        title="Solo lectura"
+                        className="h-7 w-7"
+                        onClick={() => onView && onView(avance)}
+                        title="Ver detalle"
                       >
                         <Eye size={14} />
                       </Button>

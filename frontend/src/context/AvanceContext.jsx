@@ -23,23 +23,45 @@ export const AvanceProvider = ({ children }) => {
   // ===============================
   // NORMALIZADOR
   // ===============================
-  const normalizeAvance = (a) => ({
-    id: a.id_avance,
-    idMeta: Number(a.id_meta),
-    codigoMeta: a.meta_numero,
-    metaNumero: a.meta_numero, // Added as requested by implied usage
-    metaNombre: a.meta_nombre,
-    anio: Number(a.anio),
-    trimestre: a.trimestre,
-    descripcion: a.descripcion,
-    cantidadAvanzada: Number(a.cantidad),
-    gastoEjecutado: Number(a.gasto),
-    evidenciaURL: a.url_evidencia,
-    createdAt: a.created_at,
-    porcentajeFisico: Number(a.porcentaje_fisico ?? 0),
-    porcentajeFinanciero: Number(a.porcentaje_financiero ?? 0),
-    esUltimo: a.es_ultimo === 1,
-  });
+  const normalizeAvance = (a) => {
+    // Calcular total gasto sumando los campos nuevos
+    const totalGasto =
+      (Number(a.gasto_pro) || 0) +
+      (Number(a.gasto_cre) || 0) +
+      (Number(a.gasto_sgp) || 0) +
+      (Number(a.gasto_reg) || 0) +
+      (Number(a.gasto_otr) || 0) +
+      (Number(a.gasto_mun) || 0);
+
+    return {
+      id: a.id_avance,
+      idMeta: Number(a.id_meta),
+      codigoMeta: a.meta_numero,
+      metaNumero: a.meta_numero,
+      metaNombre: a.meta_nombre,
+      anio: Number(a.anio),
+      trimestre: a.trimestre,
+      descripcion: a.descripcion,
+      cantidadAvanzada: Number(a.cantidad),
+
+      // Gastos individualizados
+      gasto_pro: Number(a.gasto_pro) || 0,
+      gasto_cre: Number(a.gasto_cre) || 0,
+      gasto_sgp: Number(a.gasto_sgp) || 0,
+      gasto_reg: Number(a.gasto_reg) || 0,
+      gasto_otr: Number(a.gasto_otr) || 0,
+      gasto_mun: Number(a.gasto_mun) || 0,
+
+      // Gasto total (para visualización rápida)
+      gastoEjecutado: totalGasto,
+
+      evidenciaURL: a.url_evidencia,
+      createdAt: a.created_at,
+      porcentajeFisico: Number(a.porcentaje_fisico ?? 0),
+      porcentajeFinanciero: Number(a.porcentaje_financiero ?? 0),
+      esUltimo: a.es_ultimo === 1,
+    };
+  };
 
 
   // ===============================

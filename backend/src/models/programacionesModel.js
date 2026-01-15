@@ -23,7 +23,10 @@ export const ProgramacionesModel = {
           -- Avance (puede ser null)
           a.id_avance,
           a.cantidad AS cantidad_avance,
-          a.gasto AS gasto_avance,
+          (
+            IFNULL(a.gasto_pro, 0) + IFNULL(a.gasto_cre, 0) + IFNULL(a.gasto_sgp, 0) +
+            IFNULL(a.gasto_reg, 0) + IFNULL(a.gasto_otr, 0) + IFNULL(a.gasto_mun, 0)
+          ) AS gasto_avance,
 
           -- Estado calculado
           CASE
