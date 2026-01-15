@@ -73,6 +73,15 @@ export const MetaProvider = ({ children }) => {
     val4_mun: Number(m.val4_mun) || 0,
     val4_otr: Number(m.val4_otr) || 0,
 
+    presupuestoTotal: (
+      (Number(m.val1_pro) || 0) + (Number(m.val2_pro) || 0) + (Number(m.val3_pro) || 0) + (Number(m.val4_pro) || 0) +
+      (Number(m.val1_sgp) || 0) + (Number(m.val2_sgp) || 0) + (Number(m.val3_sgp) || 0) + (Number(m.val4_sgp) || 0) +
+      (Number(m.val1_reg) || 0) + (Number(m.val2_reg) || 0) + (Number(m.val3_reg) || 0) + (Number(m.val4_reg) || 0) +
+      (Number(m.val1_cre) || 0) + (Number(m.val2_cre) || 0) + (Number(m.val3_cre) || 0) + (Number(m.val4_cre) || 0) +
+      (Number(m.val1_mun) || 0) + (Number(m.val2_mun) || 0) + (Number(m.val3_mun) || 0) + (Number(m.val4_mun) || 0) +
+      (Number(m.val1_otr) || 0) + (Number(m.val2_otr) || 0) + (Number(m.val3_otr) || 0) + (Number(m.val4_otr) || 0)
+    ),
+
     recurrente: m.recurrente ? true : false,
     fecha_limite: m.fecha_limite,
 

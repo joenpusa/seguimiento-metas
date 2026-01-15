@@ -67,6 +67,23 @@ export const AvancesModel = {
           a.url_evidencia,
           a.created_at,
 
+          a.cantidad_0_5,
+          a.cantidad_6_12,
+          a.cantidad_13_17,
+          a.cantidad_18_24,
+          a.cantidad_25_62,
+          a.cantidad_65_mas,
+
+          a.cantesp_mujer,
+          a.cantesp_discapacidad,
+          a.cantesp_etnia,
+          a.cantesp_victima,
+          a.cantesp_desmovilizado,
+          a.cantesp_lgtbi,
+          a.cantesp_migrante,
+          a.cantesp_indigente,
+          a.cantesp_privado,
+
           -- Datos de la meta y estructura
           m.nombre AS meta_nombre,
           m.cantidad AS meta_cantidad,

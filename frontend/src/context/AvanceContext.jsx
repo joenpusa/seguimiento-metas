@@ -60,6 +60,24 @@ export const AvanceProvider = ({ children }) => {
       porcentajeFisico: Number(a.porcentaje_fisico ?? 0),
       porcentajeFinanciero: Number(a.porcentaje_financiero ?? 0),
       esUltimo: a.es_ultimo === 1,
+
+      // Poblacion
+      cantidad_0_5: Number(a.cantidad_0_5) || 0,
+      cantidad_6_12: Number(a.cantidad_6_12) || 0,
+      cantidad_13_17: Number(a.cantidad_13_17) || 0,
+      cantidad_18_24: Number(a.cantidad_18_24) || 0,
+      cantidad_25_62: Number(a.cantidad_25_62) || 0,
+      cantidad_65_mas: Number(a.cantidad_65_mas) || 0,
+
+      cantesp_mujer: Number(a.cantesp_mujer) || 0,
+      cantesp_discapacidad: Number(a.cantesp_discapacidad) || 0,
+      cantesp_etnia: Number(a.cantesp_etnia) || 0,
+      cantesp_victima: Number(a.cantesp_victima) || 0,
+      cantesp_desmovilizado: Number(a.cantesp_desmovilizado) || 0,
+      cantesp_lgtbi: Number(a.cantesp_lgtbi) || 0,
+      cantesp_migrante: Number(a.cantesp_migrante) || 0,
+      cantesp_indigente: Number(a.cantesp_indigente) || 0,
+      cantesp_privado: Number(a.cantesp_privado) || 0,
     };
   };
 
@@ -91,6 +109,21 @@ export const AvanceProvider = ({ children }) => {
       setLoadingAvances(false);
     }
   }, [activePlan, toast]);
+
+  const fetchAvanceById = useCallback(async (id) => {
+    try {
+      const res = await api.get(`/avances/${id}`);
+      return normalizeAvance(res.data);
+    } catch (err) {
+      console.error("Error cargando avance por ID", err);
+      toast({
+        title: "Error",
+        description: "No se pudo cargar la información del avance",
+        variant: "destructive",
+      });
+      return null;
+    }
+  }, [toast]);
 
 
   // ===============================
@@ -169,6 +202,7 @@ export const AvanceProvider = ({ children }) => {
         addAvance,
         updateAvance,
         removeAvance,
+        fetchAvanceById,
       }}
     >
       {children}

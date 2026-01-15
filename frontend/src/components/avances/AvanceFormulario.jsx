@@ -39,7 +39,7 @@ const SOURCES = [
 
 const AvanceFormulario = ({ meta, programacion, onClose, avance = null, readOnly = false }) => {
   const { toast } = useToast();
-  const { addAvance, updateAvance } = useAvance();
+  const { addAvance, updateAvance, fetchAvanceById } = useAvance();
 
   const [formData, setFormData] = useState({
     descripcion: "",
@@ -56,37 +56,52 @@ const AvanceFormulario = ({ meta, programacion, onClose, avance = null, readOnly
   });
 
   useEffect(() => {
-    if (avance) {
-      setFormData({
-        descripcion: avance.descripcion || "",
-        cantidad: avance.cantidadAvanzada || 0,
-        gasto_pro: avance.gasto_pro || 0,
-        gasto_sgp: avance.gasto_sgp || 0,
-        gasto_reg: avance.gasto_reg || 0,
-        gasto_cre: avance.gasto_cre || 0,
-        gasto_mun: avance.gasto_mun || 0,
-        gasto_otr: avance.gasto_otr || 0,
-        fec_especifica: avance.fec_especifica || "",
-        url_evidencia: avance.evidenciaURL || "",
-        poblacion: {
-          cantidad_0_5: avance.cantidad_0_5 || 0,
-          cantidad_6_12: avance.cantidad_6_12 || 0,
-          cantidad_13_17: avance.cantidad_13_17 || 0,
-          cantidad_18_24: avance.cantidad_18_24 || 0,
-          cantidad_25_62: avance.cantidad_25_62 || 0,
-          cantidad_65_mas: avance.cantidad_65_mas || 0,
-          cantesp_mujer: avance.cantesp_mujer || 0,
-          cantesp_discapacidad: avance.cantesp_discapacidad || 0,
-          cantesp_etnia: avance.cantesp_etnia || 0,
-          cantesp_victima: avance.cantesp_victima || 0,
-          cantesp_desmovilizado: avance.cantesp_desmovilizado || 0,
-          cantesp_lgtbi: avance.cantesp_lgtbi || 0,
-          cantesp_migrante: avance.cantesp_migrante || 0,
-          cantesp_indigente: avance.cantesp_indigente || 0,
-          cantesp_privado: avance.cantesp_privado || 0,
+    const loadAvanceData = async () => {
+      if (avance) {
+        // 1. Carga inicial rápida (con lo que venga en props)
+        // Esto ayuda a que no se vea vacío mientras carga el full
+        const mapToForm = (data) => ({
+          descripcion: data.descripcion || "",
+          cantidad: data.cantidadAvanzada || 0,
+          gasto_pro: data.gasto_pro || 0,
+          gasto_sgp: data.gasto_sgp || 0,
+          gasto_reg: data.gasto_reg || 0,
+          gasto_cre: data.gasto_cre || 0,
+          gasto_mun: data.gasto_mun || 0,
+          gasto_otr: data.gasto_otr || 0,
+          fec_especifica: data.fec_especifica ? data.fec_especifica.split("T")[0] : "",
+          url_evidencia: data.evidenciaURL || "",
+          poblacion: {
+            cantidad_0_5: data.cantidad_0_5 || 0,
+            cantidad_6_12: data.cantidad_6_12 || 0,
+            cantidad_13_17: data.cantidad_13_17 || 0,
+            cantidad_18_24: data.cantidad_18_24 || 0,
+            cantidad_25_62: data.cantidad_25_62 || 0,
+            cantidad_65_mas: data.cantidad_65_mas || 0,
+            cantesp_mujer: data.cantesp_mujer || 0,
+            cantesp_discapacidad: data.cantesp_discapacidad || 0,
+            cantesp_etnia: data.cantesp_etnia || 0,
+            cantesp_victima: data.cantesp_victima || 0,
+            cantesp_desmovilizado: data.cantesp_desmovilizado || 0,
+            cantesp_lgtbi: data.cantesp_lgtbi || 0,
+            cantesp_migrante: data.cantesp_migrante || 0,
+            cantesp_indigente: data.cantesp_indigente || 0,
+            cantesp_privado: data.cantesp_privado || 0,
+          }
+        });
+
+        setFormData(mapToForm(avance));
+
+        // 2. Cargar datos completos por ID (si se permite editar/ver)
+        // Usamos fetchAvanceById para asegurar que tenemos toda la info poblacional
+        const fullData = await fetchAvanceById(avance.id);
+        if (fullData) {
+          setFormData(mapToForm(fullData));
         }
-      });
-    }
+      }
+    };
+
+    loadAvanceData();
   }, [avance]);
 
   if (!meta || !programacion) return null;

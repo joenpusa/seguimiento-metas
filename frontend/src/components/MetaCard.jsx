@@ -49,10 +49,8 @@ const MetaCard = ({ meta, viewMode = "grid" }) => {
   const porcentajeFisico = Number(meta.porcentajeFisico ?? 0);
   const estadoProgreso = meta.estadoProgreso ?? "SIN_INICIAR";
 
-  const presupuestoTotal = Object.values(meta.valores ?? {}).reduce(
-    (acc, val) => acc + Number(val || 0),
-    0
-  );
+  // Usamos el total pre-calculado en el contexto
+  const presupuestoTotal = Number(meta.presupuestoTotal) || 0;
 
   /* =========================
      UI HELPERS

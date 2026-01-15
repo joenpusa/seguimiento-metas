@@ -300,14 +300,11 @@ const MetaDialog = ({ open, onOpenChange, onSave, metaEdit }) => {
         </div>
 
         {/* =========================
-            PRESUPUESTO
-        ========================== */}
-        {/* =========================
             PRESUPUESTO (TABS FLOW)
         ========================== */}
         <div className="mt-4 border rounded-md p-4 bg-slate-50 dark:bg-slate-900/50">
           <Label className="mb-3 block text-base font-semibold">
-            Recursos Financieros
+            Recursos Financieros (Valor en miles de millones)
           </Label>
 
           <TabsYearSelector formData={formData} setFormData={setFormData} />
