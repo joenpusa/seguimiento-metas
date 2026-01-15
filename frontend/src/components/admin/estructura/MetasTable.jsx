@@ -70,10 +70,15 @@ const MetasTable = ({ idDetalle }) => {
           <tbody>
             {metas.map((m) => {
               const total =
-                (m.valor || 0) +
-                (m.valor2 || 0) +
-                (m.valor3 || 0) +
-                (m.valor4 || 0);
+                (m.val1_pro || 0) +
+                (m.val2_pro || 0) +
+                (m.val3_pro || 0) +
+                (m.val4_pro || 0) +
+                (m.val1_sgp || 0) + (m.val2_sgp || 0) + (m.val3_sgp || 0) + (m.val4_sgp || 0) +
+                (m.val1_reg || 0) + (m.val2_reg || 0) + (m.val3_reg || 0) + (m.val4_reg || 0) +
+                (m.val1_cre || 0) + (m.val2_cre || 0) + (m.val3_cre || 0) + (m.val4_cre || 0) +
+                (m.val1_mun || 0) + (m.val2_mun || 0) + (m.val3_mun || 0) + (m.val4_mun || 0) +
+                (m.val1_otr || 0) + (m.val2_otr || 0) + (m.val3_otr || 0) + (m.val4_otr || 0);
               return (
                 <tr key={m.id} className="border-t">
                   <td className="p-2"><strong>({m.codigo})</strong> {m.nombre}</td>

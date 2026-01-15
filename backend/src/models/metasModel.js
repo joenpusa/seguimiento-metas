@@ -131,10 +131,7 @@ export const MetasModel = {
           id_detalle,
           cantidad,
           id_unidad,
-          valor,
-          valor2,
-          valor3,
-          valor4,
+          val1_pro, val2_pro, val3_pro, val4_pro,
           recurrente,
           id_secretaria,
           fecha_limite,
@@ -154,11 +151,24 @@ export const MetasModel = {
           cantesp_lgtbi,
           cantesp_migrante,
           cantesp_indigente,
-          cantesp_privado
+          cantesp_privado,
+
+          val1_sgp, val1_reg, val1_cre, val1_mun, val1_otr,
+          val2_sgp, val2_reg, val2_cre, val2_mun, val2_otr,
+          val3_sgp, val3_reg, val3_cre, val3_mun, val3_otr,
+          val4_sgp, val4_reg, val4_cre, val4_mun, val4_otr
         )
-        VALUES (?,?,?,?,?,?,?,?,?,
-                ?,?,?,?,?,?,?,?,?,?,
-                ?,?,?,?,?,?,?,?,?)
+        VALUES (
+          ?, ?, ?, ?, ?, ?,
+          ?, ?, ?, ?,
+          ?, ?, ?,
+          ?, ?, ?, ?, ?, ?,
+          ?, ?, ?, ?, ?, ?, ?, ?, ?,
+          ?, ?, ?, ?, ?,
+          ?, ?, ?, ?, ?,
+          ?, ?, ?, ?, ?,
+          ?, ?, ?, ?, ?
+        )
         `,
         [
           data.codigo,
@@ -167,10 +177,7 @@ export const MetasModel = {
           data.id_detalle,
           data.cantidad,
           data.id_unidad,
-          data.valor,
-          data.valor2,
-          data.valor3,
-          data.valor4,
+          data.val1_pro, data.val2_pro, data.val3_pro, data.val4_pro,
           data.recurrente,
           data.id_secretaria,
           data.fecha_limite,
@@ -191,6 +198,11 @@ export const MetasModel = {
           data.cantesp_migrante,
           data.cantesp_indigente,
           data.cantesp_privado,
+
+          data.val1_sgp, data.val1_reg, data.val1_cre, data.val1_mun, data.val1_otr,
+          data.val2_sgp, data.val2_reg, data.val2_cre, data.val2_mun, data.val2_otr,
+          data.val3_sgp, data.val3_reg, data.val3_cre, data.val3_mun, data.val3_otr,
+          data.val4_sgp, data.val4_reg, data.val4_cre, data.val4_mun, data.val4_otr,
         ]
       );
 
@@ -240,10 +252,12 @@ export const MetasModel = {
           descripcion = ?,
           cantidad = ?,
           id_unidad = ?,
-          valor = ?,
-          valor2 = ?,
-          valor3 = ?,
-          valor4 = ?,
+          val1_pro = ?, val2_pro = ?, val3_pro = ?, val4_pro = ?,
+          val1_sgp = ?, val1_reg = ?, val1_cre = ?, val1_mun = ?, val1_otr = ?,
+          val2_sgp = ?, val2_reg = ?, val2_cre = ?, val2_mun = ?, val2_otr = ?,
+          val3_sgp = ?, val3_reg = ?, val3_cre = ?, val3_mun = ?, val3_otr = ?,
+          val4_sgp = ?, val4_reg = ?, val4_cre = ?, val4_mun = ?, val4_otr = ?,
+
           recurrente = ?,
           id_secretaria = ?,
           fecha_limite = ?,
@@ -272,10 +286,11 @@ export const MetasModel = {
           data.descripcion,
           data.cantidad,
           data.id_unidad,
-          data.valor,
-          data.valor2,
-          data.valor3,
-          data.valor4,
+          data.val1_pro, data.val2_pro, data.val3_pro, data.val4_pro,
+          data.val1_sgp, data.val1_reg, data.val1_cre, data.val1_mun, data.val1_otr,
+          data.val2_sgp, data.val2_reg, data.val2_cre, data.val2_mun, data.val2_otr,
+          data.val3_sgp, data.val3_reg, data.val3_cre, data.val3_mun, data.val3_otr,
+          data.val4_sgp, data.val4_reg, data.val4_cre, data.val4_mun, data.val4_otr,
           data.recurrente,
           data.id_secretaria,
           data.fecha_limite,
@@ -378,10 +393,24 @@ export const MetasModel = {
           END AS porcentaje_fisico,
 
           CASE
-            WHEN (m.valor + m.valor2 + m.valor3 + m.valor4) > 0
+            WHEN (
+              m.val1_pro + m.val2_pro + m.val3_pro + m.val4_pro +
+              m.val1_sgp + m.val2_sgp + m.val3_sgp + m.val4_sgp +
+              m.val1_reg + m.val2_reg + m.val3_reg + m.val4_reg +
+              m.val1_cre + m.val2_cre + m.val3_cre + m.val4_cre +
+              m.val1_mun + m.val2_mun + m.val3_mun + m.val4_mun +
+              m.val1_otr + m.val2_otr + m.val3_otr + m.val4_otr
+            ) > 0
             THEN ROUND(
               COALESCE(av.total_gasto, 0) * 100.0 /
-              (m.valor + m.valor2 + m.valor3 + m.valor4),
+              (
+                m.val1_pro + m.val2_pro + m.val3_pro + m.val4_pro +
+                m.val1_sgp + m.val2_sgp + m.val3_sgp + m.val4_sgp +
+                m.val1_reg + m.val2_reg + m.val3_reg + m.val4_reg +
+                m.val1_cre + m.val2_cre + m.val3_cre + m.val4_cre +
+                m.val1_mun + m.val2_mun + m.val3_mun + m.val4_mun +
+                m.val1_otr + m.val2_otr + m.val3_otr + m.val4_otr
+              ),
               2
             )
             ELSE 0

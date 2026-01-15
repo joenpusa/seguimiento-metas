@@ -133,10 +133,12 @@ const run = async () => {
         id_detalle INTEGER NOT NULL,
         cantidad INTEGER DEFAULT 0,
         id_unidad INTEGER NOT NULL,
-        valor DOUBLE DEFAULT 0,
-        valor2 DOUBLE DEFAULT 0,
-        valor3 DOUBLE DEFAULT 0,
-        valor4 DOUBLE DEFAULT 0,
+        val1_pro DOUBLE DEFAULT 0, val2_pro DOUBLE DEFAULT 0, val3_pro DOUBLE DEFAULT 0, val4_pro DOUBLE DEFAULT 0,
+        val1_sgp DOUBLE DEFAULT 0, val2_sgp DOUBLE DEFAULT 0, val3_sgp DOUBLE DEFAULT 0, val4_sgp DOUBLE DEFAULT 0,
+        val1_reg DOUBLE DEFAULT 0, val2_reg DOUBLE DEFAULT 0, val3_reg DOUBLE DEFAULT 0, val4_reg DOUBLE DEFAULT 0,
+        val1_cre DOUBLE DEFAULT 0, val2_cre DOUBLE DEFAULT 0, val3_cre DOUBLE DEFAULT 0, val4_cre DOUBLE DEFAULT 0,
+        val1_mun DOUBLE DEFAULT 0, val2_mun DOUBLE DEFAULT 0, val3_mun DOUBLE DEFAULT 0, val4_mun DOUBLE DEFAULT 0,
+        val1_otr DOUBLE DEFAULT 0, val2_otr DOUBLE DEFAULT 0, val3_otr DOUBLE DEFAULT 0, val4_otr DOUBLE DEFAULT 0,
         recurrente INTEGER DEFAULT 0,
         id_secretaria INTEGER NOT NULL,
         fecha_limite VARCHAR(10),
@@ -258,7 +260,7 @@ const run = async () => {
           u.requiereCambioClave,
           u.activo
         ]
-);
+      );
     }
 
     // ===============================

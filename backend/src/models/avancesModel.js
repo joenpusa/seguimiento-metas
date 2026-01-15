@@ -67,14 +67,35 @@ export const AvancesModel = {
           m.cantidad AS meta_cantidad,
           d.codigo AS meta_numero,
 
-          (IFNULL(m.valor,0) + IFNULL(m.valor2,0) + IFNULL(m.valor3,0) + IFNULL(m.valor4,0)) AS meta_presupuesto_total,
+          (
+            IFNULL(m.val1_pro,0) + IFNULL(m.val2_pro,0) + IFNULL(m.val3_pro,0) + IFNULL(m.val4_pro,0) +
+            IFNULL(m.val1_sgp,0) + IFNULL(m.val2_sgp,0) + IFNULL(m.val3_sgp,0) + IFNULL(m.val4_sgp,0) +
+            IFNULL(m.val1_reg,0) + IFNULL(m.val2_reg,0) + IFNULL(m.val3_reg,0) + IFNULL(m.val4_reg,0) +
+            IFNULL(m.val1_cre,0) + IFNULL(m.val2_cre,0) + IFNULL(m.val3_cre,0) + IFNULL(m.val4_cre,0) +
+            IFNULL(m.val1_mun,0) + IFNULL(m.val2_mun,0) + IFNULL(m.val3_mun,0) + IFNULL(m.val4_mun,0) +
+            IFNULL(m.val1_otr,0) + IFNULL(m.val2_otr,0) + IFNULL(m.val3_otr,0) + IFNULL(m.val4_otr,0)
+          ) AS meta_presupuesto_total,
 
           -- % avance financiero (trimestre)
           ROUND(
             CASE
-              WHEN (IFNULL(m.valor,0) + IFNULL(m.valor2,0) + IFNULL(m.valor3,0) + IFNULL(m.valor4,0)) > 0
+              WHEN (
+                IFNULL(m.val1_pro,0) + IFNULL(m.val2_pro,0) + IFNULL(m.val3_pro,0) + IFNULL(m.val4_pro,0) +
+                IFNULL(m.val1_sgp,0) + IFNULL(m.val2_sgp,0) + IFNULL(m.val3_sgp,0) + IFNULL(m.val4_sgp,0) +
+                IFNULL(m.val1_reg,0) + IFNULL(m.val2_reg,0) + IFNULL(m.val3_reg,0) + IFNULL(m.val4_reg,0) +
+                IFNULL(m.val1_cre,0) + IFNULL(m.val2_cre,0) + IFNULL(m.val3_cre,0) + IFNULL(m.val4_cre,0) +
+                IFNULL(m.val1_mun,0) + IFNULL(m.val2_mun,0) + IFNULL(m.val3_mun,0) + IFNULL(m.val4_mun,0) +
+                IFNULL(m.val1_otr,0) + IFNULL(m.val2_otr,0) + IFNULL(m.val3_otr,0) + IFNULL(m.val4_otr,0)
+              ) > 0
               THEN (a.gasto * 100.0) /
-                  (IFNULL(m.valor,0) + IFNULL(m.valor2,0) + IFNULL(m.valor3,0) + IFNULL(m.valor4,0))
+                  (
+                    IFNULL(m.val1_pro,0) + IFNULL(m.val2_pro,0) + IFNULL(m.val3_pro,0) + IFNULL(m.val4_pro,0) +
+                    IFNULL(m.val1_sgp,0) + IFNULL(m.val2_sgp,0) + IFNULL(m.val3_sgp,0) + IFNULL(m.val4_sgp,0) +
+                    IFNULL(m.val1_reg,0) + IFNULL(m.val2_reg,0) + IFNULL(m.val3_reg,0) + IFNULL(m.val4_reg,0) +
+                    IFNULL(m.val1_cre,0) + IFNULL(m.val2_cre,0) + IFNULL(m.val3_cre,0) + IFNULL(m.val4_cre,0) +
+                    IFNULL(m.val1_mun,0) + IFNULL(m.val2_mun,0) + IFNULL(m.val3_mun,0) + IFNULL(m.val4_mun,0) +
+                    IFNULL(m.val1_otr,0) + IFNULL(m.val2_otr,0) + IFNULL(m.val3_otr,0) + IFNULL(m.val4_otr,0)
+                  )
               ELSE 0
             END
           , 2) AS porcentaje_financiero,

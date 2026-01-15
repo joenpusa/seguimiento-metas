@@ -44,17 +44,34 @@ export const MetaProvider = ({ children }) => {
     cantidad: Number(m.cantidad) || 0,
 
     // IMPORTANTE: Para el form pasamos valores planos
-    valor: Number(m.valor) || 0,
-    valor2: Number(m.valor2) || 0,
-    valor3: Number(m.valor3) || 0,
-    valor4: Number(m.valor4) || 0,
+    val1_pro: Number(m.val1_pro) || 0,
+    val2_pro: Number(m.val2_pro) || 0,
+    val3_pro: Number(m.val3_pro) || 0,
+    val4_pro: Number(m.val4_pro) || 0,
 
-    valores: {
-      valor1: Number(m.valor) || 0,
-      valor2: Number(m.valor2) || 0,
-      valor3: Number(m.valor3) || 0,
-      valor4: Number(m.valor4) || 0,
-    },
+    val1_sgp: Number(m.val1_sgp) || 0,
+    val1_reg: Number(m.val1_reg) || 0,
+    val1_cre: Number(m.val1_cre) || 0,
+    val1_mun: Number(m.val1_mun) || 0,
+    val1_otr: Number(m.val1_otr) || 0,
+
+    val2_sgp: Number(m.val2_sgp) || 0,
+    val2_reg: Number(m.val2_reg) || 0,
+    val2_cre: Number(m.val2_cre) || 0,
+    val2_mun: Number(m.val2_mun) || 0,
+    val2_otr: Number(m.val2_otr) || 0,
+
+    val3_sgp: Number(m.val3_sgp) || 0,
+    val3_reg: Number(m.val3_reg) || 0,
+    val3_cre: Number(m.val3_cre) || 0,
+    val3_mun: Number(m.val3_mun) || 0,
+    val3_otr: Number(m.val3_otr) || 0,
+
+    val4_sgp: Number(m.val4_sgp) || 0,
+    val4_reg: Number(m.val4_reg) || 0,
+    val4_cre: Number(m.val4_cre) || 0,
+    val4_mun: Number(m.val4_mun) || 0,
+    val4_otr: Number(m.val4_otr) || 0,
 
     recurrente: m.recurrente ? true : false,
     fecha_limite: m.fecha_limite,
@@ -121,23 +138,41 @@ export const MetaProvider = ({ children }) => {
     fecha_limite: m.fecha_limite, // Corregido nombre propiedad para coincidir con form
 
     // Valores planos para form
-    valor: Number(m.valor) || 0,
-    valor2: Number(m.valor2) || 0,
-    valor3: Number(m.valor3) || 0,
-    valor4: Number(m.valor4) || 0,
+    val1_pro: Number(m.val1_pro) || 0,
+    val2_pro: Number(m.val2_pro) || 0,
+    val3_pro: Number(m.val3_pro) || 0,
+    val4_pro: Number(m.val4_pro) || 0,
+
+    val1_sgp: Number(m.val1_sgp) || 0,
+    val1_reg: Number(m.val1_reg) || 0,
+    val1_cre: Number(m.val1_cre) || 0,
+    val1_mun: Number(m.val1_mun) || 0,
+    val1_otr: Number(m.val1_otr) || 0,
+
+    val2_sgp: Number(m.val2_sgp) || 0,
+    val2_reg: Number(m.val2_reg) || 0,
+    val2_cre: Number(m.val2_cre) || 0,
+    val2_mun: Number(m.val2_mun) || 0,
+    val2_otr: Number(m.val2_otr) || 0,
+
+    val3_sgp: Number(m.val3_sgp) || 0,
+    val3_reg: Number(m.val3_reg) || 0,
+    val3_cre: Number(m.val3_cre) || 0,
+    val3_mun: Number(m.val3_mun) || 0,
+    val3_otr: Number(m.val3_otr) || 0,
+
+    val4_sgp: Number(m.val4_sgp) || 0,
+    val4_reg: Number(m.val4_reg) || 0,
+    val4_cre: Number(m.val4_cre) || 0,
+    val4_mun: Number(m.val4_mun) || 0,
+    val4_otr: Number(m.val4_otr) || 0,
+
     recurrente: m.recurrente ? true : false,
 
     // AVANCES
     porcentajeFisico: Number(m.porcentaje_fisico) || 0,
     porcentajeFinanciero: Number(m.porcentaje_financiero) || 0,
     estadoProgreso: m.estadoProgreso || "SIN_INICIAR",
-
-    valores: {
-      valor1: Number(m.valor) || 0,
-      valor2: Number(m.valor2) || 0,
-      valor3: Number(m.valor3) || 0,
-      valor4: Number(m.valor4) || 0,
-    },
 
     // Relaciones ID para form
     id_unidad: m.id_unidad,
