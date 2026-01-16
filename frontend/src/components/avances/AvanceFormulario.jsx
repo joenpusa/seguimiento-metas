@@ -213,7 +213,7 @@ const AvanceFormulario = ({ meta, programacion, onClose, avance = null, readOnly
         </div>
 
         <div className="space-y-3 border rounded-md p-4 mt-2 bg-slate-50 dark:bg-slate-900/50">
-          <Label className="font-semibold">Ejecución Financiera (Valor en miles de millones)</Label>
+          <Label className="font-semibold">Ejecución Financiera (Valor en millones)</Label>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
             {SOURCES.map((src) => (
               <div key={src.key}>

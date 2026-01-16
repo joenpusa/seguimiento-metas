@@ -27,6 +27,14 @@ export const ProgramacionProvider = ({ children }) => {
     cantidadProgramada: p.cantidad_programada ?? p.cantidad,
     presupuestoProgramado: p.gasto_programado ?? p.gasto,
 
+    // Desglose Programado
+    gasto_programado_pro: p.gasto_programado_pro ?? 0,
+    gasto_programado_cre: p.gasto_programado_cre ?? 0,
+    gasto_programado_sgp: p.gasto_programado_sgp ?? 0,
+    gasto_programado_mun: p.gasto_programado_mun ?? 0,
+    gasto_programado_otr: p.gasto_programado_otr ?? 0,
+    gasto_programado_reg: p.gasto_programado_reg ?? 0,
+
     // Avance (pueden ser null)
     cantidadAvanzada: p.cantidad_avance ?? 0,
     gastoAvanzado: p.gasto_avance ?? 0,

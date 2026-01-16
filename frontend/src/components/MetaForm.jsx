@@ -263,7 +263,7 @@ const MetaForm = ({ open, onOpenChange, onSave, metaToEdit = null }) => {
                                 {/* 💰 PRESUPUESTO */}
                                 <div className="space-y-3 mt-4 border rounded-md p-4 bg-slate-50/50">
                                     <Label className="text-base font-semibold">
-                                        Recursos Financieros (Valor en miles de millones)
+                                        Recursos Financieros (Valor en millones)
                                     </Label>
                                     <TabsYearSelectorReadOnly meta={selectedMeta} />
                                 </div>

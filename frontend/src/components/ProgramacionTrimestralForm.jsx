@@ -31,7 +31,12 @@ const ProgramacionTrimestralForm = ({ open, onOpenChange, onSave, meta, activePl
     anio: '',
     trimestre: '',
     cantidadProgramada: 0,
-    presupuestoProgramado: 0
+    gasto_pro: 0,
+    gasto_cre: 0,
+    gasto_sgp: 0,
+    gasto_mun: 0,
+    gasto_otr: 0,
+    gasto_reg: 0
   });
 
   const [siguiente, setSiguiente] = useState(null);
@@ -48,7 +53,12 @@ const ProgramacionTrimestralForm = ({ open, onOpenChange, onSave, meta, activePl
           anio: programacionToEdit.anio.toString(),
           trimestre: programacionToEdit.trimestre,
           cantidadProgramada: programacionToEdit.cantidadProgramada || 0,
-          presupuestoProgramado: programacionToEdit.presupuestoProgramado || 0
+          gasto_pro: programacionToEdit.gasto_programado_pro || 0,
+          gasto_cre: programacionToEdit.gasto_programado_cre || 0,
+          gasto_sgp: programacionToEdit.gasto_programado_sgp || 0,
+          gasto_mun: programacionToEdit.gasto_programado_mun || 0,
+          gasto_otr: programacionToEdit.gasto_programado_otr || 0,
+          gasto_reg: programacionToEdit.gasto_programado_reg || 0,
         });
       } else if (meta && activePlan) {
         // MODO CREACIÓN
@@ -60,7 +70,12 @@ const ProgramacionTrimestralForm = ({ open, onOpenChange, onSave, meta, activePl
                 anio: res.anio.toString(),
                 trimestre: res.trimestre,
                 cantidadProgramada: 0,
-                presupuestoProgramado: 0,
+                gasto_pro: 0,
+                gasto_cre: 0,
+                gasto_sgp: 0,
+                gasto_mun: 0,
+                gasto_otr: 0,
+                gasto_reg: 0
               });
             } else {
               setSiguiente(null);
@@ -101,7 +116,16 @@ const ProgramacionTrimestralForm = ({ open, onOpenChange, onSave, meta, activePl
       return;
     }
 
-    if (parseFloat(formData.presupuestoProgramado) < 0) {
+    const totalGasto = (
+      (parseFloat(formData.gasto_sgp) || 0) +
+      (parseFloat(formData.gasto_pro) || 0) +
+      (parseFloat(formData.gasto_cre) || 0) +
+      (parseFloat(formData.gasto_mun) || 0) +
+      (parseFloat(formData.gasto_reg) || 0) +
+      (parseFloat(formData.gasto_otr) || 0)
+    );
+
+    if (totalGasto < 0) {
       toast({
         title: "Error de Validación",
         description: "El presupuesto programado no puede ser negativo.",
@@ -115,7 +139,12 @@ const ProgramacionTrimestralForm = ({ open, onOpenChange, onSave, meta, activePl
       anio: Number(formData.anio),
       trimestre: formData.trimestre,
       cantidad: Number(formData.cantidadProgramada),
-      gasto: Number(formData.presupuestoProgramado),
+      gasto_pro: Number(formData.gasto_pro),
+      gasto_cre: Number(formData.gasto_cre),
+      gasto_sgp: Number(formData.gasto_sgp),
+      gasto_mun: Number(formData.gasto_mun),
+      gasto_otr: Number(formData.gasto_otr),
+      gasto_reg: Number(formData.gasto_reg),
     });
 
 
@@ -228,24 +257,142 @@ const ProgramacionTrimestralForm = ({ open, onOpenChange, onSave, meta, activePl
             </div>
 
             <div>
-              <Label htmlFor="presupuestoProgramado">Presupuesto Programado</Label>
-              <div className="relative">
-                <DollarSign className="absolute left-2 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                <Input
-                  id="presupuestoProgramado"
-                  name="presupuestoProgramado"
-                  type="number"
-                  value={formData.presupuestoProgramado}
-                  onChange={handleChange}
-                  placeholder="Ej: 50000"
-                  min="0"
-                  step="0.01"
-                  className="pl-7"
-                  disabled={!siguiente}
-                />
+              <Label className="mb-2 block">Desglose Presupuestal (Valor en millones)</Label>
+              <div className="grid grid-cols-2 gap-4 bg-gray-50 p-4 rounded-lg border">
+
+                {/* SGP */}
+                <div>
+                  <Label htmlFor="gasto_sgp" className="text-xs text-muted-foreground">SGP</Label>
+                  <div className="relative">
+                    <DollarSign className="absolute left-2 top-1/2 h-3 w-3 -translate-y-1/2 text-muted-foreground" />
+                    <Input
+                      id="gasto_sgp"
+                      name="gasto_sgp"
+                      type="number"
+                      value={formData.gasto_sgp}
+                      onChange={handleChange}
+                      placeholder="0"
+                      min="0"
+                      className="pl-6 h-8 text-sm"
+                      disabled={!siguiente}
+                    />
+                  </div>
+                </div>
+
+                {/* Propio */}
+                <div>
+                  <Label htmlFor="gasto_pro" className="text-xs text-muted-foreground">Propio</Label>
+                  <div className="relative">
+                    <DollarSign className="absolute left-2 top-1/2 h-3 w-3 -translate-y-1/2 text-muted-foreground" />
+                    <Input
+                      id="gasto_pro"
+                      name="gasto_pro"
+                      type="number"
+                      value={formData.gasto_pro}
+                      onChange={handleChange}
+                      placeholder="0"
+                      min="0"
+                      className="pl-6 h-8 text-sm"
+                      disabled={!siguiente}
+                    />
+                  </div>
+                </div>
+
+                {/* Crédito */}
+                <div>
+                  <Label htmlFor="gasto_cre" className="text-xs text-muted-foreground">Crédito</Label>
+                  <div className="relative">
+                    <DollarSign className="absolute left-2 top-1/2 h-3 w-3 -translate-y-1/2 text-muted-foreground" />
+                    <Input
+                      id="gasto_cre"
+                      name="gasto_cre"
+                      type="number"
+                      value={formData.gasto_cre}
+                      onChange={handleChange}
+                      placeholder="0"
+                      min="0"
+                      className="pl-6 h-8 text-sm"
+                      disabled={!siguiente}
+                    />
+                  </div>
+                </div>
+
+                {/* Municipal */}
+                <div>
+                  <Label htmlFor="gasto_mun" className="text-xs text-muted-foreground">Municipal</Label>
+                  <div className="relative">
+                    <DollarSign className="absolute left-2 top-1/2 h-3 w-3 -translate-y-1/2 text-muted-foreground" />
+                    <Input
+                      id="gasto_mun"
+                      name="gasto_mun"
+                      type="number"
+                      value={formData.gasto_mun}
+                      onChange={handleChange}
+                      placeholder="0"
+                      min="0"
+                      className="pl-6 h-8 text-sm"
+                      disabled={!siguiente}
+                    />
+                  </div>
+                </div>
+
+                {/* Regalías */}
+                <div>
+                  <Label htmlFor="gasto_reg" className="text-xs text-muted-foreground">Regalías</Label>
+                  <div className="relative">
+                    <DollarSign className="absolute left-2 top-1/2 h-3 w-3 -translate-y-1/2 text-muted-foreground" />
+                    <Input
+                      id="gasto_reg"
+                      name="gasto_reg"
+                      type="number"
+                      value={formData.gasto_reg}
+                      onChange={handleChange}
+                      placeholder="0"
+                      min="0"
+                      className="pl-6 h-8 text-sm"
+                      disabled={!siguiente}
+                    />
+                  </div>
+                </div>
+
+                {/* Otros */}
+                <div>
+                  <Label htmlFor="gasto_otr" className="text-xs text-muted-foreground">Otros</Label>
+                  <div className="relative">
+                    <DollarSign className="absolute left-2 top-1/2 h-3 w-3 -translate-y-1/2 text-muted-foreground" />
+                    <Input
+                      id="gasto_otr"
+                      name="gasto_otr"
+                      type="number"
+                      value={formData.gasto_otr}
+                      onChange={handleChange}
+                      placeholder="0"
+                      min="0"
+                      className="pl-6 h-8 text-sm"
+                      disabled={!siguiente}
+                    />
+                  </div>
+                </div>
+
               </div>
+
+              {/* Total Calculado */}
+              <div className="flex justify-between items-center mt-2 px-1">
+                <span className="text-sm font-medium">Total Presupuesto Programado:</span>
+                <span className="font-bold text-lg">
+                  ${(
+                    (parseFloat(formData.gasto_sgp) || 0) +
+                    (parseFloat(formData.gasto_pro) || 0) +
+                    (parseFloat(formData.gasto_cre) || 0) +
+                    (parseFloat(formData.gasto_mun) || 0) +
+                    (parseFloat(formData.gasto_reg) || 0) +
+                    (parseFloat(formData.gasto_otr) || 0)
+                  ).toLocaleString()}
+                </span>
+              </div>
+
               {meta?.presupuestoAnual && (
-                <p className="text-xs text-muted-foreground mt-1">
+                <p className="text-xs text-muted-foreground mt-1 text-right">
                   Presupuesto total meta: ${meta.presupuestoAnual.reduce((sum, p) => sum + (p.valor || 0), 0).toLocaleString()}
                 </p>
               )}

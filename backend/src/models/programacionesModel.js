@@ -18,7 +18,18 @@ export const ProgramacionesModel = {
 
           -- Programado
           p.cantidad AS cantidad_programada,
-          p.gasto AS gasto_programado,
+          p.gasto_pro AS gasto_programado_pro,
+          p.gasto_cre AS gasto_programado_cre,
+          p.gasto_sgp AS gasto_programado_sgp,
+          p.gasto_mun AS gasto_programado_mun,
+          p.gasto_otr AS gasto_programado_otr,
+          p.gasto_reg AS gasto_programado_reg,
+          
+          -- Total Programado (Calculado)
+          (
+            IFNULL(p.gasto_pro, 0) + IFNULL(p.gasto_cre, 0) + IFNULL(p.gasto_sgp, 0) +
+            IFNULL(p.gasto_mun, 0) + IFNULL(p.gasto_otr, 0) + IFNULL(p.gasto_reg, 0)
+          ) AS gasto_programado,
 
           -- Avance (puede ser null)
           a.id_avance,
@@ -99,15 +110,26 @@ export const ProgramacionesModel = {
   async create(data) {
     const db = await openDb();
     try {
-      const { id_meta, anio, trimestre, cantidad = 0, gasto = 0 } = data;
+      const {
+        id_meta,
+        anio,
+        trimestre,
+        cantidad = 0,
+        gasto_pro = 0,
+        gasto_cre = 0,
+        gasto_sgp = 0,
+        gasto_mun = 0,
+        gasto_otr = 0,
+        gasto_reg = 0
+      } = data;
 
       const [result] = await db.query(
         `
         INSERT INTO programaciones
-          (id_meta, anio, trimestre, cantidad, gasto)
-        VALUES (?, ?, ?, ?, ?)
+          (id_meta, anio, trimestre, cantidad, gasto_pro, gasto_cre, gasto_sgp, gasto_mun, gasto_otr, gasto_reg)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         `,
-        [id_meta, anio, trimestre, cantidad, gasto]
+        [id_meta, anio, trimestre, cantidad, gasto_pro, gasto_cre, gasto_sgp, gasto_mun, gasto_otr, gasto_reg]
       );
 
       return { id: result.insertId };
@@ -138,15 +160,27 @@ export const ProgramacionesModel = {
   async update(id, data) {
     const db = await openDb();
     try {
-      const { anio, trimestre, cantidad = 0, gasto = 0 } = data;
+      const {
+        anio,
+        trimestre,
+        cantidad = 0,
+        gasto_pro = 0,
+        gasto_cre = 0,
+        gasto_sgp = 0,
+        gasto_mun = 0,
+        gasto_otr = 0,
+        gasto_reg = 0
+      } = data;
 
       await db.query(
         `
         UPDATE programaciones
-        SET anio = ?, trimestre = ?, cantidad = ?, gasto = ?
+        SET anio = ?, trimestre = ?, cantidad = ?,
+            gasto_pro = ?, gasto_cre = ?, gasto_sgp = ?,
+            gasto_mun = ?, gasto_otr = ?, gasto_reg = ?
         WHERE id_programacion = ?
         `,
-        [anio, trimestre, cantidad, gasto, id]
+        [anio, trimestre, cantidad, gasto_pro, gasto_cre, gasto_sgp, gasto_mun, gasto_otr, gasto_reg, id]
       );
 
       return true;
