@@ -60,10 +60,6 @@ export const ProgramacionProvider = ({ children }) => {
       setProgramaciones(
         res.data.map(normalizeProgramacion)
       );
-      // console.error("esto fue lo que llego");
-      // console.log(res.data);
-      // console.error("esto fue lo normalice");
-      // console.log(programaciones);
     } catch (err) {
       toast({
         title: "Programaciones",

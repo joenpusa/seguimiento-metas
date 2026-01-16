@@ -33,7 +33,7 @@ const SOURCES = [
   { key: "gasto_sgp", label: "SGP" },
   { key: "gasto_reg", label: "Regalías" },
   { key: "gasto_cre", label: "Crédito" },
-  { key: "gasto_mun", label: "Municipio" },
+  { key: "gasto_mun", label: "Municipio o Nación" },
   { key: "gasto_otr", label: "Otros" },
 ];
 

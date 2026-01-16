@@ -24,8 +24,6 @@ const InformesPage = () => {
   const { secretarias = [], } = useSecretaria();
   const { municipios = [], } = useMunicipio();
 
-  // console.log(municipios);
-  // console.log(secretarias);
   const [filters, setFilters] = useState({
     anio: "",
     trimestre: "",
@@ -74,8 +72,8 @@ const InformesPage = () => {
       metasFiltradas = metasFiltradas.filter((m) =>
         Array.isArray(m.municipios)
           ? m.municipios?.some(
-              mun => mun.id === Number(filters.municipio)
-            )
+            mun => mun.id === Number(filters.municipio)
+          )
           : false
       );
     }
@@ -169,7 +167,7 @@ const InformesPage = () => {
         </CardContent>
       </Card>
 
-     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <ReportSummary data={filteredData} chartType={chartType} />
 
         <ReportCharts

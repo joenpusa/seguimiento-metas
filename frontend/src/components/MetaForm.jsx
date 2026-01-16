@@ -23,7 +23,7 @@ const SOURCES = [
     { key: "sgp", label: "SGP" },
     { key: "reg", label: "Regalías" },
     { key: "cre", label: "Crédito" },
-    { key: "mun", label: "Municipio" },
+    { key: "mun", label: "Municipio O Nación" },
     { key: "otr", label: "Otros" },
 ];
 
@@ -230,13 +230,26 @@ const MetaForm = ({ open, onOpenChange, onSave, metaToEdit = null }) => {
 
                                 <div className="grid grid-cols-2 gap-4">
 
-                                    <div>
-                                        <Label className="text-xs text-muted-foreground">
-                                            Cantidad
-                                        </Label>
-                                        <p className="font-medium">
-                                            {selectedMeta?.cantidad ?? "—"}
-                                        </p>
+                                    <Label className="text-xs text-muted-foreground">
+                                        Cantidad (Cuatrienio: {selectedMeta?.cantidad ?? 0})
+                                    </Label>
+                                    <div className="grid grid-cols-4 gap-2 mt-1">
+                                        <div>
+                                            <span className="text-[10px] text-muted-foreground block">Año 1</span>
+                                            <span className="text-sm font-medium">{selectedMeta?.cant_ano1 || 0}</span>
+                                        </div>
+                                        <div>
+                                            <span className="text-[10px] text-muted-foreground block">Año 2</span>
+                                            <span className="text-sm font-medium">{selectedMeta?.cant_ano2 || 0}</span>
+                                        </div>
+                                        <div>
+                                            <span className="text-[10px] text-muted-foreground block">Año 3</span>
+                                            <span className="text-sm font-medium">{selectedMeta?.cant_ano3 || 0}</span>
+                                        </div>
+                                        <div>
+                                            <span className="text-[10px] text-muted-foreground block">Año 4</span>
+                                            <span className="text-sm font-medium">{selectedMeta?.cant_ano4 || 0}</span>
+                                        </div>
                                     </div>
 
                                     <div>

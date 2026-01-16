@@ -14,10 +14,9 @@ import { useAuth } from "@/context/AuthContext";
 
 const AvanceList = ({ avances = [], loading, onEdit, onDelete, onView }) => {
   const { currentUser } = useAuth();
-
   if (loading) return null;
   const getMetaNombreCompleto = (avance) =>
-    `${avance.metaNumero ? `(${avance.metaNumero}) ` : ""}${avance.metaNombre}`;
+    `${avance.codigoMeta ? `(${avance.codigoMeta}) ` : ""}${avance.metaNombre}`;
 
   const canEditOrDelete = (avance) => {
     if (!currentUser) return false;
@@ -63,7 +62,7 @@ const AvanceList = ({ avances = [], loading, onEdit, onDelete, onView }) => {
                   <div className="flex justify-between items-start">
                     <div>
                       <CardDescription className="text-xs text-slate-500">
-                        Meta
+                        Meta: {avance.codigoMeta}
                       </CardDescription>
                       <CardTitle className="text-base font-semibold">
                         {getMetaNombreCompleto(avance)}

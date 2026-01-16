@@ -249,11 +249,11 @@ const ProgramacionTrimestralForm = ({ open, onOpenChange, onSave, meta, activePl
                 step="0.01"
                 disabled={!siguiente}
               />
-              {meta?.cantidad && (
+              {/* {meta?.cantidad && (
                 <p className="text-xs text-muted-foreground mt-1">
                   Meta total: {meta.cantidad} {meta.unidadMedida}
                 </p>
-              )}
+              )} */}
             </div>
 
             <div>
@@ -319,7 +319,7 @@ const ProgramacionTrimestralForm = ({ open, onOpenChange, onSave, meta, activePl
 
                 {/* Municipal */}
                 <div>
-                  <Label htmlFor="gasto_mun" className="text-xs text-muted-foreground">Municipal</Label>
+                  <Label htmlFor="gasto_mun" className="text-xs text-muted-foreground">Municipal o Nacional</Label>
                   <div className="relative">
                     <DollarSign className="absolute left-2 top-1/2 h-3 w-3 -translate-y-1/2 text-muted-foreground" />
                     <Input

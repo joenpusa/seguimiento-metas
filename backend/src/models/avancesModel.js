@@ -86,8 +86,8 @@ export const AvancesModel = {
 
           -- Datos de la meta y estructura
           m.nombre AS meta_nombre,
-          m.cantidad AS meta_cantidad,
-          d.codigo AS meta_numero,
+          (m.cant_ano1 + m.cant_ano2 + m.cant_ano3 + m.cant_ano4) AS meta_cantidad,
+          m.codigo AS meta_numero,
 
           (
             IFNULL(m.val1_pro,0) + IFNULL(m.val2_pro,0) + IFNULL(m.val3_pro,0) + IFNULL(m.val4_pro,0) +
@@ -127,8 +127,8 @@ export const AvancesModel = {
           -- % avance físico (trimestre)
           ROUND(
             CASE
-              WHEN m.cantidad > 0
-              THEN (a.cantidad * 100.0) / m.cantidad
+              WHEN (m.cant_ano1 + m.cant_ano2 + m.cant_ano3 + m.cant_ano4) > 0
+              THEN (a.cantidad * 100.0) / (m.cant_ano1 + m.cant_ano2 + m.cant_ano3 + m.cant_ano4)
               ELSE 0
             END
           , 2) AS porcentaje_fisico,

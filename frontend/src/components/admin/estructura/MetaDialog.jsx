@@ -29,7 +29,11 @@ const initialState = {
   codigo: "",
   nombre: "",
   descripcion: "",
-  cantidad: 0,
+  // cantidad: 0, // Replaced by yearly
+  cant_ano1: 0,
+  cant_ano2: 0,
+  cant_ano3: 0,
+  cant_ano4: 0,
   // Presupuesto Detallado
   // Año 1
   val1_pro: 0, val1_sgp: 0, val1_reg: 0, val1_cre: 0, val1_mun: 0, val1_otr: 0,
@@ -72,7 +76,7 @@ const SOURCES = [
   { key: "sgp", label: "SGP" },
   { key: "reg", label: "Regalías" },
   { key: "cre", label: "Crédito" },
-  { key: "mun", label: "Municipio" },
+  { key: "mun", label: "Municipio o Nación" },
   { key: "otr", label: "Otros" },
 ];
 
@@ -219,30 +223,95 @@ const MetaDialog = ({ open, onOpenChange, onSave, metaEdit }) => {
             />
           </div>
 
-          {/* Cantidad + Recurrente */}
-          <div className="space-y-2">
-            <Label>Cantidad total (Física)</Label>
-            <Input
-              type="number"
-              min="0"
-              value={formData.cantidad}
-              onChange={(e) =>
-                setFormData({
-                  ...formData,
-                  cantidad: Number(e.target.value),
-                })
-              }
-            />
+          {/* Cantidad Desglosada */}
+          <div className="md:col-span-2 space-y-2">
+            <Label>Cantidad total (Cuatrienio)</Label>
 
-            <label className="flex items-center gap-2 text-sm">
+            <div className="flex items-center gap-2 text-sm mb-2">
               <Checkbox
                 checked={formData.recurrente}
-                onCheckedChange={(checked) =>
-                  setFormData({ ...formData, recurrente: checked })
-                }
+                onCheckedChange={(checked) => {
+                  setFormData(prev => {
+                    const newData = { ...prev, recurrente: checked };
+                    // Si se activa, replicar el año 1 en los demás
+                    if (checked) {
+                      newData.cant_ano2 = newData.cant_ano1;
+                      newData.cant_ano3 = newData.cant_ano1;
+                      newData.cant_ano4 = newData.cant_ano1;
+                    }
+                    return newData;
+                  });
+                }}
               />
               Meta recurrente durante los 4 años
-            </label>
+            </div>
+
+            <div className="bg-slate-50 dark:bg-slate-900/50 p-4 border rounded-md">
+              <div className="flex justify-between items-center mb-3">
+                <span className="text-sm font-medium text-muted-foreground">Distribución anual de la meta física:</span>
+                <span className="text-sm font-bold">Total: {
+                  formData.recurrente
+                    ? (formData.cant_ano1 || 0) // El usuario pidió mostrar solo el valor de cant_ano1 si es recurrente
+                    : ((formData.cant_ano1 || 0) + (formData.cant_ano2 || 0) + (formData.cant_ano3 || 0) + (formData.cant_ano4 || 0))
+                }</span>
+              </div>
+              <div className="grid grid-cols-4 gap-4">
+                <div>
+                  <Label className="text-xs text-muted-foreground mb-1 block">Año 1</Label>
+                  <Input
+                    type="number"
+                    min="0"
+                    value={formData.cant_ano1}
+                    onChange={(e) => {
+                      const val = Number(e.target.value);
+                      setFormData(prev => {
+                        const newData = { ...prev, cant_ano1: val };
+                        if (prev.recurrente) {
+                          newData.cant_ano2 = val;
+                          newData.cant_ano3 = val;
+                          newData.cant_ano4 = val;
+                        }
+                        return newData;
+                      });
+                    }}
+                    placeholder="0"
+                  />
+                </div>
+                <div>
+                  <Label className="text-xs text-muted-foreground mb-1 block">Año 2</Label>
+                  <Input
+                    type="number"
+                    min="0"
+                    value={formData.cant_ano2}
+                    onChange={(e) => setFormData({ ...formData, cant_ano2: Number(e.target.value) })}
+                    placeholder="0"
+                    disabled={formData.recurrente}
+                  />
+                </div>
+                <div>
+                  <Label className="text-xs text-muted-foreground mb-1 block">Año 3</Label>
+                  <Input
+                    type="number"
+                    min="0"
+                    value={formData.cant_ano3}
+                    onChange={(e) => setFormData({ ...formData, cant_ano3: Number(e.target.value) })}
+                    placeholder="0"
+                    disabled={formData.recurrente}
+                  />
+                </div>
+                <div>
+                  <Label className="text-xs text-muted-foreground mb-1 block">Año 4</Label>
+                  <Input
+                    type="number"
+                    min="0"
+                    value={formData.cant_ano4}
+                    onChange={(e) => setFormData({ ...formData, cant_ano4: Number(e.target.value) })}
+                    placeholder="0"
+                    disabled={formData.recurrente}
+                  />
+                </div>
+              </div>
+            </div>
           </div>
 
           <div>
@@ -309,7 +378,24 @@ const MetaDialog = ({ open, onOpenChange, onSave, metaEdit }) => {
 
           <TabsYearSelector formData={formData} setFormData={setFormData} />
 
-          <div className="text-right text-sm font-medium pt-3 mt-2 border-t">
+          <div className="mt-4 pt-3 border-t grid grid-cols-2 md:grid-cols-3 gap-2 text-xs text-muted-foreground">
+            {SOURCES.map(src => {
+              const totalSrc =
+                (formData[`val1_${src.key}`] || 0) +
+                (formData[`val2_${src.key}`] || 0) +
+                (formData[`val3_${src.key}`] || 0) +
+                (formData[`val4_${src.key}`] || 0);
+
+              return (
+                <div key={src.key} className="flex justify-between border-b pb-1">
+                  <span>Total {src.label}:</span>
+                  <span className="font-medium">${totalSrc.toLocaleString()}</span>
+                </div>
+              )
+            })}
+          </div>
+
+          <div className="text-right text-sm font-bold pt-3 mt-2 border-t">
             Total Presupuesto Cuatrenio: ${totalPresupuesto.toLocaleString()}
           </div>
         </div>

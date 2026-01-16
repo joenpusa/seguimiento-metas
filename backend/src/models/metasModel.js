@@ -11,6 +11,9 @@ export const MetasModel = {
       const sql = `
         SELECT
           m.*,
+          
+          -- Calculado para compatibilidad
+          (m.cant_ano1 + m.cant_ano2 + m.cant_ano3 + m.cant_ano4) AS cantidad,
 
           i.id_detalle   AS iniciativa_id,
           i.codigo       AS iniciativa_codigo,
@@ -73,6 +76,7 @@ export const MetasModel = {
         `
         SELECT 
           m.*,
+          (m.cant_ano1 + m.cant_ano2 + m.cant_ano3 + m.cant_ano4) AS cantidad,
           s.nombre AS secretaria_nombre,
           u.nombre AS unidad_nombre,
           GROUP_CONCAT(mx.id_municipio) AS municipios
@@ -129,7 +133,7 @@ export const MetasModel = {
           nombre,
           descripcion,
           id_detalle,
-          cantidad,
+          cant_ano1, cant_ano2, cant_ano3, cant_ano4,
           id_unidad,
           val1_pro, val2_pro, val3_pro, val4_pro,
           recurrente,
@@ -159,7 +163,7 @@ export const MetasModel = {
           val4_sgp, val4_reg, val4_cre, val4_mun, val4_otr
         )
         VALUES (
-          ?, ?, ?, ?, ?, ?,
+          ?, ?, ?, ?, ?, ?, ?, ?, ?,
           ?, ?, ?, ?,
           ?, ?, ?,
           ?, ?, ?, ?, ?, ?,
@@ -175,7 +179,10 @@ export const MetasModel = {
           data.nombre,
           data.descripcion,
           data.id_detalle,
-          data.cantidad,
+          data.cant_ano1 || 0,
+          data.cant_ano2 || 0,
+          data.cant_ano3 || 0,
+          data.cant_ano4 || 0,
           data.id_unidad,
           data.val1_pro, data.val2_pro, data.val3_pro, data.val4_pro,
           data.recurrente,
@@ -250,7 +257,7 @@ export const MetasModel = {
           codigo = ?,
           nombre = ?,
           descripcion = ?,
-          cantidad = ?,
+          cant_ano1 = ?, cant_ano2 = ?, cant_ano3 = ?, cant_ano4 = ?,
           id_unidad = ?,
           val1_pro = ?, val2_pro = ?, val3_pro = ?, val4_pro = ?,
           val1_sgp = ?, val1_reg = ?, val1_cre = ?, val1_mun = ?, val1_otr = ?,
@@ -284,7 +291,10 @@ export const MetasModel = {
           data.codigo,
           data.nombre,
           data.descripcion,
-          data.cantidad,
+          data.cant_ano1 || 0,
+          data.cant_ano2 || 0,
+          data.cant_ano3 || 0,
+          data.cant_ano4 || 0,
           data.id_unidad,
           data.val1_pro, data.val2_pro, data.val3_pro, data.val4_pro,
           data.val1_sgp, data.val1_reg, data.val1_cre, data.val1_mun, data.val1_otr,
@@ -387,8 +397,8 @@ export const MetasModel = {
 
           -- PORCENTAJES
           CASE
-            WHEN m.cantidad > 0
-            THEN ROUND(COALESCE(av.total_cantidad, 0) * 100.0 / m.cantidad, 2)
+            WHEN (m.cant_ano1 + m.cant_ano2 + m.cant_ano3 + m.cant_ano4) > 0
+            THEN ROUND(COALESCE(av.total_cantidad, 0) * 100.0 / (m.cant_ano1 + m.cant_ano2 + m.cant_ano3 + m.cant_ano4), 2)
             ELSE 0
           END AS porcentaje_fisico,
 
@@ -420,11 +430,11 @@ export const MetasModel = {
           CASE
             WHEN
               COALESCE(av.total_cantidad, 0) = 0
-              OR m.cantidad = 0
+              OR (m.cant_ano1 + m.cant_ano2 + m.cant_ano3 + m.cant_ano4) = 0
             THEN 'SIN_INICIAR'
 
             WHEN
-              ROUND(COALESCE(av.total_cantidad, 0) * 100.0 / m.cantidad, 2) >= 100
+              ROUND(COALESCE(av.total_cantidad, 0) * 100.0 / (m.cant_ano1 + m.cant_ano2 + m.cant_ano3 + m.cant_ano4), 2) >= 100
             THEN 'COMPLETADA'
 
             ELSE 'EN_EJECUCION'
@@ -529,10 +539,10 @@ export const MetasModel = {
             CASE
               WHEN
                 COALESCE(av.total_cantidad, 0) = 0
-                OR m.cantidad = 0
+                OR (m.cant_ano1 + m.cant_ano2 + m.cant_ano3 + m.cant_ano4) = 0
               THEN 'SIN_INICIAR'
               WHEN
-                ROUND(COALESCE(av.total_cantidad, 0) * 100.0 / m.cantidad, 2) >= 100
+                ROUND(COALESCE(av.total_cantidad, 0) * 100.0 / (m.cant_ano1 + m.cant_ano2 + m.cant_ano3 + m.cant_ano4), 2) >= 100
               THEN 'COMPLETADA'
               ELSE 'EN_EJECUCION'
             END

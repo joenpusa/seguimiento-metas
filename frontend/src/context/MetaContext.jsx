@@ -42,6 +42,10 @@ export const MetaProvider = ({ children }) => {
 
     //  META
     cantidad: Number(m.cantidad) || 0,
+    cant_ano1: Number(m.cant_ano1) || 0,
+    cant_ano2: Number(m.cant_ano2) || 0,
+    cant_ano3: Number(m.cant_ano3) || 0,
+    cant_ano4: Number(m.cant_ano4) || 0,
 
     // IMPORTANTE: Para el form pasamos valores planos
     val1_pro: Number(m.val1_pro) || 0,
@@ -144,6 +148,10 @@ export const MetaProvider = ({ children }) => {
     descripcion: m.descripcion,
 
     cantidad: Number(m.cantidad) || 0,
+    cant_ano1: Number(m.cant_ano1) || 0,
+    cant_ano2: Number(m.cant_ano2) || 0,
+    cant_ano3: Number(m.cant_ano3) || 0,
+    cant_ano4: Number(m.cant_ano4) || 0,
     fecha_limite: m.fecha_limite, // Corregido nombre propiedad para coincidir con form
 
     // Valores planos para form
