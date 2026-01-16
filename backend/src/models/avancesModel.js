@@ -158,13 +158,7 @@ export const AvancesModel = {
         INNER JOIN detalles_plan d ON d.id_detalle = m.id_detalle
         ${whereClause}
         ORDER BY
-          a.anio DESC,
-          CASE a.trimestre
-            WHEN 'T1' THEN 1
-            WHEN 'T2' THEN 2
-            WHEN 'T3' THEN 3
-            WHEN 'T4' THEN 4
-          END DESC
+          a.id_avance DESC
         `,
         params
       );
