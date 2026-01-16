@@ -191,6 +191,7 @@ export const MetaProvider = ({ children }) => {
     porcentajeFinanciero: Number(m.porcentaje_financiero) || 0,
     estadoProgreso: m.estadoProgreso || "SIN_INICIAR",
 
+    id_detalle: m.id_detalle,
     // Relaciones ID para form
     id_unidad: m.id_unidad,
     id_secretaria: m.id_secretaria,

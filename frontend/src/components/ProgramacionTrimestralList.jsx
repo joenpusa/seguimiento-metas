@@ -277,6 +277,7 @@ const ProgramacionTrimestralList = ({ meta, onProgramar, onEdit }) => {
             meta={meta}
             programacion={programacionSeleccionada}
             onClose={() => setOpenModal(false)}
+            onSuccess={() => fetchProgramacionesByMeta(meta.id)}
           />
         </DialogContent>
       </Dialog>

@@ -37,7 +37,7 @@ const SOURCES = [
   { key: "gasto_otr", label: "Otros" },
 ];
 
-const AvanceFormulario = ({ meta, programacion, onClose, avance = null, readOnly = false }) => {
+const AvanceFormulario = ({ meta, programacion, onClose, onSuccess, avance = null, readOnly = false }) => {
   const { toast } = useToast();
   const { addAvance, updateAvance, fetchAvanceById } = useAvance();
 
@@ -177,7 +177,10 @@ const AvanceFormulario = ({ meta, programacion, onClose, avance = null, readOnly
       ok = await addAvance(payload);
     }
 
-    if (ok) onClose();
+    if (ok) {
+      if (onSuccess) onSuccess();
+      onClose();
+    }
   };
 
   return (
