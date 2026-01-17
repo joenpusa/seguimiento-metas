@@ -126,6 +126,7 @@ const TabsYearSelector = ({ formData, setFormData }) => {
               <Input
                 type="number"
                 min="0"
+                step="any"
                 className="pl-7 h-8 text-sm"
                 placeholder="0"
                 value={formData[`val${year}_${src.key}`] || 0}
@@ -261,6 +262,7 @@ const MetaDialog = ({ open, onOpenChange, onSave, metaEdit }) => {
                   <Input
                     type="number"
                     min="0"
+                    step="any"
                     value={formData.cant_ano1}
                     onChange={(e) => {
                       const val = Number(e.target.value);
@@ -282,6 +284,7 @@ const MetaDialog = ({ open, onOpenChange, onSave, metaEdit }) => {
                   <Input
                     type="number"
                     min="0"
+                    step="any"
                     value={formData.cant_ano2}
                     onChange={(e) => setFormData({ ...formData, cant_ano2: Number(e.target.value) })}
                     placeholder="0"
@@ -293,6 +296,7 @@ const MetaDialog = ({ open, onOpenChange, onSave, metaEdit }) => {
                   <Input
                     type="number"
                     min="0"
+                    step="any"
                     value={formData.cant_ano3}
                     onChange={(e) => setFormData({ ...formData, cant_ano3: Number(e.target.value) })}
                     placeholder="0"
@@ -304,6 +308,7 @@ const MetaDialog = ({ open, onOpenChange, onSave, metaEdit }) => {
                   <Input
                     type="number"
                     min="0"
+                    step="any"
                     value={formData.cant_ano4}
                     onChange={(e) => setFormData({ ...formData, cant_ano4: Number(e.target.value) })}
                     placeholder="0"

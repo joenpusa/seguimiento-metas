@@ -208,6 +208,7 @@ const AvanceFormulario = ({ meta, programacion, onClose, onSuccess, avance = nul
           <Label>Cantidad ejecutada</Label>
           <Input
             type="number"
+            step="any"
             name="cantidad"
             min={0}
             value={formData.cantidad}
@@ -226,6 +227,7 @@ const AvanceFormulario = ({ meta, programacion, onClose, onSuccess, avance = nul
                   <Input
                     className="pl-6"
                     type="number"
+                    step="any"
                     name={src.key}
                     min={0}
                     value={formData[src.key]}

@@ -246,7 +246,7 @@ const ProgramacionTrimestralForm = ({ open, onOpenChange, onSave, meta, activePl
                 onChange={handleChange}
                 placeholder="Ej: 25"
                 min="0"
-                step="0.01"
+                step="any"
                 disabled={!siguiente}
               />
               {/* {meta?.cantidad && (
@@ -273,6 +273,7 @@ const ProgramacionTrimestralForm = ({ open, onOpenChange, onSave, meta, activePl
                       onChange={handleChange}
                       placeholder="0"
                       min="0"
+                      step="any"
                       className="pl-6 h-8 text-sm"
                       disabled={!siguiente}
                     />
@@ -292,6 +293,7 @@ const ProgramacionTrimestralForm = ({ open, onOpenChange, onSave, meta, activePl
                       onChange={handleChange}
                       placeholder="0"
                       min="0"
+                      step="any"
                       className="pl-6 h-8 text-sm"
                       disabled={!siguiente}
                     />
@@ -311,6 +313,7 @@ const ProgramacionTrimestralForm = ({ open, onOpenChange, onSave, meta, activePl
                       onChange={handleChange}
                       placeholder="0"
                       min="0"
+                      step="any"
                       className="pl-6 h-8 text-sm"
                       disabled={!siguiente}
                     />
@@ -330,6 +333,7 @@ const ProgramacionTrimestralForm = ({ open, onOpenChange, onSave, meta, activePl
                       onChange={handleChange}
                       placeholder="0"
                       min="0"
+                      step="any"
                       className="pl-6 h-8 text-sm"
                       disabled={!siguiente}
                     />
@@ -349,6 +353,7 @@ const ProgramacionTrimestralForm = ({ open, onOpenChange, onSave, meta, activePl
                       onChange={handleChange}
                       placeholder="0"
                       min="0"
+                      step="any"
                       className="pl-6 h-8 text-sm"
                       disabled={!siguiente}
                     />
@@ -368,6 +373,7 @@ const ProgramacionTrimestralForm = ({ open, onOpenChange, onSave, meta, activePl
                       onChange={handleChange}
                       placeholder="0"
                       min="0"
+                      step="any"
                       className="pl-6 h-8 text-sm"
                       disabled={!siguiente}
                     />
