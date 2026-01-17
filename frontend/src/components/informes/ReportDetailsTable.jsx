@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React from 'react';
 import { motion } from 'framer-motion';
 import {
   Card,
@@ -10,30 +10,7 @@ import { Progress } from '@/components/ui/progress';
 import { MapPin } from 'lucide-react';
 
 const ReportDetailsTable = ({ metasFiltradas = [], avancesFiltrados = [] }) => {
-  /**
-   * Obtener el último avance por meta
-   */
-  const avancePorMeta = useMemo(() => {
-    const map = new Map();
 
-    avancesFiltrados.forEach((av) => {
-      if (!map.has(av.metaId)) {
-        map.set(av.metaId, av);
-        return;
-      }
-
-      const actual = map.get(av.metaId);
-      if (
-        av.anioAvance > actual.anioAvance ||
-        (av.anioAvance === actual.anioAvance &&
-          av.trimestreAvance > actual.trimestreAvance)
-      ) {
-        map.set(av.metaId, av);
-      }
-    });
-
-    return map;
-  }, [avancesFiltrados]);
 
   const getProgressColor = (value) => {
     if (value < 30) return 'bg-red-500';
@@ -87,14 +64,12 @@ const ReportDetailsTable = ({ metasFiltradas = [], avancesFiltrados = [] }) => {
 
                 <tbody>
                   {metasFiltradas.map((meta) => {
-                    const avance = avancePorMeta.get(meta.idMeta);
-
-                    const fisico = avance?.porcentajeFisico || 0;
-                    const financiero = avance?.porcentajeFinanciero || 0;
+                    const fisico = meta.porcentajeFisico || 0;
+                    const financiero = meta.porcentajeFinanciero || 0;
 
                     return (
                       <tr
-                        key={meta.idMeta}
+                        key={meta.id}
                         className="border-b hover:bg-slate-50 dark:hover:bg-slate-800"
                       >
                         <td className="py-2 px-2">
