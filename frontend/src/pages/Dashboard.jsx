@@ -34,23 +34,23 @@ const Dashboard = () => {
   const promedioAvanceFisico =
     metas.length > 0
       ? Math.round(
-          metas.reduce(
-            (acc, meta) =>
-              acc + (meta.porcentajeFisico || 0),
-            0
-          ) / metas.length
-        )
+        metas.reduce(
+          (acc, meta) =>
+            acc + (meta.porcentajeFisico || 0),
+          0
+        ) / metas.length
+      )
       : 0;
 
   const promedioAvanceFinanciero =
     metas.length > 0
       ? Math.round(
-          metas.reduce(
-            (acc, meta) =>
-              acc + (meta.porcentajeFinanciero || 0),
-            0
-          ) / metas.length
-        )
+        metas.reduce(
+          (acc, meta) =>
+            acc + (meta.porcentajeFinanciero || 0),
+          0
+        ) / metas.length
+      )
       : 0;
 
   const metasCompletadas = metas.filter(
@@ -134,7 +134,7 @@ const Dashboard = () => {
                       {meta.numeroMetaManual
                         ? `(${meta.numeroMetaManual}) `
                         : ""}
-                      {meta.nombre}
+                      {meta.codigo} - {meta.nombre}
                     </h4>
 
                     <div className="space-y-1.5">

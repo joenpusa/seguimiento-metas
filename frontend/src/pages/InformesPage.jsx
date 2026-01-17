@@ -168,19 +168,25 @@ const InformesPage = () => {
       </Card>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <ReportSummary data={filteredData} chartType={chartType} />
+        <div className="col-span-1">
+          <ReportSummary data={filteredData} chartType={chartType} />
+        </div>
 
-        <ReportCharts
-          metasFiltradas={filteredData.filteredMetas}
-          avancesFiltrados={filteredData.filteredAvances}
-          filters={filters}
-          chartType={chartType}
-        />
+        <div className="col-span-1 md:col-span-2">
+          <ReportCharts
+            metasFiltradas={filteredData.filteredMetas}
+            avancesFiltrados={filteredData.filteredAvances}
+            filters={filters}
+            chartType={chartType}
+          />
+        </div>
 
-        <ReportDetailsTable
-          metasFiltradas={filteredData.filteredMetas}
-          avancesFiltrados={filteredData.filteredAvances}
-        />
+        <div className="col-span-1 md:col-span-3">
+          <ReportDetailsTable
+            metasFiltradas={filteredData.filteredMetas}
+            avancesFiltrados={filteredData.filteredAvances}
+          />
+        </div>
       </div>
     </div>
   );

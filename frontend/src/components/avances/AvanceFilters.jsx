@@ -54,7 +54,7 @@ const AvanceFilters = ({
       </div> */}
 
       {/* 🎯 META */}
-      <div>
+      <div className="lg:col-span-3">
         <Label
           htmlFor="filterMeta"
           className="text-xs text-muted-foreground"
@@ -70,21 +70,21 @@ const AvanceFilters = ({
           <SelectTrigger id="filterMeta" className="w-full">
             <SelectValue placeholder="Todas" />
           </SelectTrigger>
-        <SelectContent>
+          <SelectContent>
             <SelectItem value="">Todas las metas</SelectItem>
 
             {metas.map((meta) => (
-                <SelectItem
-                    key={meta.id}
-                    value={String(meta.id)}
-                >
-                    {meta.numeroMetaManual
-                        ? `(${meta.numeroMetaManual}) `
-                        : ""}
-                    {meta.nombre}
-                </SelectItem>
+              <SelectItem
+                key={meta.id}
+                value={String(meta.id)}
+              >
+                {meta.numeroMetaManual
+                  ? `(${meta.numeroMetaManual}) `
+                  : ""}
+                {meta.codigo} - {meta.nombre}
+              </SelectItem>
             ))}
-        </SelectContent>
+          </SelectContent>
 
         </Select>
       </div>
