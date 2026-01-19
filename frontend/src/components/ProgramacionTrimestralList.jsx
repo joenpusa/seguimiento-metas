@@ -208,7 +208,8 @@ const ProgramacionTrimestralList = ({ meta, onProgramar, onEdit }) => {
                               </p>
 
                               {/* BOTÓN EDITAR (Si no ha sido reportado) */}
-                              {prog.estado !== "reportado" && onEdit && (
+                              {/* {prog.estado !== "reportado" && onEdit && ( */}
+                              {onEdit && (
                                 <Button
                                   size="xs"
                                   variant="ghost"

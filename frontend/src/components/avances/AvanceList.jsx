@@ -19,6 +19,8 @@ const AvanceList = ({ avances = [], loading, onEdit, onDelete, onView }) => {
     `${avance.codigoMeta ? `(${avance.codigoMeta}) ` : ""}${avance.metaNombre}`;
 
   const canEditOrDelete = (avance) => {
+    //ajuste temporal 
+    return true;
     if (!currentUser) return false;
 
     if (!avance.esUltimo) return false;
