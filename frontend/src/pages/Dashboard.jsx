@@ -120,11 +120,13 @@ const Dashboard = () => {
             <div className="max-h-80 overflow-y-auto space-y-3 pr-2">
               {metas
                 .slice()
-                .sort(
-                  (a, b) =>
-                    (a.porcentajeFisico || 0) -
-                    (b.porcentajeFisico || 0)
-                )
+                .sort((a, b) => {
+                  const codeA = String(a.codigo || "");
+                  const codeB = String(b.codigo || "");
+                  return codeA.localeCompare(codeB, undefined, {
+                    numeric: true,
+                  });
+                })
                 .map((meta) => (
                   <div
                     key={meta.id}

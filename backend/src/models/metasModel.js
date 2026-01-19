@@ -346,9 +346,6 @@ export const MetasModel = {
   // =========================
   // ELIMINAR META
   // =========================
-  // =========================
-  // ELIMINAR META
-  // =========================
   async delete(id) {
     const db = await openDb();
     try {
@@ -550,6 +547,11 @@ export const MetasModel = {
         `;
         params.push(filters.estadoProgreso);
       }
+
+      // ===============================
+      // ORDER BY
+      // ===============================
+      sql += " ORDER BY m.codigo ASC";
 
       // ===============================
       // LIMIT
