@@ -48,8 +48,9 @@ const LoginPage = () => {
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.5 }}
+        className="w-full max-w-2xl"
       >
-        <Card className="w-full max-w-md shadow-2xl bg-white/90 backdrop-blur-sm">
+        <Card className="w-full shadow-2xl bg-white/90 backdrop-blur-sm">
           <CardHeader className="text-center">
             <motion.div
               initial={{ y: -20, opacity: 0 }}
@@ -66,7 +67,7 @@ const LoginPage = () => {
                 Iniciar Sesión
               </CardTitle>
               <CardDescription className="text-slate-600">
-                Accede a tu panel de gestión de planes.
+                Accede a tu panel de gestión para administrar avances del plan de desarrollo .
               </CardDescription>
             </motion.div>
           </CardHeader>
@@ -127,15 +128,9 @@ const LoginPage = () => {
           </CardContent>
 
           <CardFooter className="text-center text-xs text-slate-500">
-            &copy; {new Date().getFullYear()} Mi Organización
+            &copy; {new Date().getFullYear()} Gobernación de Norte de Santander
           </CardFooter>
         </Card>
-        <div className="text-center mt-4 text-sm text-slate-300">
-            <p>Usuarios de prueba:</p>
-            <p>Admin: admin@example.com / adminpass</p>
-            <p>Responsable 1 (Secretaría General): responsable1@example.com / resppass</p>
-            <p>Responsable 2 (Oficina de Planeación): responsable2@example.com / resppass</p>
-        </div>
       </motion.div>
     </div>
   );
