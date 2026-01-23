@@ -395,7 +395,7 @@ export const MetasModel = {
           -- PORCENTAJES
           CASE
             WHEN (m.cant_ano1 + m.cant_ano2 + m.cant_ano3 + m.cant_ano4) > 0
-            THEN ROUND(COALESCE(av.total_cantidad, 0) * 100.0 / (m.cant_ano1 + m.cant_ano2 + m.cant_ano3 + m.cant_ano4), 2)
+            THEN LEAST(ROUND(COALESCE(av.total_cantidad, 0) * 100.0 / (m.cant_ano1 + m.cant_ano2 + m.cant_ano3 + m.cant_ano4), 2), 100)
             ELSE 0
           END AS porcentaje_fisico,
 
@@ -408,7 +408,7 @@ export const MetasModel = {
               m.val1_mun + m.val2_mun + m.val3_mun + m.val4_mun +
               m.val1_otr + m.val2_otr + m.val3_otr + m.val4_otr
             ) > 0
-            THEN ROUND(
+            THEN LEAST(ROUND(
               COALESCE(av.total_gasto, 0) * 100.0 /
               (
                 m.val1_pro + m.val2_pro + m.val3_pro + m.val4_pro +
@@ -419,7 +419,7 @@ export const MetasModel = {
                 m.val1_otr + m.val2_otr + m.val3_otr + m.val4_otr
               ),
               2
-            )
+            ), 100)
             ELSE 0
           END AS porcentaje_financiero,
 
