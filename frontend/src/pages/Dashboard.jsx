@@ -145,7 +145,7 @@ const Dashboard = () => {
                         <div className="flex justify-between text-xs mb-0.5">
                           <span>Avance Físico</span>
                           <span>
-                            {meta.porcentajeFisico || 0}%
+                            ({meta.acumuladoFisico} {meta.unidad_nombre}) {meta.porcentajeFisico || 0}%
                           </span>
                         </div>
                         <Progress

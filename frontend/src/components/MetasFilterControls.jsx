@@ -34,22 +34,8 @@ const MetasFilterControls = ({
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3, delay: 0.1 }}
-      className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 items-end"
+      className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 items-end"
     >
-      {/* BUSCADOR */}
-      {/* <div className="relative md:col-span-2 lg:col-span-1">
-        <Label htmlFor="searchMeta" className="sr-only">
-          Buscar
-        </Label>
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-        <Input
-          id="searchMeta"
-          placeholder="Buscar por nombre, descripción o número..."
-          className="pl-10"
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-        />
-      </div> */}
 
       {/* RESPONSABLE */}
       <div>

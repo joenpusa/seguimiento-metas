@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
   User,
+  Percent,
   Target,
   DollarSign,
   Eye,
@@ -103,8 +104,7 @@ const MetaCard = ({ meta, viewMode = "grid" }) => {
 
   const formatCurrency = (amount) =>
     new Intl.NumberFormat("es-CO", {
-      style: "currency",
-      currency: "COP",
+      style: "decimal",
       minimumFractionDigits: 0,
     }).format(amount);
 
@@ -130,7 +130,7 @@ const MetaCard = ({ meta, viewMode = "grid" }) => {
 
   return (
     <>
-      <motion.div whileHover={{ scale: 1.02 }}>
+      <motion.div whileHover={{ scale: 1.02 }} className="h-full">
         <Card className="h-full shadow-md hover:shadow-lg">
           <CardHeader>
             <div className="flex justify-between items-start">
@@ -157,6 +157,7 @@ const MetaCard = ({ meta, viewMode = "grid" }) => {
           <CardContent className="space-y-3">
             {/* Barra de progreso */}
             <div className="h-2 w-full rounded-full bg-muted overflow-hidden">
+
               <div
                 className={`h-full transition-all ${getProgressColor(
                   porcentajeFisico
@@ -166,17 +167,21 @@ const MetaCard = ({ meta, viewMode = "grid" }) => {
             </div>
 
             <div className="text-sm space-y-1">
-              <div className="flex gap-2">
+              <div className="flex items-center gap-2">
+                <Percent className="h-4 w-4" />
+                {porcentajeFisico}
+              </div>
+              <div className="flex items-center gap-2">
                 <Target className="h-4 w-4" />
-                {meta.cantidad} {unidadMedida}
+                {meta.acumuladoFisico} {unidadMedida}
               </div>
 
-              <div className="flex gap-2">
+              <div className="flex items-center gap-2">
                 <DollarSign className="h-4 w-4" />
                 {formatCurrency(presupuestoTotal)}
               </div>
 
-              <div className="flex gap-2">
+              <div className="flex items-center gap-2">
                 <User className="h-4 w-4" />
                 {nombreResponsable}
               </div>

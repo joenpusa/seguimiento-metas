@@ -91,6 +91,7 @@ export const MetaProvider = ({ children }) => {
 
     //  AVANCES (NUEVOS)
     porcentajeFisico: Number(m.porcentaje_fisico) || 0,
+    acumuladoFisico: Number(m.acumulado_fisico) || 0,
     porcentajeFinanciero: Number(m.porcentaje_financiero) || 0,
     estadoProgreso: m.estadoProgreso || "SIN_INICIAR",
 

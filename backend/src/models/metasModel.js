@@ -394,10 +394,12 @@ export const MetasModel = {
 
           -- PORCENTAJES
           CASE
-            WHEN (m.cant_ano1 + m.cant_ano2 + m.cant_ano3 + m.cant_ano4) > 0
+          WHEN (m.cant_ano1 + m.cant_ano2 + m.cant_ano3 + m.cant_ano4) > 0
             THEN LEAST(ROUND(COALESCE(av.total_cantidad, 0) * 100.0 / (m.cant_ano1 + m.cant_ano2 + m.cant_ano3 + m.cant_ano4), 2), 100)
             ELSE 0
           END AS porcentaje_fisico,
+
+          COALESCE(av.total_cantidad, 0) AS acumulado_fisico,
 
           CASE
             WHEN (

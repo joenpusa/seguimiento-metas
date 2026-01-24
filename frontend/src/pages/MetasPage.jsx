@@ -8,7 +8,7 @@ import { useSecretaria } from "@/context/SecretariaContext";
 import { useMunicipio } from "@/context/MunicipioContext";
 import { usePlan } from "@/context/PlanContext";
 import { useAuth } from "@/context/AuthContext";
-import { List, Grid, Plus } from "lucide-react";
+import { Grid } from "lucide-react";
 
 const MetasPage = () => {
   const { metas, loading, fetchMetas } = useMeta();
@@ -67,13 +67,6 @@ const MetasPage = () => {
         </div>
 
         <div className="flex gap-2">
-          {/* <Button
-            size="icon"
-            variant={viewMode === "list" ? "secondary" : "outline"}
-            onClick={() => setViewMode("list")}
-          >
-            <List className="h-4 w-4" />
-          </Button> */}
           <Button
             size="icon"
             variant={viewMode === "grid" ? "secondary" : "outline"}
@@ -115,6 +108,7 @@ const MetasPage = () => {
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.95 }}
+                className="h-full"
               >
                 <MetaCard meta={meta} viewMode={viewMode} />
               </motion.div>
