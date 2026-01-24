@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { BarChart2, PieChart } from "lucide-react";
 
 import ReportFilters from "@/components/informes/ReportFilters";
+import PredefinedReports from "@/components/informes/PredefinedReports";
 import ReportSummary from "@/components/informes/ReportSummary";
 import ReportCharts from "@/components/informes/ReportCharts";
 import ReportDetailsTable from "@/components/informes/ReportDetailsTable";
@@ -152,7 +153,14 @@ const InformesPage = () => {
           </div>
         </div>
       </motion.div>
-
+      <Card>
+        <CardHeader>
+          <CardTitle>Reportes predefinidos (Descargables)</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <PredefinedReports />
+        </CardContent>
+      </Card>
       <Card>
         <CardHeader>
           <CardTitle>Filtros del Informe</CardTitle>

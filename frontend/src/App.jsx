@@ -18,6 +18,7 @@ import { MunicipioProvider } from "@/context/MunicipioContext";
 import { UnidadProvider } from "@/context/UnidadContext";
 import { ProgramacionProvider } from "@/context/ProgramacionContext";
 import { AvanceProvider } from "@/context/AvanceContext";
+import { ReportesProvider } from "@/context/ReportesContext";
 
 /* ===============================
    RUTA PROTEGIDA
@@ -61,30 +62,32 @@ function App() {
               <MetaProvider>
                 <ProgramacionProvider>
                   <AvanceProvider>
-                    <Routes>
-                      {/* 🔓 Público */}
-                      <Route path="/login" element={<LoginPage />} />
+                    <ReportesProvider>
+                      <Routes>
+                        {/* 🔓 Público */}
+                        <Route path="/login" element={<LoginPage />} />
 
-                      {/* 🔐 Protegido */}
-                      <Route
-                        path="/"
-                        element={
-                          <ProtectedRoute>
-                            <Layout />
-                          </ProtectedRoute>
-                        }
-                      >
-                        <Route index element={<Dashboard />} />
-                        <Route path="metas" element={<MetasPage />} />
-                        <Route path="avances" element={<AvancesPage />} />
-                        <Route path="informes" element={<InformesPage />} />
-                        <Route path="admin-plan" element={<AdminPlanPage />} />
+                        {/* 🔐 Protegido */}
                         <Route
-                          path="change-password"
-                          element={<ChangePasswordPage />}
-                        />
-                      </Route>
-                    </Routes>
+                          path="/"
+                          element={
+                            <ProtectedRoute>
+                              <Layout />
+                            </ProtectedRoute>
+                          }
+                        >
+                          <Route index element={<Dashboard />} />
+                          <Route path="metas" element={<MetasPage />} />
+                          <Route path="avances" element={<AvancesPage />} />
+                          <Route path="informes" element={<InformesPage />} />
+                          <Route path="admin-plan" element={<AdminPlanPage />} />
+                          <Route
+                            path="change-password"
+                            element={<ChangePasswordPage />}
+                          />
+                        </Route>
+                      </Routes>
+                    </ReportesProvider>
                   </AvanceProvider>
                 </ProgramacionProvider>
               </MetaProvider>
