@@ -14,8 +14,6 @@ import {
 
 import { useMeta } from "@/context/MetaContext";
 import { usePlan } from "@/context/PlanContext";
-import { useUnidad } from "@/context/UnidadContext";
-import { useSecretaria } from "@/context/SecretariaContext";
 import { useMunicipio } from "@/context/MunicipioContext";
 
 const SOURCES = [

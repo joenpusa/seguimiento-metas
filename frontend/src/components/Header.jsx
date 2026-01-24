@@ -53,9 +53,6 @@ const Header = ({ toggleSidebar, isDesktopSidebarVisible }) => {
                   <KeyRound className="mr-2 h-4 w-4" />
                   <span>Cambiar Contraseña</span>
                 </DropdownMenuItem>
-                {/* <DropdownMenuItem className="cursor-not-allowed">
-                  Perfil (Próximamente)
-                </DropdownMenuItem> */}
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={logout} disabled={loading} className="text-red-500 focus:text-red-500 focus:bg-red-50">
                   <LogOut className="mr-2 h-4 w-4" />

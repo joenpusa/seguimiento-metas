@@ -1,14 +1,10 @@
 import React, { useState, useMemo, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Plus } from "lucide-react";
-
 import { useMeta } from "@/context/MetaContext";
 import { usePlan } from "@/context/PlanContext";
 import { useAuth } from "@/context/AuthContext";
 import { useAvance } from "@/context/AvanceContext";
 import { useSecretaria } from "@/context/SecretariaContext";
-
-import { Button } from "@/components/ui/button";
 import AvanceFilters from "@/components/avances/AvanceFilters";
 import AvanceList from "@/components/avances/AvanceList";
 import AvanceFormulario from "@/components/avances/AvanceFormulario";
@@ -253,8 +249,6 @@ const AvancesPage = () => {
         setAvanceToDelete(null);
     };
 
-    // console.table(metasVisibles);
-    // console.table(avancesEnriquecidos);
     /* =========================
        LOADING
     ========================== */

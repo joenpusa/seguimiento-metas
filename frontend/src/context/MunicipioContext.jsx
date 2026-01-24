@@ -30,9 +30,6 @@ export const MunicipioProvider = ({ children }) => {
   // ===============================
   // CARGAR MUNICIPIOS
   // ===============================
-  // ===============================
-  // CARGAR MUNICIPIOS
-  // ===============================
   const { isAuthenticated } = useAuth();
 
   const fetchMunicipios = useCallback(async () => {

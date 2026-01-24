@@ -19,7 +19,6 @@ const MetasPage = () => {
   const { secretarias = [], } = useSecretaria();
   const { municipios = [], } = useMunicipio();
 
-  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [viewMode, setViewMode] = useState("grid");
   const [searchTerm, setSearchTerm] = useState("");
   const [filters, setFilters] = useState({

@@ -132,16 +132,6 @@ const DashboardTable = ({ metas = [] }) => {
                         </Tooltip>
                       </td>
 
-                      {/* MUNICIPIOS */}
-                      {/* <td className="py-3 px-4">
-                        <div className="flex items-center gap-1 text-xs">
-                          <MapPin className="h-3 w-3 text-gray-400" />
-                          {Array.isArray(meta.municipios)
-                            ? meta.municipios.join(", ")
-                            : "N/A"}
-                        </div>
-                      </td> */}
-
                       {/* PROGRESO */}
                       <td className="py-3 px-4 w-[160px]">
                         <div className="flex items-center gap-2">

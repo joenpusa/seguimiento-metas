@@ -19,8 +19,6 @@ const TRIMESTRES_OPTIONS = [
 ];
 
 const AvanceFilters = ({
-  searchTerm,
-  setSearchTerm,
   filters,
   setFilters,
   metas = [],
@@ -38,21 +36,6 @@ const AvanceFilters = ({
       transition={{ duration: 0.3, delay: 0.1 }}
       className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 items-end"
     >
-      {/* 🔍 BUSCADOR */}
-      {/* <div className="relative lg:col-span-2">
-        <Label htmlFor="searchAvance" className="sr-only">
-          Buscar
-        </Label>
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-        <Input
-          id="searchAvance"
-          placeholder="Buscar por descripción, nombre o número de meta..."
-          className="pl-10"
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-        />
-      </div> */}
-
       {/* 🎯 META */}
       <div className="lg:col-span-3">
         <Label

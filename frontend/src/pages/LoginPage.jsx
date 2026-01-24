@@ -57,12 +57,6 @@ const LoginPage = () => {
               animate={{ y: 0, opacity: 1 }}
               transition={{ delay: 0.2, duration: 0.5 }}
             >
-              {/* Reemplaza por tu logo real */}
-              {/* <img
-                src="/placeholder-logo.svg"
-                alt="Logo de la Aplicación"
-                className="w-24 h-24 mx-auto mb-4"
-              /> */}
               <CardTitle className="text-3xl font-bold text-slate-800">
                 Iniciar Sesión
               </CardTitle>

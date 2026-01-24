@@ -32,9 +32,6 @@ export const PlanProvider = ({ children }) => {
   });
 
   // ===============================
-  // CARGA INICIAL
-  // ===============================
-  // ===============================
   // AUTH
   // ===============================
   const { isAuthenticated } = useAuth(); // Import useAuth hook first! (Checking imports...)

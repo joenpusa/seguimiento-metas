@@ -52,7 +52,6 @@ const PredefinedReports = () => {
                 quarter
             });
         } else {
-            console.log('Reporte aun no implementado:', { reportType, year, quarter });
             alert('Esta opción aún está en desarrollo.');
         }
     };
