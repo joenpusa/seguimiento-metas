@@ -13,10 +13,16 @@ export const MetasModel = {
           m.*,
           
           -- Calculado para compatibilidad
-          (m.cant_ano1 + m.cant_ano2 + m.cant_ano3 + m.cant_ano4) AS cantidad,
+          CASE
+            WHEN m.recurrente = 1 THEN (m.cant_ano1 + m.cant_ano2 + m.cant_ano3 + m.cant_ano4) / 4
+            ELSE (m.cant_ano1 + m.cant_ano2 + m.cant_ano3 + m.cant_ano4)
+          END AS cantidad,
 
           -- ACUMULADOS FISICOS
-          COALESCE(av.total_cantidad, 0) AS acumulado_fisico,
+          CASE
+            WHEN m.recurrente = 1 THEN COALESCE(av.total_cantidad, 0) / 4
+            ELSE COALESCE(av.total_cantidad, 0)
+          END AS acumulado_fisico,
           -- ACUMULADOS DE GASTOS
           COALESCE(av.acumulado_pro, 0) AS acumulado_pro,
           COALESCE(av.acumulado_sgp, 0) AS acumulado_sgp,
@@ -505,12 +511,20 @@ export const MetasModel = {
 
           -- PORCENTAJES
           CASE
-          WHEN (m.cant_ano1 + m.cant_ano2 + m.cant_ano3 + m.cant_ano4) > 0
+            WHEN (m.cant_ano1 + m.cant_ano2 + m.cant_ano3 + m.cant_ano4) > 0
             THEN LEAST(ROUND(COALESCE(av.total_cantidad, 0) * 100.0 / (m.cant_ano1 + m.cant_ano2 + m.cant_ano3 + m.cant_ano4), 2), 100)
             ELSE 0
           END AS porcentaje_fisico,
 
-          COALESCE(av.total_cantidad, 0) AS acumulado_fisico,
+          CASE
+            WHEN m.recurrente = 1 THEN (m.cant_ano1 + m.cant_ano2 + m.cant_ano3 + m.cant_ano4) / 4
+            ELSE (m.cant_ano1 + m.cant_ano2 + m.cant_ano3 + m.cant_ano4)
+          END AS cantidad,
+
+          CASE
+            WHEN m.recurrente = 1 THEN COALESCE(av.total_cantidad, 0) / 4
+            ELSE COALESCE(av.total_cantidad, 0)
+          END AS acumulado_fisico,
 
           CASE
             WHEN (

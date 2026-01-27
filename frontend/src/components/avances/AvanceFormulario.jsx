@@ -213,6 +213,9 @@ const AvanceFormulario = ({ meta, programacion, onClose, onSuccess, avance = nul
           <p className="text-sm text-muted-foreground">
             Año {programacion.anio} · {programacion.trimestre}
           </p>
+          <p className="text-sm text-muted-foreground">
+            Los valores en parentesis indican el acumulado de los trimestres anteriores.
+          </p>
         </div>
 
         <div>
@@ -235,6 +238,9 @@ const AvanceFormulario = ({ meta, programacion, onClose, onSuccess, avance = nul
             value={formData.cantidad}
             onChange={handleChange}
           />
+          <Label className="text-xs text-muted-foreground">
+            Si la meta es recurrente, ingrese la cantidad acumulada una sola vez al año, puesto que el su valor se dividira en el cuatrenio.
+          </Label>
         </div>
 
         <div className="space-y-3 border rounded-md p-4 mt-2 bg-slate-50 dark:bg-slate-900/50">
