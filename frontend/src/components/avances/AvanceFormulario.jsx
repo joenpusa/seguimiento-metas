@@ -8,6 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/components/ui/use-toast";
 
 import { useAvance } from "@/context/AvanceContext";
+import { useMeta } from "@/context/MetaContext";
 
 const initialPoblacion = {
   cantidad_0_5: 0,
@@ -29,17 +30,22 @@ const initialPoblacion = {
 };
 
 const SOURCES = [
-  { key: "gasto_pro", label: "Propios" },
-  { key: "gasto_sgp", label: "SGP" },
-  { key: "gasto_reg", label: "Regalías" },
-  { key: "gasto_cre", label: "Crédito" },
-  { key: "gasto_mun", label: "Municipio o Nación" },
-  { key: "gasto_otr", label: "Otros" },
+  { key: "gasto_pro", label: "Propios", accumulatedKey: "acumulado_pro" },
+  { key: "gasto_sgp", label: "SGP", accumulatedKey: "acumulado_sgp" },
+  { key: "gasto_reg", label: "Regalías", accumulatedKey: "acumulado_reg" },
+  { key: "gasto_cre", label: "Crédito", accumulatedKey: "acumulado_cre" },
+  { key: "gasto_mun", label: "Municipio o Nación", accumulatedKey: "acumulado_mun" },
+  { key: "gasto_otr", label: "Otros", accumulatedKey: "acumulado_otr" },
 ];
 
 const AvanceFormulario = ({ meta, programacion, onClose, onSuccess, avance = null, readOnly = false }) => {
   const { toast } = useToast();
   const { addAvance, updateAvance, fetchAvanceById } = useAvance();
+  const { fetchMetaById } = useMeta();
+
+  // Guardamos la meta con detalle (acumulados) localmente
+  const [detailedMeta, setDetailedMeta] = useState(meta);
+  console.log(detailedMeta);
 
   const [formData, setFormData] = useState({
     descripcion: "",
@@ -54,6 +60,21 @@ const AvanceFormulario = ({ meta, programacion, onClose, onSuccess, avance = nul
     url_evidencia: "",
     poblacion: initialPoblacion,
   });
+
+  // Cargar info completa de la meta al montar para tener los acumulados
+  useEffect(() => {
+    let active = true;
+    const loadMetaDetails = async () => {
+      if (meta?.id) {
+        const fullMeta = await fetchMetaById(meta.id);
+        if (active && fullMeta) {
+          setDetailedMeta(fullMeta);
+        }
+      }
+    };
+    loadMetaDetails();
+    return () => { active = false; };
+  }, [meta.id, fetchMetaById]);
 
   useEffect(() => {
     const loadAvanceData = async () => {
@@ -205,7 +226,7 @@ const AvanceFormulario = ({ meta, programacion, onClose, onSuccess, avance = nul
         </div>
 
         <div>
-          <Label>Cantidad ejecutada</Label>
+          <Label>Cantidad ejecutada {detailedMeta.acumulado_fisico ? `(${detailedMeta.acumulado_fisico})` : "(0)"}</Label>
           <Input
             type="number"
             step="any"
@@ -221,7 +242,9 @@ const AvanceFormulario = ({ meta, programacion, onClose, onSuccess, avance = nul
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
             {SOURCES.map((src) => (
               <div key={src.key}>
-                <Label className="text-xs text-muted-foreground">{src.label}</Label>
+                <Label className="text-xs text-muted-foreground">
+                  {src.label} {detailedMeta[src.accumulatedKey] ? `(${Number(detailedMeta[src.accumulatedKey]).toLocaleString("es-CO")})` : "(0)"}
+                </Label>
                 <div className="relative">
                   <span className="absolute left-3 top-2 text-muted-foreground text-sm">$</span>
                   <Input
@@ -282,20 +305,23 @@ const AvanceFormulario = ({ meta, programacion, onClose, onSuccess, avance = nul
               "cantidad_18_24",
               "cantidad_25_62",
               "cantidad_65_mas",
-            ].map((key) => (
-              <div key={key}>
-                <Label className="text-sm capitalize">
-                  {key.replace("cantidad_", "").replace(/_/g, " - ")} años
-                </Label>
-                <Input
-                  type="number"
-                  min={0}
-                  name={key}
-                  value={formData.poblacion[key]}
-                  onChange={handlePoblacionChange}
-                />
-              </div>
-            ))}
+            ].map((key) => {
+              const accKey = "acumulado_" + key.replace("cantidad_", "");
+              return (
+                <div key={key}>
+                  <Label className="text-sm capitalize">
+                    {key.replace("cantidad_", "").replace(/_/g, " - ")} años {detailedMeta[accKey] ? `(${detailedMeta[accKey]})` : "(0)"}
+                  </Label>
+                  <Input
+                    type="number"
+                    min={0}
+                    name={key}
+                    value={formData.poblacion[key]}
+                    onChange={handlePoblacionChange}
+                  />
+                </div>
+              );
+            })}
           </div>
 
           {/* GRUPO 2: CONDICIONES */}
@@ -311,20 +337,23 @@ const AvanceFormulario = ({ meta, programacion, onClose, onSuccess, avance = nul
               "cantesp_migrante",
               "cantesp_indigente",
               "cantesp_privado",
-            ].map((key) => (
-              <div key={key}>
-                <Label className="text-sm capitalize">
-                  {key.replace("cantesp_", "")}
-                </Label>
-                <Input
-                  type="number"
-                  min={0}
-                  name={key}
-                  value={formData.poblacion[key]}
-                  onChange={handlePoblacionChange}
-                />
-              </div>
-            ))}
+            ].map((key) => {
+              const accKey = "acumulado_" + key.replace("cantesp_", "");
+              return (
+                <div key={key}>
+                  <Label className="text-sm capitalize">
+                    {key.replace("cantesp_", "")} {detailedMeta[accKey] ? `(${detailedMeta[accKey]})` : "(0)"}
+                  </Label>
+                  <Input
+                    type="number"
+                    min={0}
+                    name={key}
+                    value={formData.poblacion[key]}
+                    onChange={handlePoblacionChange}
+                  />
+                </div>
+              );
+            })}
           </div>
         </div>
       </fieldset>

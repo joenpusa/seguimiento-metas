@@ -34,7 +34,7 @@ export const MetaProvider = ({ children }) => {
   // ===============================
   // NORMALIZADOR
   // ===============================
-  const normalizeMeta = (m) => ({
+  const normalizeMeta = React.useCallback((m) => ({
     id: m.id_meta,
     codigo: m.codigo,
     nombre: m.nombre,
@@ -139,10 +139,10 @@ export const MetaProvider = ({ children }) => {
     iniciativa: m.iniciativa_id
       ? { id: m.iniciativa_id, codigo: m.iniciativa_codigo, nombre: m.iniciativa_nombre }
       : null,
-  });
+  }), []);
 
 
-  const normalizeMetaDetail = (m) => ({
+  const normalizeMetaDetail = React.useCallback((m) => ({
     id: m.id_meta,
     codigo: m.codigo,
     nombre: m.nombre,
@@ -191,6 +191,35 @@ export const MetaProvider = ({ children }) => {
     porcentajeFisico: Number(m.porcentaje_fisico) || 0,
     porcentajeFinanciero: Number(m.porcentaje_financiero) || 0,
     estadoProgreso: m.estadoProgreso || "SIN_INICIAR",
+
+    // ACUMULADOS FISICOS
+    acumulado_fisico: Number(m.acumulado_fisico) || 0,
+
+    // ACUMULADOS DE GASTOS
+    acumulado_pro: Number(m.acumulado_pro) || 0,
+    acumulado_sgp: Number(m.acumulado_sgp) || 0,
+    acumulado_reg: Number(m.acumulado_reg) || 0,
+    acumulado_cre: Number(m.acumulado_cre) || 0,
+    acumulado_mun: Number(m.acumulado_mun) || 0,
+    acumulado_otr: Number(m.acumulado_otr) || 0,
+
+    // ACUMULADOS POBLACION
+    acumulado_0_5: Number(m.acumulado_0_5) || 0,
+    acumulado_6_12: Number(m.acumulado_6_12) || 0,
+    acumulado_13_17: Number(m.acumulado_13_17) || 0,
+    acumulado_18_24: Number(m.acumulado_18_24) || 0,
+    acumulado_25_62: Number(m.acumulado_25_62) || 0,
+    acumulado_65_mas: Number(m.acumulado_65_mas) || 0,
+
+    acumulado_mujer: Number(m.acumulado_mujer) || 0,
+    acumulado_discapacidad: Number(m.acumulado_discapacidad) || 0,
+    acumulado_etnia: Number(m.acumulado_etnia) || 0,
+    acumulado_victima: Number(m.acumulado_victima) || 0,
+    acumulado_desmovilizado: Number(m.acumulado_desmovilizado) || 0,
+    acumulado_lgtbi: Number(m.acumulado_lgtbi) || 0,
+    acumulado_migrante: Number(m.acumulado_migrante) || 0,
+    acumulado_indigente: Number(m.acumulado_indigente) || 0,
+    acumulado_privado: Number(m.acumulado_privado) || 0,
 
     id_detalle: m.id_detalle,
     // Relaciones ID para form
@@ -242,7 +271,7 @@ export const MetaProvider = ({ children }) => {
     iniciativa: m.iniciativa_id
       ? { id: m.iniciativa_id, codigo: m.iniciativa_codigo, nombre: m.iniciativa_nombre }
       : null,
-  });
+  }), []);
 
   // =====================================================
   //  CARGA INICIAL AUTOMÁTICA DE METAS
@@ -324,7 +353,7 @@ export const MetaProvider = ({ children }) => {
   // ===============================
   // 🔹 OBTENER META POR ID
   // ===============================
-  const fetchMetaById = async (idMeta) => {
+  const fetchMetaById = React.useCallback(async (idMeta) => {
     if (!idMeta) return;
 
     setLoadingSelectedMeta(true);
@@ -345,7 +374,7 @@ export const MetaProvider = ({ children }) => {
     } finally {
       setLoadingSelectedMeta(false);
     }
-  };
+  }, [toast]);
 
   const clearSelectedMeta = () => {
     setSelectedMeta(null);
