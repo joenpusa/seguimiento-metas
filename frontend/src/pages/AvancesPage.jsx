@@ -300,7 +300,7 @@ const AvancesPage = () => {
 
             {/* FORMULARIO AVANCE (EDITAR / VER) */}
             <Dialog open={openForm} onOpenChange={setOpenForm}>
-                <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+                <DialogContent className="w-[80vw] max-w-[80vw] h-[90vh] sm:max-w-[80vw] overflow-y-auto">
                     <DialogHeader>
                         <DialogTitle>
                             {isReadOnly ? "Detalle del Avance" : "Editar Avance"}

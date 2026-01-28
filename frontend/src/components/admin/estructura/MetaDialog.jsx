@@ -165,8 +165,6 @@ const MetaDialog = ({ open, onOpenChange, onSave, metaEdit }) => {
     }
   }, [metaEdit, open]);
 
-  /** 👉 ÚNICO MÉTODO NUEVO */
-  /** 👉 ÚNICO MÉTODO NUEVO */
   const totalPresupuesto =
     // Año 1
     (formData.val1_pro || 0) + (formData.val1_sgp || 0) + (formData.val1_reg || 0) + (formData.val1_cre || 0) + (formData.val1_mun || 0) + (formData.val1_otr || 0) +
@@ -183,7 +181,7 @@ const MetaDialog = ({ open, onOpenChange, onSave, metaEdit }) => {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-6xl w-full max-h-[90vh] overflow-y-auto">
+      <DialogContent className="w-[80vw] max-w-[80vw] h-[90vh] sm:max-w-[80vw] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>
             {isEditing ? "Editar Meta" : "Nueva Meta"}

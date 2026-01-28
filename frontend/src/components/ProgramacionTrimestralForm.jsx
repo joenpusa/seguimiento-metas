@@ -153,7 +153,7 @@ const ProgramacionTrimestralForm = ({ open, onOpenChange, onSave, meta, activePl
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent className="w-[80vw] max-w-[80vw] h-[90vh] sm:max-w-[80vw] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Calendar className="h-5 w-5" />

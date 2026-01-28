@@ -137,7 +137,7 @@ const MetaSeguimiento = ({ metaId, open, onOpenChange }) => {
                                 variant="outline"
                                 size="sm"
                                 onClick={handleExport}
-                                className="gap-2"
+                                className="gap-2 mr-8"
                             >
                                 <Download className="h-4 w-4" />
                                 Exportar CSV

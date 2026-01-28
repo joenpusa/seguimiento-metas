@@ -138,7 +138,7 @@ const MetaForm = ({ open, onOpenChange, onSave, metaToEdit = null }) => {
                 }
             }}
         >
-            <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
+            <DialogContent className="w-[80vw] max-w-[80vw] h-[90vh] sm:max-w-[80vw] max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
                     <DialogTitle>
                         Detalles de la Meta (Modo Lectura)
