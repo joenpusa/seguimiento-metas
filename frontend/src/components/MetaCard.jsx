@@ -16,6 +16,7 @@ import {
   Eye,
   Calendar,
   CalendarPlus,
+  Activity,
 } from "lucide-react";
 
 import MetaForm from "@/components/MetaForm";
@@ -26,8 +27,11 @@ import { usePlan } from "@/context/PlanContext";
 import { useAuth } from "@/context/AuthContext";
 import { useProgramacion } from "@/context/ProgramacionContext";
 
+import MetaSeguimiento from "@/components/MetaSeguimiento";
+
 const MetaCard = ({ meta, viewMode = "grid" }) => {
   const [openMetaForm, setOpenMetaForm] = useState(false);
+  const [showSeguimiento, setShowSeguimiento] = useState(false);
   const [programacionToEdit, setProgramacionToEdit] = useState(null);
   const { createProgramacion, updateProgramacion } = useProgramacion();
 
@@ -193,9 +197,21 @@ const MetaCard = ({ meta, viewMode = "grid" }) => {
                 variant="ghost"
                 onClick={handleViewMeta}
                 className="flex-1 border"
+                title="Ver detalle"
               >
                 <Eye className="h-4 w-4 mr-1" />
                 Ver
+              </Button>
+
+              <Button
+                size="icon"
+                variant="ghost"
+                onClick={() => setShowSeguimiento(true)}
+                className="flex-1 border"
+                title="Seguimiento / Reporte"
+              >
+                <Activity className="h-4 w-4 mr-1" />
+                Seg.
               </Button>
 
               {canManageProgramacion() && (
@@ -231,6 +247,13 @@ const MetaCard = ({ meta, viewMode = "grid" }) => {
 
       {/* Modal ver meta */}
       <MetaForm open={openMetaForm} onOpenChange={setOpenMetaForm} />
+
+      {/* Modal seguimiento */}
+      <MetaSeguimiento
+        metaId={meta.id}
+        open={showSeguimiento}
+        onOpenChange={setShowSeguimiento}
+      />
 
       {/* Lista programaciones */}
       {showProgramacionList && (

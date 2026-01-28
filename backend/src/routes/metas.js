@@ -52,6 +52,30 @@ router.get(
 );
 
 // ===============================
+// GET /api/metas/seguimiento/:id 
+// Detalle completo (Programado vs Ejecutado)
+// ===============================
+router.get(
+  "/seguimiento/:id",
+  authenticateToken,
+  async (req, res) => {
+    try {
+      const { id } = req.params;
+      const data = await MetasModel.getDetalladoMeta(id);
+
+      if (!data) {
+        return res.status(404).json({ message: "Meta no encontrada" });
+      }
+
+      res.json(data);
+    } catch (err) {
+      console.error("Error al obtener seguimiento de meta:", err);
+      res.status(500).json({ message: "Error al obtener seguimiento de meta" });
+    }
+  }
+);
+
+// ===============================
 // POST /api/metas
 // ===============================
 router.post(

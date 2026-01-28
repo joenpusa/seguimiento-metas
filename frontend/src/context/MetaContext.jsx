@@ -436,6 +436,29 @@ export const MetaProvider = ({ children }) => {
     }
   };
 
+  // ===============================
+  // SEGUIMIENTO
+  // ===============================
+  const getMetaSeguimiento = async (idMeta) => {
+    try {
+      const res = await api.get(`/metas/seguimiento/${idMeta}`);
+
+      const metaNormalized = normalizeMetaDetail(res.data.meta);
+
+      return {
+        meta: metaNormalized,
+        detalles: res.data.detalles
+      };
+    } catch (err) {
+      toast({
+        title: "Error",
+        description: "No se pudo cargar el seguimiento de la meta",
+        variant: "destructive",
+      });
+      return null;
+    }
+  };
+
   return (
     <MetaContext.Provider
       value={{
@@ -460,6 +483,7 @@ export const MetaProvider = ({ children }) => {
         createMeta,
         updateMeta,
         deleteMeta,
+        getMetaSeguimiento,
       }}
     >
       {children}

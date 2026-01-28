@@ -184,8 +184,178 @@ export const MetasModel = {
   },
 
   // =========================
-  // OBTENER METAS POR DETALLE
+  // OBTENER META DETALLADA (SEGUIMIENTO)
   // =========================
+  async getDetalladoMeta(idMeta) {
+    const db = await openDb();
+    try {
+      // 1. Obtener información básica de la meta + Jerarquía + Totales Raw
+      const [rows] = await db.query(
+        `SELECT
+           m.*,
+           s.nombre AS secretaria_nombre,
+           u.nombre AS unidad_nombre,
+
+           -- Totales Brutos (4 Años)
+           (m.cant_ano1 + m.cant_ano2 + m.cant_ano3 + m.cant_ano4) AS meta_total_cantidad_raw,
+           
+           (
+             IFNULL(m.val1_pro,0) + IFNULL(m.val2_pro,0) + IFNULL(m.val3_pro,0) + IFNULL(m.val4_pro,0) +
+             IFNULL(m.val1_sgp,0) + IFNULL(m.val2_sgp,0) + IFNULL(m.val3_sgp,0) + IFNULL(m.val4_sgp,0) +
+             IFNULL(m.val1_reg,0) + IFNULL(m.val2_reg,0) + IFNULL(m.val3_reg,0) + IFNULL(m.val4_reg,0) +
+             IFNULL(m.val1_cre,0) + IFNULL(m.val2_cre,0) + IFNULL(m.val3_cre,0) + IFNULL(m.val4_cre,0) +
+             IFNULL(m.val1_mun,0) + IFNULL(m.val2_mun,0) + IFNULL(m.val3_mun,0) + IFNULL(m.val4_mun,0) +
+             IFNULL(m.val1_otr,0) + IFNULL(m.val2_otr,0) + IFNULL(m.val3_otr,0) + IFNULL(m.val4_otr,0)
+           ) AS meta_total_presupuesto_raw,
+
+           -- Arbol de jerarquia
+           i.id_detalle   AS iniciativa_id,
+           i.codigo       AS iniciativa_codigo,
+           i.nombre_detalle AS iniciativa_nombre,
+
+           a.id_detalle   AS apuesta_id,
+           a.codigo       AS apuesta_codigo,
+           a.nombre_detalle AS apuesta_nombre,
+
+           c.id_detalle   AS componente_id,
+           c.codigo       AS componente_codigo,
+           c.nombre_detalle AS componente_nombre,
+
+           l.id_detalle   AS linea_id,
+           l.codigo       AS linea_codigo,
+           l.nombre_detalle AS linea_nombre
+
+         FROM metas m
+         LEFT JOIN secretarias s ON s.id_secretaria = m.id_secretaria
+         LEFT JOIN unidades u ON u.id_unidad = m.id_unidad
+
+         -- Joins para jerarquia
+         LEFT JOIN detalles_plan i ON i.id_detalle = m.id_detalle
+         LEFT JOIN detalles_plan a ON a.id_detalle = i.id_detalle_padre
+         LEFT JOIN detalles_plan c ON c.id_detalle = a.id_detalle_padre
+         LEFT JOIN detalles_plan l ON l.id_detalle = c.id_detalle_padre
+
+         WHERE m.id_meta = ?`,
+        [idMeta]
+      );
+
+      const meta = rows[0];
+      if (!meta) return null;
+
+      // 2. Obtener detalle trimestral (Programado vs Ejecutado)
+      const sqlDetalle = `
+        SELECT
+            t.anio, t.trimestre,
+            
+            -- Programación
+            COALESCE(p.cantidad, 0) as programacion_cantidad,
+            (
+              IFNULL(p.gasto_pro, 0) + IFNULL(p.gasto_cre, 0) + IFNULL(p.gasto_sgp, 0) +
+              IFNULL(p.gasto_mun, 0) + IFNULL(p.gasto_otr, 0) + IFNULL(p.gasto_reg, 0)
+            ) as programacion_gastos,
+            
+            -- Programacion Detallada
+            COALESCE(p.gasto_pro, 0) as prog_gasto_pro,
+            COALESCE(p.gasto_cre, 0) as prog_gasto_cre,
+            COALESCE(p.gasto_sgp, 0) as prog_gasto_sgp,
+            COALESCE(p.gasto_mun, 0) as prog_gasto_mun,
+            COALESCE(p.gasto_otr, 0) as prog_gasto_otr,
+            COALESCE(p.gasto_reg, 0) as prog_gasto_reg,
+
+            -- Avance
+            COALESCE(a.cantidad, 0) as avance_cantidad,
+            (
+              IFNULL(a.gasto_pro, 0) + IFNULL(a.gasto_cre, 0) + IFNULL(a.gasto_sgp, 0) +
+              IFNULL(a.gasto_reg, 0) + IFNULL(a.gasto_otr, 0) + IFNULL(a.gasto_mun, 0)
+            ) as avance_gastos,
+
+            -- Avance Detallado
+            COALESCE(a.gasto_pro, 0) as av_gasto_pro,
+            COALESCE(a.gasto_cre, 0) as av_gasto_cre,
+            COALESCE(a.gasto_sgp, 0) as av_gasto_sgp,
+            COALESCE(a.gasto_mun, 0) as av_gasto_mun,
+            COALESCE(a.gasto_otr, 0) as av_gasto_otr,
+            COALESCE(a.gasto_reg, 0) as av_gasto_reg,
+
+            -- Poblacion (Avances)
+            COALESCE(a.cantidad_0_5, 0) + COALESCE(a.cantidad_6_12, 0) + 
+            COALESCE(a.cantidad_13_17, 0) + COALESCE(a.cantidad_18_24, 0) + 
+            COALESCE(a.cantidad_25_62, 0) + COALESCE(a.cantidad_65_mas, 0) as poblacion_total_reportada,
+
+            COALESCE(a.cantesp_mujer, 0) as cantesp_mujer,
+            COALESCE(a.cantesp_discapacidad, 0) as cantesp_discapacidad,
+            COALESCE(a.cantesp_etnia, 0) as cantesp_etnia,
+            COALESCE(a.cantesp_victima, 0) as cantesp_victima, 
+            COALESCE(a.cantesp_desmovilizado, 0) as cantesp_desmovilizado,
+            COALESCE(a.cantesp_lgtbi, 0) as cantesp_lgtbi,
+            COALESCE(a.cantesp_migrante, 0) as cantesp_migrante,
+            COALESCE(a.cantesp_indigente, 0) as cantesp_indigente,
+            COALESCE(a.cantesp_privado, 0) as cantesp_privado,
+
+            -- Desglose Edades
+             a.cantidad_0_5,
+             a.cantidad_6_12,
+             a.cantidad_13_17,
+             a.cantidad_18_24,
+             a.cantidad_25_62,
+             a.cantidad_65_mas
+
+        FROM
+            (
+                SELECT anio, trimestre FROM programaciones WHERE id_meta = ?
+                UNION
+                SELECT anio, trimestre FROM avances WHERE id_meta = ?
+            ) t
+            LEFT JOIN programaciones p ON p.id_meta = ? AND p.anio = t.anio AND p.trimestre = t.trimestre
+            LEFT JOIN avances a ON a.id_meta = ? AND a.anio = t.anio AND a.trimestre = t.trimestre
+        ORDER BY t.anio ASC, 
+                 CASE t.trimestre 
+                    WHEN 'T1' THEN 1 
+                    WHEN 'T2' THEN 2 
+                    WHEN 'T3' THEN 3 
+                    WHEN 'T4' THEN 4 
+                 END ASC
+      `;
+
+      const [detalles] = await db.query(sqlDetalle, [idMeta, idMeta, idMeta, idMeta]);
+
+      // 3. Post-procesamiento para cálculos acumulativos
+      let accCantidad = 0;
+      let accGastos = 0;
+
+      const detallesProcesados = detalles.map(d => {
+        accCantidad += Number(d.avance_cantidad || 0);
+        accGastos += Number(d.avance_gastos || 0);
+
+        // Porcentaje Fisico Acumulado
+        // Si es recurrente O normal, calculamos sobre el total de años (Raw)
+        let pctFisico = 0;
+        if (meta.meta_total_cantidad_raw > 0) {
+          pctFisico = (accCantidad / meta.meta_total_cantidad_raw) * 100;
+        }
+
+        // Porcentaje Financiero Acumulado
+        let pctFinanciero = 0;
+        if (meta.meta_total_presupuesto_raw > 0) {
+          pctFinanciero = (accGastos / meta.meta_total_presupuesto_raw) * 100;
+        }
+
+        return {
+          ...d,
+          porcentaje_cumplimiento_fisico: Math.min(Number(pctFisico.toFixed(2)), 100),
+          porcentaje_cumplimiento_financiero: Math.min(Number(pctFinanciero.toFixed(2)), 100)
+        };
+      });
+
+      return {
+        meta,
+        detalles: detallesProcesados
+      };
+
+    } finally {
+      db.release();
+    }
+  },
   async getByDetalle(id_detalle) {
     const db = await openDb();
     try {
