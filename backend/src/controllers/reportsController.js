@@ -24,9 +24,9 @@ export const reportsController = {
       // 2. Calcular distribución (Lógica de negocio)
       let counts = {
         rango0: 0,
-        rango1_40: 0,
-        rango41_70: 0,
-        rango71_99: 0,
+        rango_low: 0,      // < 26.25%
+        rango_mid: 0,      // >= 26.25% && < 43.75%
+        rango_high: 0,     // >= 43.75% && < 100%
         rango100: 0
       };
 
@@ -43,9 +43,9 @@ export const reportsController = {
         m.porcentaje_avance = parseFloat(p.toFixed(2));
 
         if (p === 0) counts.rango0++;
-        else if (p <= 40) counts.rango1_40++;
-        else if (p <= 70) counts.rango41_70++;
-        else if (p < 100) counts.rango71_99++;
+        else if (p < 26.25) counts.rango_low++;
+        else if (p < 43.75) counts.rango_mid++;
+        else if (p < 100) counts.rango_high++;
         else counts.rango100++;
       });
 

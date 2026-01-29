@@ -13,9 +13,9 @@ const ReporteGeneralView = ({ data, onClose }) => {
 
     const chartData = [
         { name: '0%', value: counts.rango0, color: '#000000' },
-        { name: '1% - 40%', value: counts.rango1_40, color: '#D32F2F' },
-        { name: '41% - 70%', value: counts.rango41_70, color: '#F57C00' },
-        { name: '71% - 99%', value: counts.rango71_99, color: '#FBC02D' },
+        { name: '< 26.25%', value: counts.rango_low, color: '#D32F2F' },
+        { name: '26.25% - 43.75%', value: counts.rango_mid, color: '#F57C00' },
+        { name: '> 43.75%', value: counts.rango_high, color: '#FBC02D' },
         { name: '100%', value: counts.rango100, color: '#388E3C' },
     ].filter(d => d.value > 0);
 
@@ -48,8 +48,10 @@ const ReporteGeneralView = ({ data, onClose }) => {
 
                 {/* Cabecera */}
                 <div className="text-center mb-8">
-                    <h1 className="text-2xl font-bold uppercase mb-2">PLAN DE DESARROLLO: {plan.nombre}</h1>
-                    <p className="text-sm">PERIODO: {new Date(plan.fecha_inicio).getFullYear()} - {new Date(plan.fecha_fin).getFullYear()}</p>
+                    <h1 className="text-2xl font-bold uppercase mb-2">PLAN DE DESARROLLO: {plan.nombre_plan || plan.nombre}</h1>
+                    <p className="text-sm">
+                        PERIODO: {plan.vigencia_inicio || new Date(plan.fecha_inicio).getFullYear()} - {plan.vigencia_fin || new Date(plan.fecha_fin).getFullYear()}
+                    </p>
                     {plan.descripcion && <p className="text-xs italic text-gray-500 mt-1">{plan.descripcion}</p>}
                 </div>
 
@@ -59,9 +61,9 @@ const ReporteGeneralView = ({ data, onClose }) => {
                         <thead>
                             <tr className="text-white">
                                 <th className="border p-2 bg-black">0%</th>
-                                <th className="border p-2 bg-red-600">1% - 40%</th>
-                                <th className="border p-2 bg-orange-600">41% - 70%</th>
-                                <th className="border p-2 bg-yellow-400 text-black">71% - 99%</th>
+                                <th className="border p-2 bg-red-600">&lt; 26.25%</th>
+                                <th className="border p-2 bg-orange-600">26.25% - &lt; 43.75%</th>
+                                <th className="border p-2 bg-yellow-400 text-black">&gt;= 43.75%</th>
                                 <th className="border p-2 bg-green-700">100%</th>
                                 <th className="border p-2 bg-gray-300 text-black">TOTAL METAS</th>
                             </tr>
@@ -69,17 +71,17 @@ const ReporteGeneralView = ({ data, onClose }) => {
                         <tbody>
                             <tr className="text-center font-bold">
                                 <td className="border p-2">{counts.rango0}</td>
-                                <td className="border p-2">{counts.rango1_40}</td>
-                                <td className="border p-2">{counts.rango41_70}</td>
-                                <td className="border p-2">{counts.rango71_99}</td>
+                                <td className="border p-2">{counts.rango_low}</td>
+                                <td className="border p-2">{counts.rango_mid}</td>
+                                <td className="border p-2">{counts.rango_high}</td>
                                 <td className="border p-2">{counts.rango100}</td>
                                 <td className="border p-2 text-lg">{totalMetas}</td>
                             </tr>
                             <tr className="text-center text-gray-600 italic">
                                 <td className="border p-2">{getPct(counts.rango0)}</td>
-                                <td className="border p-2">{getPct(counts.rango1_40)}</td>
-                                <td className="border p-2">{getPct(counts.rango41_70)}</td>
-                                <td className="border p-2">{getPct(counts.rango71_99)}</td>
+                                <td className="border p-2">{getPct(counts.rango_low)}</td>
+                                <td className="border p-2">{getPct(counts.rango_mid)}</td>
+                                <td className="border p-2">{getPct(counts.rango_high)}</td>
                                 <td className="border p-2">{getPct(counts.rango100)}</td>
                                 <td className="border p-2">100%</td>
                             </tr>

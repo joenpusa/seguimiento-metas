@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button';
 import { FileText, Calendar, Filter, Loader2 } from 'lucide-react';
 import { usePlan } from "@/context/PlanContext";
 import { useReportes } from "@/context/ReportesContext";
-import ReporteGeneralView from './ReporteGeneralView';
+import ReporteGeneralView from './predefinidos/ReporteGeneralView';
 
 const PredefinedReports = () => {
     const [reportType, setReportType] = useState('');
