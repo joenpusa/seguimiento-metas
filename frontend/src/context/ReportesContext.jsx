@@ -42,10 +42,41 @@ export const ReportesProvider = ({ children }) => {
         }
     };
 
+    // ===============================
+    // GENERAR REPORTE LINEAS
+    // ===============================
+    const generateLineasReport = async (filters) => {
+        const { idPlan, year, quarter } = filters;
+        if (!idPlan || !year || !quarter) return;
+
+        setLoadingReport(true);
+        setReportData(null);
+        try {
+            const response = await api.post(
+                '/reports/lineas',
+                { idPlan, year, quarter }
+            );
+            setReportData(response.data);
+            toast({ title: 'Reporte por líneas generado correctamente' });
+            return true;
+        } catch (error) {
+            console.error('Error generando reporte líneas:', error);
+            toast({
+                title: 'Error',
+                description: 'No se pudo generar el reporte.',
+                variant: 'destructive',
+            });
+            return false;
+        } finally {
+            setLoadingReport(false);
+        }
+    };
+
     return (
         <ReportesContext.Provider
             value={{
                 generateGeneralReport,
+                generateLineasReport,
                 loadingReport,
                 reportData,
                 setReportData

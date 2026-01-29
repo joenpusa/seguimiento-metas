@@ -11,6 +11,7 @@ import { FileText, Calendar, Filter, Loader2 } from 'lucide-react';
 import { usePlan } from "@/context/PlanContext";
 import { useReportes } from "@/context/ReportesContext";
 import ReporteGeneralView from './predefinidos/ReporteGeneralView';
+import ReporteLineasView from './predefinidos/ReporteLineasView';
 
 const PredefinedReports = () => {
     const [reportType, setReportType] = useState('');
@@ -37,7 +38,7 @@ const PredefinedReports = () => {
     ];
 
     const { activePlanId } = usePlan();
-    const { generateGeneralReport, loadingReport, reportData, setReportData } = useReportes();
+    const { generateGeneralReport, generateLineasReport, loadingReport, reportData, setReportData } = useReportes();
 
     const handleGenerate = async () => {
         if (!activePlanId) {
@@ -47,6 +48,12 @@ const PredefinedReports = () => {
 
         if (reportType === 'general') {
             await generateGeneralReport({
+                idPlan: activePlanId,
+                year,
+                quarter
+            });
+        } else if (reportType === 'lineas') {
+            await generateLineasReport({
                 idPlan: activePlanId,
                 year,
                 quarter
@@ -62,6 +69,15 @@ const PredefinedReports = () => {
     if (reportData && reportType === 'general') {
         return (
             <ReporteGeneralView
+                data={reportData}
+                onClose={() => setReportData(null)}
+            />
+        );
+    }
+
+    if (reportData && reportType === 'lineas') {
+        return (
+            <ReporteLineasView
                 data={reportData}
                 onClose={() => setReportData(null)}
             />

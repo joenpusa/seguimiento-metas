@@ -10,4 +10,7 @@ router.use(authenticateToken);
 // Reporte 1: General
 router.post('/general', reportsController.generateGeneralReport);
 
+// Reporte 2: Lineas
+router.post('/lineas', reportsController.generateLineasReport);
+
 export default router;
