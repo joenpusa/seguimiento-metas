@@ -339,7 +339,7 @@ const MetaDialog = ({ open, onOpenChange, onSave, metaEdit }) => {
               <SelectTrigger>
                 <SelectValue placeholder="Seleccione unidad" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent position="item-aligned" className="max-h-[300px]">
                 {unidades.map((u) => (
                   <SelectItem key={u.id} value={u.id.toString()}>
                     {u.nombre}
@@ -360,7 +360,7 @@ const MetaDialog = ({ open, onOpenChange, onSave, metaEdit }) => {
               <SelectTrigger>
                 <SelectValue placeholder="Seleccione secretaría" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent position="item-aligned" className="max-h-[300px]">
                 {secretarias.map((s) => (
                   <SelectItem key={s.id} value={s.id.toString()}>
                     {s.nombre}
