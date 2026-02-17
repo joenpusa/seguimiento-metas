@@ -102,12 +102,43 @@ export const ReportesProvider = ({ children }) => {
         }
     };
 
+    // ===============================
+    // GENERAR REPORTE SECRETARIAS
+    // ===============================
+    const generateSecretariasReport = async (filters) => {
+        const { idPlan, year, quarter } = filters;
+        if (!idPlan || !year || !quarter) return;
+
+        setLoadingReport(true);
+        setReportData(null);
+        try {
+            const response = await api.post(
+                '/reports/secretarias',
+                { idPlan, year, quarter }
+            );
+            setReportData(response.data);
+            toast({ title: 'Reporte por secretarías generado correctamente' });
+            return true;
+        } catch (error) {
+            console.error('Error generando reporte secretarías:', error);
+            toast({
+                title: 'Error',
+                description: 'No se pudo generar el reporte por secretarías.',
+                variant: 'destructive',
+            });
+            return false;
+        } finally {
+            setLoadingReport(false);
+        }
+    };
+
     return (
         <ReportesContext.Provider
             value={{
                 generateGeneralReport,
                 generateLineasReport,
                 generateComponentesReport,
+                generateSecretariasReport,
                 loadingReport,
                 reportData,
                 setReportData

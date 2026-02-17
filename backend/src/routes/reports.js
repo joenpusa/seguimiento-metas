@@ -16,4 +16,7 @@ router.post('/lineas', reportsController.generateLineasReport);
 // Reporte 3: Componentes
 router.post('/componentes', reportsController.generateComponentesReport);
 
+// Reporte 5: Secretarías
+router.post('/secretarias', reportsController.generateSecretariasReport);
+
 export default router;

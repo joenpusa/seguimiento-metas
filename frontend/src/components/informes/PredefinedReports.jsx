@@ -13,6 +13,7 @@ import { useReportes } from "@/context/ReportesContext";
 import ReporteGeneralView from './predefinidos/ReporteGeneralView';
 import ReporteLineasView from './predefinidos/ReporteLineasView';
 import ReporteComponentesView from './predefinidos/ReporteComponentesView';
+import ReporteSecretariasView from './predefinidos/ReporteSecretariasView';
 
 const PredefinedReports = () => {
     const [reportType, setReportType] = useState('');
@@ -39,7 +40,15 @@ const PredefinedReports = () => {
     ];
 
     const { activePlanId } = usePlan();
-    const { generateGeneralReport, generateLineasReport, generateComponentesReport, loadingReport, reportData, setReportData } = useReportes();
+    const {
+        generateGeneralReport,
+        generateLineasReport,
+        generateComponentesReport,
+        generateSecretariasReport,
+        loadingReport,
+        reportData,
+        setReportData
+    } = useReportes();
 
     const handleGenerate = async () => {
         if (!activePlanId) {
@@ -61,6 +70,12 @@ const PredefinedReports = () => {
             });
         } else if (reportType === 'componente') {
             await generateComponentesReport({
+                idPlan: activePlanId,
+                year,
+                quarter
+            });
+        } else if (reportType === 'secretaria') {
+            await generateSecretariasReport({
                 idPlan: activePlanId,
                 year,
                 quarter
@@ -94,6 +109,15 @@ const PredefinedReports = () => {
     if (reportData && reportType === 'componente') {
         return (
             <ReporteComponentesView
+                data={reportData}
+                onClose={() => setReportData(null)}
+            />
+        );
+    }
+
+    if (reportData && reportType === 'secretaria') {
+        return (
+            <ReporteSecretariasView
                 data={reportData}
                 onClose={() => setReportData(null)}
             />

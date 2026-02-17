@@ -176,5 +176,63 @@ export const ReportsModel = {
     } finally {
       db.release();
     }
+  },
+
+  // =============================================
+  // 📌 Obtener datos para el Reporte por Secretarias
+  // =============================================
+  async getSecretariasReportData(idPlan, year, quarter) {
+    const db = await openDb();
+    try {
+      // 1. Obtener información del PLAN
+      const [planRows] = await db.query(
+        "SELECT * FROM planes_desarrollo WHERE id_plan = ?",
+        [idPlan]
+      );
+      const plan = planRows[0];
+      if (!plan) return null;
+
+      // 2. Mapeo de trimestres a orden
+      const trimestreOrder = { T1: 1, T2: 2, T3: 3, T4: 4 };
+      const qOrder = trimestreOrder[quarter] || 4;
+
+      // 3. Consulta de Metas + Secretaria
+      const sqlMetas = `
+        SELECT
+          m.id_meta,
+          m.nombre AS meta_nombre,
+          m.codigo AS meta_codigo,
+          (m.cant_ano1 + m.cant_ano2 + m.cant_ano3 + m.cant_ano4) AS meta_total,
+          COALESCE(SUM(av.cantidad), 0) AS avance_acumulado,
+          
+          s.id_secretaria,
+          s.nombre AS secretaria_nombre
+          
+        FROM metas m
+        INNER JOIN detalles_plan dp ON dp.id_detalle = m.id_detalle
+        LEFT JOIN secretarias s ON s.id_secretaria = m.id_secretaria
+        
+        LEFT JOIN avances av ON av.id_meta = m.id_meta
+          AND (
+             av.anio < ? 
+             OR (av.anio = ? AND 
+                 CASE av.trimestre
+                   WHEN 'T1' THEN 1
+                   WHEN 'T2' THEN 2
+                   WHEN 'T3' THEN 3
+                   WHEN 'T4' THEN 4
+                 END <= ?)
+          )
+        WHERE dp.id_plan = ?
+        GROUP BY m.id_meta, s.id_secretaria
+        ORDER BY s.nombre ASC, m.codigo ASC
+      `;
+
+      const [metas] = await db.query(sqlMetas, [year, year, qOrder, idPlan]);
+
+      return { plan, metas };
+    } finally {
+      db.release();
+    }
   }
 };

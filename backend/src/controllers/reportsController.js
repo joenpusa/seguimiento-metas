@@ -211,5 +211,79 @@ export const reportsController = {
       console.error("Error generando reporte componentes:", error);
       res.status(500).json({ error: "Error interno al generar reporte" });
     }
+  },
+
+  // ==========================================
+  // REPORTE 5: METAS POR SECRETARÍAS
+  // ==========================================
+  async generateSecretariasReport(req, res) {
+    const { idPlan, year, quarter } = req.body;
+
+    if (!idPlan || !year || !quarter) {
+      return res.status(400).json({ error: "Faltan parámetros (idPlan, year, quarter)" });
+    }
+
+    try {
+      // 1. Obtener datos
+      const data = await ReportsModel.getSecretariasReportData(idPlan, year, quarter);
+      if (!data || !data.plan) {
+        return res.status(404).json({ error: "Plan no encontrado o sin datos." });
+      }
+
+      const { plan, metas } = data;
+
+      // 2. Agrupar por Secretaria
+      const groups = {};
+
+      metas.forEach(m => {
+        const secretariaName = m.secretaria_nombre || "Sin Secretaría Asignada";
+
+        if (!groups[secretariaName]) {
+          groups[secretariaName] = {
+            nombre: secretariaName,
+            metas: [],
+            counts: {
+              rango0: 0,
+              rango_low: 0,    // < 26.25%
+              rango_mid: 0,    // >= 26.25% && < 43.75%
+              rango_high: 0,   // >= 43.75% && < 100%
+              rango100: 0
+            }
+          };
+        }
+
+        // Calcular porcentaje individual
+        const total = parseFloat(m.meta_total) || 0;
+        const avance = parseFloat(m.avance_acumulado) || 0;
+        let p = 0;
+        if (total > 0) {
+          p = (avance / total) * 100;
+        }
+        if (p > 100) p = 100;
+
+        m.porcentaje_avance = parseFloat(p.toFixed(2));
+
+        // Clasificar
+        if (p === 0) groups[secretariaName].counts.rango0++;
+        else if (p < 26.25) groups[secretariaName].counts.rango_low++;
+        else if (p < 43.75) groups[secretariaName].counts.rango_mid++;
+        else if (p < 100) groups[secretariaName].counts.rango_high++;
+        else groups[secretariaName].counts.rango100++;
+
+        groups[secretariaName].metas.push(m);
+      });
+
+      // Convertir object a array
+      const secretarias = Object.values(groups);
+
+      res.json({
+        plan,
+        secretarias
+      });
+
+    } catch (error) {
+      console.error("Error generando reporte secretarias:", error);
+      res.status(500).json({ error: "Error interno al generar reporte" });
+    }
   }
 };
