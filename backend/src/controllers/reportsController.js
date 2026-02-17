@@ -136,5 +136,80 @@ export const reportsController = {
       console.error("Error generando reporte lineas:", error);
       res.status(500).json({ error: "Error interno al generar reporte" });
     }
+  },
+
+  // ==========================================
+  // REPORTE 3: METAS POR COMPONENTES
+  // ==========================================
+  async generateComponentesReport(req, res) {
+    const { idPlan, year, quarter } = req.body;
+
+    if (!idPlan || !year || !quarter) {
+      return res.status(400).json({ error: "Faltan parámetros (idPlan, year, quarter)" });
+    }
+
+    try {
+      // 1. Obtener datos
+      const data = await ReportsModel.getComponentesReportData(idPlan, year, quarter);
+      if (!data || !data.plan) {
+        return res.status(404).json({ error: "Plan no encontrado o sin datos." });
+      }
+
+      const { plan, metas } = data;
+
+      // 2. Agrupar por Componente
+      // Estructura: { [nombreComponente]: { metas: [], counts: {...} } }
+      const groups = {};
+
+      metas.forEach(m => {
+        const componenteName = m.componente_nombre || "Sin Componente Asignado";
+
+        if (!groups[componenteName]) {
+          groups[componenteName] = {
+            nombre: componenteName,
+            metas: [],
+            counts: {
+              rango0: 0,
+              rango_low: 0,    // < 26.25%
+              rango_mid: 0,    // >= 26.25% && < 43.75%
+              rango_high: 0,   // >= 43.75% && < 100%
+              rango100: 0
+            }
+          };
+        }
+
+        // Calcular porcentaje individual
+        const total = parseFloat(m.meta_total) || 0;
+        const avance = parseFloat(m.avance_acumulado) || 0;
+        let p = 0;
+        if (total > 0) {
+          p = (avance / total) * 100;
+        }
+        if (p > 100) p = 100;
+
+        m.porcentaje_avance = parseFloat(p.toFixed(2));
+
+        // Clasificar
+        if (p === 0) groups[componenteName].counts.rango0++;
+        else if (p < 26.25) groups[componenteName].counts.rango_low++;
+        else if (p < 43.75) groups[componenteName].counts.rango_mid++;
+        else if (p < 100) groups[componenteName].counts.rango_high++;
+        else groups[componenteName].counts.rango100++;
+
+        groups[componenteName].metas.push(m);
+      });
+
+      // Convertir object a array
+      const componentes = Object.values(groups);
+
+      res.json({
+        plan,
+        componentes
+      });
+
+    } catch (error) {
+      console.error("Error generando reporte componentes:", error);
+      res.status(500).json({ error: "Error interno al generar reporte" });
+    }
   }
 };

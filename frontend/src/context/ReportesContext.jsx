@@ -72,11 +72,42 @@ export const ReportesProvider = ({ children }) => {
         }
     };
 
+    // ===============================
+    // GENERAR REPORTE COMPONENTES
+    // ===============================
+    const generateComponentesReport = async (filters) => {
+        const { idPlan, year, quarter } = filters;
+        if (!idPlan || !year || !quarter) return;
+
+        setLoadingReport(true);
+        setReportData(null);
+        try {
+            const response = await api.post(
+                '/reports/componentes',
+                { idPlan, year, quarter }
+            );
+            setReportData(response.data);
+            toast({ title: 'Reporte por componentes generado correctamente' });
+            return true;
+        } catch (error) {
+            console.error('Error generando reporte componentes:', error);
+            toast({
+                title: 'Error',
+                description: 'No se pudo generar el reporte por componentes.',
+                variant: 'destructive',
+            });
+            return false;
+        } finally {
+            setLoadingReport(false);
+        }
+    };
+
     return (
         <ReportesContext.Provider
             value={{
                 generateGeneralReport,
                 generateLineasReport,
+                generateComponentesReport,
                 loadingReport,
                 reportData,
                 setReportData
