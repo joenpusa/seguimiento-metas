@@ -15,6 +15,7 @@ import ReporteLineasView from './predefinidos/ReporteLineasView';
 import ReporteComponentesView from './predefinidos/ReporteComponentesView';
 import ReporteSecretariasView from './predefinidos/ReporteSecretariasView';
 import ReporteArbolView from './predefinidos/ReporteArbolView';
+import ReporteRankingComponentesView from './predefinidos/ReporteRankingComponentesView';
 
 const PredefinedReports = () => {
     const [reportType, setReportType] = useState('');
@@ -47,6 +48,7 @@ const PredefinedReports = () => {
         generateComponentesReport,
         generateSecretariasReport,
         generateArbolReport,
+        generateRankingComponentesReport,
         loadingReport,
         reportData,
         setReportData
@@ -84,6 +86,12 @@ const PredefinedReports = () => {
             });
         } else if (reportType === 'arbol') {
             await generateArbolReport({
+                idPlan: activePlanId,
+                year,
+                quarter
+            });
+        } else if (reportType === 'ranking_componente') {
+            await generateRankingComponentesReport({
                 idPlan: activePlanId,
                 year,
                 quarter
@@ -135,6 +143,15 @@ const PredefinedReports = () => {
     if (reportData && reportType === 'arbol') {
         return (
             <ReporteArbolView
+                data={reportData}
+                onClose={() => setReportData(null)}
+            />
+        );
+    }
+
+    if (reportData && reportType === 'ranking_componente') {
+        return (
+            <ReporteRankingComponentesView
                 data={reportData}
                 onClose={() => setReportData(null)}
             />

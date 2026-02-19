@@ -315,5 +315,77 @@ export const ReportsModel = {
     } finally {
       db.release();
     }
+  },
+  // =============================================
+  // 📌 Obtener datos para el Reporte Ranking de Componentes
+  // =============================================
+  async getRankingComponentesData(idPlan, year, quarter) {
+    const db = await openDb();
+    try {
+      // 1. Obtener información del PLAN
+      const [planRows] = await db.query(
+        "SELECT * FROM planes_desarrollo WHERE id_plan = ?",
+        [idPlan]
+      );
+      const plan = planRows[0];
+      if (!plan) return null;
+
+      // 2. Mapeo de trimestres a orden
+      const trimestreOrder = { T1: 1, T2: 2, T3: 3, T4: 4 };
+      const qOrder = trimestreOrder[quarter] || 4;
+
+      // 3. Consulta Agrupada por Componente
+      // Se asume Meta -> ... -> Componente
+      // Jerarquia: m.id_detalle -> ini -> apu -> com
+
+      const sql = `
+        SELECT
+          com.id_detalle AS componente_id,
+          com.nombre_detalle AS componente_nombre,
+          
+          -- Tomamos la secretaria de una de las metas (MAX o ANY_VALUE) 
+          -- asumiendo que todas las metas del componente son de la misma secretaria
+          MAX(s.nombre) AS secretaria_nombre,
+          
+          COUNT(m.id_meta) AS total_metas_count,
+          
+          SUM(m.cant_ano1 + m.cant_ano2 + m.cant_ano3 + m.cant_ano4) AS meta_total_sum,
+          
+          COALESCE(SUM(av_calc.cantidad), 0) AS avance_acumulado_sum
+
+        FROM metas m
+        INNER JOIN detalles_plan dp ON dp.id_detalle = m.id_detalle
+        LEFT JOIN secretarias s ON s.id_secretaria = m.id_secretaria
+        
+        -- Jerarquía hasta Componente
+        LEFT JOIN detalles_plan ini ON ini.id_detalle = m.id_detalle
+        LEFT JOIN detalles_plan apu ON apu.id_detalle = ini.id_detalle_padre
+        LEFT JOIN detalles_plan com ON com.id_detalle = apu.id_detalle_padre
+        
+        -- Join para Avances (filtrado por corte)
+        LEFT JOIN avances av_calc ON av_calc.id_meta = m.id_meta
+          AND (
+             av_calc.anio < ? 
+             OR (av_calc.anio = ? AND 
+                 CASE av_calc.trimestre
+                   WHEN 'T1' THEN 1
+                   WHEN 'T2' THEN 2
+                   WHEN 'T3' THEN 3
+                   WHEN 'T4' THEN 4
+                 END <= ?)
+          )
+          
+        WHERE dp.id_plan = ?
+          AND com.id_detalle IS NOT NULL -- Asegurar que tenga componente
+          
+        GROUP BY com.id_detalle
+      `;
+
+      const [rows] = await db.query(sql, [year, year, qOrder, idPlan]);
+
+      return { plan, rows };
+    } finally {
+      db.release();
+    }
   }
 };

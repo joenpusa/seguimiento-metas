@@ -22,4 +22,7 @@ router.post('/secretarias', reportsController.generateSecretariasReport);
 // Reporte 7: Arbol Completo
 router.post('/arbol', reportsController.generateArbolReport);
 
+// Reporte 4: Ranking Componentes
+router.post('/ranking-componentes', reportsController.generateRankingComponentesReport);
+
 export default router;

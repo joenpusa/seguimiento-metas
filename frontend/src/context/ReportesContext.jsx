@@ -163,6 +163,36 @@ export const ReportesProvider = ({ children }) => {
         }
     };
 
+    // ===============================
+    // GENERAR REPORTE RANKING COMPONENTES
+    // ===============================
+    const generateRankingComponentesReport = async (filters) => {
+        const { idPlan, year, quarter } = filters;
+        if (!idPlan || !year || !quarter) return;
+
+        setLoadingReport(true);
+        setReportData(null);
+        try {
+            const response = await api.post(
+                '/reports/ranking-componentes',
+                { idPlan, year, quarter }
+            );
+            setReportData(response.data);
+            toast({ title: 'Ranking generado correctamente' });
+            return true;
+        } catch (error) {
+            console.error('Error generando ranking:', error);
+            toast({
+                title: 'Error',
+                description: 'No se pudo generar el ranking.',
+                variant: 'destructive',
+            });
+            return false;
+        } finally {
+            setLoadingReport(false);
+        }
+    };
+
     return (
         <ReportesContext.Provider
             value={{
@@ -171,6 +201,7 @@ export const ReportesProvider = ({ children }) => {
                 generateComponentesReport,
                 generateSecretariasReport,
                 generateArbolReport,
+                generateRankingComponentesReport,
                 loadingReport,
                 reportData,
                 setReportData

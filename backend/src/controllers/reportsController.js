@@ -499,5 +499,58 @@ export const reportsController = {
       console.error("Error generando reporte arbol:", error);
       res.status(500).json({ error: "Error interno al generar reporte" });
     }
+  },
+
+  // ==========================================
+  // REPORTE 4: RANKING POR COMPONENTES
+  // ==========================================
+  async generateRankingComponentesReport(req, res) {
+    const { idPlan, year, quarter } = req.body;
+
+    if (!idPlan || !year || !quarter) {
+      return res.status(400).json({ error: "Faltan parámetros (idPlan, year, quarter)" });
+    }
+
+    try {
+      // 1. Obtener datos agrupados
+      const data = await ReportsModel.getRankingComponentesData(idPlan, year, quarter);
+      if (!data || !data.plan) {
+        return res.status(404).json({ error: "Plan no encontrado o sin datos." });
+      }
+
+      const { plan, rows } = data;
+
+      // 2. Calcular porcentajes y procesar
+      const ranking = rows.map(row => {
+        const total = parseFloat(row.meta_total_sum) || 0;
+        const avance = parseFloat(row.avance_acumulado_sum) || 0;
+        let p = 0;
+
+        if (total > 0) {
+          p = (avance / total) * 100;
+        }
+        if (p > 100) p = 100; // Cap at 100% logic? Usually yes for display color.
+
+        return {
+          componente_id: row.componente_id,
+          componente_nombre: row.componente_nombre,
+          secretaria_nombre: row.secretaria_nombre || "Sin Asignar",
+          metas_count: row.total_metas_count,
+          avance_porcentaje: parseFloat(p.toFixed(2))
+        };
+      });
+
+      // 3. Ordenar por Porcentaje Descendente (Mayor a Menor)
+      ranking.sort((a, b) => b.avance_porcentaje - a.avance_porcentaje);
+
+      res.json({
+        plan,
+        ranking
+      });
+
+    } catch (error) {
+      console.error("Error generando reporte ranking:", error);
+      res.status(500).json({ error: "Error interno al generar reporte" });
+    }
   }
 };
