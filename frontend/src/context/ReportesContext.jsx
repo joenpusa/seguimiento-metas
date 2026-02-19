@@ -132,6 +132,37 @@ export const ReportesProvider = ({ children }) => {
         }
     };
 
+
+    // ===============================
+    // GENERAR REPORTE ARBOL
+    // ===============================
+    const generateArbolReport = async (filters) => {
+        const { idPlan, year, quarter } = filters;
+        if (!idPlan || !year || !quarter) return;
+
+        setLoadingReport(true);
+        setReportData(null);
+        try {
+            const response = await api.post(
+                '/reports/arbol',
+                { idPlan, year, quarter }
+            );
+            setReportData(response.data);
+            toast({ title: 'Reporte árbol generado correctamente' });
+            return true;
+        } catch (error) {
+            console.error('Error generando reporte árbol:', error);
+            toast({
+                title: 'Error',
+                description: 'No se pudo generar el reporte árbol.',
+                variant: 'destructive',
+            });
+            return false;
+        } finally {
+            setLoadingReport(false);
+        }
+    };
+
     return (
         <ReportesContext.Provider
             value={{
@@ -139,6 +170,7 @@ export const ReportesProvider = ({ children }) => {
                 generateLineasReport,
                 generateComponentesReport,
                 generateSecretariasReport,
+                generateArbolReport,
                 loadingReport,
                 reportData,
                 setReportData

@@ -14,6 +14,7 @@ import ReporteGeneralView from './predefinidos/ReporteGeneralView';
 import ReporteLineasView from './predefinidos/ReporteLineasView';
 import ReporteComponentesView from './predefinidos/ReporteComponentesView';
 import ReporteSecretariasView from './predefinidos/ReporteSecretariasView';
+import ReporteArbolView from './predefinidos/ReporteArbolView';
 
 const PredefinedReports = () => {
     const [reportType, setReportType] = useState('');
@@ -45,6 +46,7 @@ const PredefinedReports = () => {
         generateLineasReport,
         generateComponentesReport,
         generateSecretariasReport,
+        generateArbolReport,
         loadingReport,
         reportData,
         setReportData
@@ -76,6 +78,12 @@ const PredefinedReports = () => {
             });
         } else if (reportType === 'secretaria') {
             await generateSecretariasReport({
+                idPlan: activePlanId,
+                year,
+                quarter
+            });
+        } else if (reportType === 'arbol') {
+            await generateArbolReport({
                 idPlan: activePlanId,
                 year,
                 quarter
@@ -118,6 +126,15 @@ const PredefinedReports = () => {
     if (reportData && reportType === 'secretaria') {
         return (
             <ReporteSecretariasView
+                data={reportData}
+                onClose={() => setReportData(null)}
+            />
+        );
+    }
+
+    if (reportData && reportType === 'arbol') {
+        return (
+            <ReporteArbolView
                 data={reportData}
                 onClose={() => setReportData(null)}
             />
