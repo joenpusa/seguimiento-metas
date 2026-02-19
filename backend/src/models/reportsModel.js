@@ -4,7 +4,7 @@ export const ReportsModel = {
   // =============================================
   // 📌 Obtener datos para el Reporte General
   // =============================================
-  async getGeneralReportData(idPlan, year, quarter) {
+  async getGeneralReportData(idPlan, year, quarter, idSecretaria) {
     const db = await openDb();
     try {
       // 1. Obtener información del PLAN
@@ -19,18 +19,21 @@ export const ReportsModel = {
       const trimestreOrder = { T1: 1, T2: 2, T3: 3, T4: 4 };
       const qOrder = trimestreOrder[quarter] || 4; // Default to 4 if invalid
 
-      // 3. Consulta de Metas y Avances
-      const sqlMetas = `
-        SELECT
+      // 3. Consulta de Metas + Avances
+      // Se agrupa por Meta. Se obtienen los datos acumulados hasta el corte.
+
+      let sqlMetas = `
+        SELECT 
           m.id_meta,
-          m.nombre AS meta_nombre,
-          m.codigo AS meta_codigo,
+          m.nombre AS nombre_meta,
           (m.cant_ano1 + m.cant_ano2 + m.cant_ano3 + m.cant_ano4) AS meta_total,
+          
           COALESCE(SUM(av.cantidad), 0) AS avance_acumulado
+          
         FROM metas m
         INNER JOIN detalles_plan dp ON dp.id_detalle = m.id_detalle
-        LEFT JOIN avances av ON av.id_meta = m.id_meta
-          AND (
+        LEFT JOIN avances av ON av.id_meta = m.id_meta 
+           AND (
              av.anio < ? 
              OR (av.anio = ? AND 
                  CASE av.trimestre
@@ -39,12 +42,21 @@ export const ReportsModel = {
                    WHEN 'T3' THEN 3
                    WHEN 'T4' THEN 4
                  END <= ?)
-          )
+           )
         WHERE dp.id_plan = ?
-        GROUP BY m.id_meta
       `;
 
-      const [metas] = await db.query(sqlMetas, [year, year, qOrder, idPlan]);
+      const params = [year, year, qOrder, idPlan];
+
+      // Filtro por Secretaria
+      if (idSecretaria) {
+        sqlMetas += " AND m.id_secretaria = ?";
+        params.push(idSecretaria);
+      }
+
+      sqlMetas += " GROUP BY m.id_meta";
+
+      const [metas] = await db.query(sqlMetas, params);
 
       return { plan, metas };
     } finally {
@@ -55,7 +67,7 @@ export const ReportsModel = {
   // =============================================
   // 📌 Obtener datos para el Reporte por Lineas
   // =============================================
-  async getLineasReportData(idPlan, year, quarter) {
+  async getLineasReportData(idPlan, year, quarter, idSecretaria) {
     const db = await openDb();
     try {
       // 1. Obtener información del PLAN
@@ -71,7 +83,7 @@ export const ReportsModel = {
       const qOrder = trimestreOrder[quarter] || 4;
 
       // 3. Consulta de Metas + Jerarquía (Lineas)
-      const sqlMetas = `
+      let sqlMetas = `
         SELECT
           m.id_meta,
           m.nombre AS meta_nombre,
@@ -79,17 +91,18 @@ export const ReportsModel = {
           (m.cant_ano1 + m.cant_ano2 + m.cant_ano3 + m.cant_ano4) AS meta_total,
           COALESCE(SUM(av.cantidad), 0) AS avance_acumulado,
           
-          l.id_detalle AS linea_id,
-          l.nombre_detalle AS linea_nombre
+          lin.id_detalle AS linea_id,
+          lin.nombre_detalle AS linea_nombre,
+          lin.codigo AS linea_codigo
           
         FROM metas m
         INNER JOIN detalles_plan dp ON dp.id_detalle = m.id_detalle
         
-        -- Joins para Jerarquía
-        LEFT JOIN detalles_plan i ON i.id_detalle = m.id_detalle
-        LEFT JOIN detalles_plan a ON a.id_detalle = i.id_detalle_padre
-        LEFT JOIN detalles_plan c ON c.id_detalle = a.id_detalle_padre
-        LEFT JOIN detalles_plan l ON l.id_detalle = c.id_detalle_padre
+        -- Joins para Jerarquía (Meta -> Iniciativa -> Apuesta -> Componente -> Linea)
+        LEFT JOIN detalles_plan ini ON ini.id_detalle = m.id_detalle
+        LEFT JOIN detalles_plan apu ON apu.id_detalle = ini.id_detalle_padre
+        LEFT JOIN detalles_plan com ON com.id_detalle = apu.id_detalle_padre
+        LEFT JOIN detalles_plan lin ON lin.id_detalle = com.id_detalle_padre
         
         LEFT JOIN avances av ON av.id_meta = m.id_meta
           AND (
@@ -103,11 +116,18 @@ export const ReportsModel = {
                  END <= ?)
           )
         WHERE dp.id_plan = ?
-        GROUP BY m.id_meta, l.id_detalle
-        ORDER BY l.codigo ASC, m.codigo ASC
       `;
 
-      const [metas] = await db.query(sqlMetas, [year, year, qOrder, idPlan]);
+      const params = [year, year, qOrder, idPlan];
+
+      if (idSecretaria) {
+        sqlMetas += " AND m.id_secretaria = ?";
+        params.push(idSecretaria);
+      }
+
+      sqlMetas += " GROUP BY m.id_meta, lin.id_detalle ORDER BY lin.codigo ASC, m.codigo ASC";
+
+      const [metas] = await db.query(sqlMetas, params);
 
       return { plan, metas };
     } finally {
@@ -118,7 +138,7 @@ export const ReportsModel = {
   // =============================================
   // 📌 Obtener datos para el Reporte por Componentes
   // =============================================
-  async getComponentesReportData(idPlan, year, quarter) {
+  async getComponentesReportData(idPlan, year, quarter, idSecretaria) {
     const db = await openDb();
     try {
       // 1. Obtener información del PLAN
@@ -134,7 +154,7 @@ export const ReportsModel = {
       const qOrder = trimestreOrder[quarter] || 4;
 
       // 3. Consulta de Metas + Jerarquía (Componentes)
-      const sqlMetas = `
+      let sqlMetas = `
         SELECT
           m.id_meta,
           m.nombre AS meta_nombre,
@@ -142,16 +162,17 @@ export const ReportsModel = {
           (m.cant_ano1 + m.cant_ano2 + m.cant_ano3 + m.cant_ano4) AS meta_total,
           COALESCE(SUM(av.cantidad), 0) AS avance_acumulado,
           
-          c.id_detalle AS componente_id,
-          c.nombre_detalle AS componente_nombre
+          com.id_detalle AS componente_id,
+          com.nombre_detalle AS componente_nombre,
+          com.codigo AS componente_codigo
           
         FROM metas m
         INNER JOIN detalles_plan dp ON dp.id_detalle = m.id_detalle
         
         -- Joins para Jerarquía
-        LEFT JOIN detalles_plan i ON i.id_detalle = m.id_detalle
-        LEFT JOIN detalles_plan a ON a.id_detalle = i.id_detalle_padre
-        LEFT JOIN detalles_plan c ON c.id_detalle = a.id_detalle_padre
+        LEFT JOIN detalles_plan ini ON ini.id_detalle = m.id_detalle
+        LEFT JOIN detalles_plan apu ON apu.id_detalle = ini.id_detalle_padre
+        LEFT JOIN detalles_plan com ON com.id_detalle = apu.id_detalle_padre
         -- LEFT JOIN detalles_plan l ON l.id_detalle = c.id_detalle_padre -- No necesitamos la linea aqui
         
         LEFT JOIN avances av ON av.id_meta = m.id_meta
@@ -166,11 +187,17 @@ export const ReportsModel = {
                  END <= ?)
           )
         WHERE dp.id_plan = ?
-        GROUP BY m.id_meta, c.id_detalle
-        ORDER BY c.codigo ASC, m.codigo ASC
       `;
 
-      const [metas] = await db.query(sqlMetas, [year, year, qOrder, idPlan]);
+      const params = [year, year, qOrder, idPlan];
+      if (idSecretaria) {
+        sqlMetas += " AND m.id_secretaria = ?";
+        params.push(idSecretaria);
+      }
+
+      sqlMetas += " GROUP BY m.id_meta, com.id_detalle ORDER BY com.codigo ASC, m.codigo ASC";
+
+      const [metas] = await db.query(sqlMetas, params);
 
       return { plan, metas };
     } finally {
@@ -181,23 +208,18 @@ export const ReportsModel = {
   // =============================================
   // 📌 Obtener datos para el Reporte por Secretarias
   // =============================================
-  async getSecretariasReportData(idPlan, year, quarter) {
+  async getSecretariasReportData(idPlan, year, quarter, idSecretaria) {
     const db = await openDb();
     try {
-      // 1. Obtener información del PLAN
-      const [planRows] = await db.query(
-        "SELECT * FROM planes_desarrollo WHERE id_plan = ?",
-        [idPlan]
-      );
+      const [planRows] = await db.query("SELECT * FROM planes_desarrollo WHERE id_plan = ?", [idPlan]);
       const plan = planRows[0];
       if (!plan) return null;
 
-      // 2. Mapeo de trimestres a orden
       const trimestreOrder = { T1: 1, T2: 2, T3: 3, T4: 4 };
       const qOrder = trimestreOrder[quarter] || 4;
 
       // 3. Consulta de Metas + Secretaria
-      const sqlMetas = `
+      let sqlMetas = `
         SELECT
           m.id_meta,
           m.nombre AS meta_nombre,
@@ -224,11 +246,19 @@ export const ReportsModel = {
                  END <= ?)
           )
         WHERE dp.id_plan = ?
-        GROUP BY m.id_meta, s.id_secretaria
-        ORDER BY s.nombre ASC, m.codigo ASC
       `;
 
-      const [metas] = await db.query(sqlMetas, [year, year, qOrder, idPlan]);
+      const params = [year, year, qOrder, idPlan];
+      if (idSecretaria) {
+        // En este reporte, si se selecciona un responsable, solo se ven sus metas. 
+        // Si no, se ven todas agrupadas.
+        sqlMetas += " AND m.id_secretaria = ?";
+        params.push(idSecretaria);
+      }
+
+      sqlMetas += " GROUP BY m.id_meta, s.id_secretaria ORDER BY s.nombre ASC, m.codigo ASC";
+
+      const [metas] = await db.query(sqlMetas, params);
 
       return { plan, metas };
     } finally {
@@ -240,27 +270,17 @@ export const ReportsModel = {
   // 📌 Obtener datos para el Reporte Arbol (Jerarquía Completa)
   // =============================================
   // Re-saving to clear syntax error cache
-  async getArbolReportData(idPlan, year, quarter) {
+  async getArbolReportData(idPlan, year, quarter, idSecretaria) {
     const db = await openDb();
     try {
-      // 1. Obtener información del PLAN
-      const [planRows] = await db.query(
-        "SELECT * FROM planes_desarrollo WHERE id_plan = ?",
-        [idPlan]
-      );
+      const [planRows] = await db.query("SELECT * FROM planes_desarrollo WHERE id_plan = ?", [idPlan]);
       const plan = planRows[0];
       if (!plan) return null;
 
-      // 2. Mapeo de trimestres a orden
       const trimestreOrder = { T1: 1, T2: 2, T3: 3, T4: 4 };
       const qOrder = trimestreOrder[quarter] || 4;
 
-      // 3. Consulta de Metas + Jerarquía Completa
-      // Linea -> Componente -> Apuesta -> Iniciativa -> Meta
-      // Se asume la estructura:
-      // Meta (id_detalle) -> Iniciativa (padre) -> Apuesta (padre) -> Componente (padre) -> Linea (padre)
-
-      const sqlMetas = `
+      let sqlMetas = `
         SELECT
           m.id_meta,
           m.nombre AS meta_nombre,
@@ -305,11 +325,20 @@ export const ReportsModel = {
                  END <= ?)
           )
         WHERE dp.id_plan = ?
+      `;
+
+      const params = [year, year, qOrder, idPlan];
+      if (idSecretaria) {
+        sqlMetas += " AND m.id_secretaria = ?";
+        params.push(idSecretaria);
+      }
+
+      sqlMetas += `
         GROUP BY m.id_meta, lin.id_detalle, com.id_detalle, apu.id_detalle, ini.id_detalle
         ORDER BY lin.codigo ASC, com.codigo ASC, apu.codigo ASC, ini.codigo ASC, m.codigo ASC
       `;
 
-      const [metas] = await db.query(sqlMetas, [year, year, qOrder, idPlan]);
+      const [metas] = await db.query(sqlMetas, params);
 
       return { plan, metas };
     } finally {
@@ -319,50 +348,33 @@ export const ReportsModel = {
   // =============================================
   // 📌 Obtener datos para el Reporte Ranking de Componentes
   // =============================================
-  async getRankingComponentesData(idPlan, year, quarter) {
+  async getRankingComponentesData(idPlan, year, quarter, idSecretaria) {
     const db = await openDb();
     try {
-      // 1. Obtener información del PLAN
-      const [planRows] = await db.query(
-        "SELECT * FROM planes_desarrollo WHERE id_plan = ?",
-        [idPlan]
-      );
+      const [planRows] = await db.query("SELECT * FROM planes_desarrollo WHERE id_plan = ?", [idPlan]);
       const plan = planRows[0];
       if (!plan) return null;
 
-      // 2. Mapeo de trimestres a orden
       const trimestreOrder = { T1: 1, T2: 2, T3: 3, T4: 4 };
       const qOrder = trimestreOrder[quarter] || 4;
 
-      // 3. Consulta Agrupada por Componente
-      // Se asume Meta -> ... -> Componente
-      // Jerarquia: m.id_detalle -> ini -> apu -> com
-
-      const sql = `
+      let sql = `
         SELECT
           com.id_detalle AS componente_id,
           com.nombre_detalle AS componente_nombre,
-          
-          -- Tomamos la secretaria de una de las metas (MAX o ANY_VALUE) 
-          -- asumiendo que todas las metas del componente son de la misma secretaria
           MAX(s.nombre) AS secretaria_nombre,
-          
           COUNT(m.id_meta) AS total_metas_count,
-          
           SUM(m.cant_ano1 + m.cant_ano2 + m.cant_ano3 + m.cant_ano4) AS meta_total_sum,
-          
           COALESCE(SUM(av_calc.cantidad), 0) AS avance_acumulado_sum
 
         FROM metas m
         INNER JOIN detalles_plan dp ON dp.id_detalle = m.id_detalle
         LEFT JOIN secretarias s ON s.id_secretaria = m.id_secretaria
         
-        -- Jerarquía hasta Componente
         LEFT JOIN detalles_plan ini ON ini.id_detalle = m.id_detalle
         LEFT JOIN detalles_plan apu ON apu.id_detalle = ini.id_detalle_padre
         LEFT JOIN detalles_plan com ON com.id_detalle = apu.id_detalle_padre
         
-        -- Join para Avances (filtrado por corte)
         LEFT JOIN avances av_calc ON av_calc.id_meta = m.id_meta
           AND (
              av_calc.anio < ? 
@@ -376,12 +388,18 @@ export const ReportsModel = {
           )
           
         WHERE dp.id_plan = ?
-          AND com.id_detalle IS NOT NULL -- Asegurar que tenga componente
-          
-        GROUP BY com.id_detalle
+          AND com.id_detalle IS NOT NULL
       `;
 
-      const [rows] = await db.query(sql, [year, year, qOrder, idPlan]);
+      const params = [year, year, qOrder, idPlan];
+      if (idSecretaria) {
+        sql += " AND m.id_secretaria = ?";
+        params.push(idSecretaria);
+      }
+
+      sql += " GROUP BY com.id_detalle";
+
+      const [rows] = await db.query(sql, params);
 
       return { plan, rows };
     } finally {
@@ -393,38 +411,28 @@ export const ReportsModel = {
   // =============================================
   // 📌 Obtener datos para el Reporte Ranking de Secretarias (Dependencias)
   // =============================================
-  async getRankingSecretariasData(idPlan, year, quarter) {
+  async getRankingSecretariasData(idPlan, year, quarter, idSecretaria) {
     const db = await openDb();
     try {
-      // 1. Obtener información del PLAN
-      const [planRows] = await db.query(
-        "SELECT * FROM planes_desarrollo WHERE id_plan = ?",
-        [idPlan]
-      );
+      const [planRows] = await db.query("SELECT * FROM planes_desarrollo WHERE id_plan = ?", [idPlan]);
       const plan = planRows[0];
       if (!plan) return null;
 
-      // 2. Mapeo de trimestres
       const trimestreOrder = { T1: 1, T2: 2, T3: 3, T4: 4 };
       const qOrder = trimestreOrder[quarter] || 4;
 
-      // 3. Consulta Agrupada por Secretaria
-      const sql = `
+      let sql = `
         SELECT
           s.id_secretaria AS secretaria_id,
           s.nombre AS secretaria_nombre,
-          
           COUNT(m.id_meta) AS total_metas_count,
-          
           SUM(m.cant_ano1 + m.cant_ano2 + m.cant_ano3 + m.cant_ano4) AS meta_total_sum,
-          
           COALESCE(SUM(av_calc.cantidad), 0) AS avance_acumulado_sum
 
         FROM metas m
         INNER JOIN detalles_plan dp ON dp.id_detalle = m.id_detalle
         INNER JOIN secretarias s ON s.id_secretaria = m.id_secretaria
         
-        -- Join para Avances (filtrado por corte)
         LEFT JOIN avances av_calc ON av_calc.id_meta = m.id_meta
           AND (
              av_calc.anio < ? 
@@ -438,11 +446,17 @@ export const ReportsModel = {
           )
           
         WHERE dp.id_plan = ?
-          
-        GROUP BY s.id_secretaria
       `;
 
-      const [rows] = await db.query(sql, [year, year, qOrder, idPlan]);
+      const params = [year, year, qOrder, idPlan];
+      if (idSecretaria) {
+        sql += " AND m.id_secretaria = ?";
+        params.push(idSecretaria);
+      }
+
+      sql += " GROUP BY s.id_secretaria";
+
+      const [rows] = await db.query(sql, params);
 
       return { plan, rows };
     } finally {

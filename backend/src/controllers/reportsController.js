@@ -67,15 +67,15 @@ export const reportsController = {
   // REPORTE 2: METAS POR LINEAS
   // ==========================================
   async generateLineasReport(req, res) {
-    const { idPlan, year, quarter } = req.body;
+    const { idPlan, year, quarter, idSecretaria } = req.body;
 
     if (!idPlan || !year || !quarter) {
-      return res.status(400).json({ error: "Faltan parámetros (idPlan, year, quarter)" });
+      return res.status(400).json({ error: "Faltan parámetros" });
     }
 
     try {
       // 1. Obtener datos
-      const data = await ReportsModel.getLineasReportData(idPlan, year, quarter);
+      const data = await ReportsModel.getLineasReportData(idPlan, year, quarter, idSecretaria);
       if (!data || !data.plan) {
         return res.status(404).json({ error: "Plan no encontrado o sin datos." });
       }
@@ -142,15 +142,15 @@ export const reportsController = {
   // REPORTE 3: METAS POR COMPONENTES
   // ==========================================
   async generateComponentesReport(req, res) {
-    const { idPlan, year, quarter } = req.body;
+    const { idPlan, year, quarter, idSecretaria } = req.body;
 
     if (!idPlan || !year || !quarter) {
-      return res.status(400).json({ error: "Faltan parámetros (idPlan, year, quarter)" });
+      return res.status(400).json({ error: "Faltan parámetros" });
     }
 
     try {
       // 1. Obtener datos
-      const data = await ReportsModel.getComponentesReportData(idPlan, year, quarter);
+      const data = await ReportsModel.getComponentesReportData(idPlan, year, quarter, idSecretaria);
       if (!data || !data.plan) {
         return res.status(404).json({ error: "Plan no encontrado o sin datos." });
       }
@@ -217,15 +217,15 @@ export const reportsController = {
   // REPORTE 5: METAS POR SECRETARÍAS
   // ==========================================
   async generateSecretariasReport(req, res) {
-    const { idPlan, year, quarter } = req.body;
+    const { idPlan, year, quarter, idSecretaria } = req.body;
 
     if (!idPlan || !year || !quarter) {
-      return res.status(400).json({ error: "Faltan parámetros (idPlan, year, quarter)" });
+      return res.status(400).json({ error: "Faltan parámetros" });
     }
 
     try {
       // 1. Obtener datos
-      const data = await ReportsModel.getSecretariasReportData(idPlan, year, quarter);
+      const data = await ReportsModel.getSecretariasReportData(idPlan, year, quarter, idSecretaria);
       if (!data || !data.plan) {
         return res.status(404).json({ error: "Plan no encontrado o sin datos." });
       }
@@ -505,7 +505,7 @@ export const reportsController = {
   // REPORTE 4: RANKING POR COMPONENTES
   // ==========================================
   async generateRankingComponentesReport(req, res) {
-    const { idPlan, year, quarter } = req.body;
+    const { idPlan, year, quarter, idSecretaria } = req.body;
 
     if (!idPlan || !year || !quarter) {
       return res.status(400).json({ error: "Faltan parámetros (idPlan, year, quarter)" });
@@ -513,7 +513,7 @@ export const reportsController = {
 
     try {
       // 1. Obtener datos agrupados
-      const data = await ReportsModel.getRankingComponentesData(idPlan, year, quarter);
+      const data = await ReportsModel.getRankingComponentesData(idPlan, year, quarter, idSecretaria);
       if (!data || !data.plan) {
         return res.status(404).json({ error: "Plan no encontrado o sin datos." });
       }
@@ -559,7 +559,7 @@ export const reportsController = {
   // REPORTE 6: RANKING POR DEPENDENCIAS (SECRETARIAS)
   // ==========================================
   async generateRankingSecretariasReport(req, res) {
-    const { idPlan, year, quarter } = req.body;
+    const { idPlan, year, quarter, idSecretaria } = req.body;
 
     if (!idPlan || !year || !quarter) {
       return res.status(400).json({ error: "Faltan parámetros (idPlan, year, quarter)" });
@@ -567,7 +567,7 @@ export const reportsController = {
 
     try {
       // 1. Obtener datos agrupados
-      const data = await ReportsModel.getRankingSecretariasData(idPlan, year, quarter);
+      const data = await ReportsModel.getRankingSecretariasData(idPlan, year, quarter, idSecretaria);
       if (!data || !data.plan) {
         return res.status(404).json({ error: "Plan no encontrado o sin datos." });
       }

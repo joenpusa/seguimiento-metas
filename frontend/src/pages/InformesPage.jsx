@@ -83,7 +83,7 @@ const InformesPage = () => {
     if (filters.responsable) {
       metasFiltradas = metasFiltradas.filter(
         (m) =>
-          m.idSecretaria === Number(filters.responsable)
+          m.id_secretaria === Number(filters.responsable)
       );
     }
     // Ajustar avances finales

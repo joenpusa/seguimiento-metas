@@ -62,6 +62,9 @@ const PredefinedReports = () => {
             return;
         }
 
+        // Validación básica si se requiere año/trimestre obligatoriamente para ciertos reportes
+        // Por ahora pasamos lo que venga, el backend o el context manejarán defaults/errores
+
         if (reportType === 'general') {
             await generateGeneralReport({
                 idPlan: activePlanId,
@@ -176,17 +179,16 @@ const PredefinedReports = () => {
     }
 
     return (
-        <div className="space-y-4">
-            <div className="flex flex-col lg:flex-row gap-4">
-                {/* A. Select Principal (50%) */}
+        <div className="p-4 border rounded-md bg-white shadow-sm">
+            <h3 className="text-lg font-semibold mb-4 text-gray-800">Generar Reporte</h3>
+
+            <div className="flex flex-col lg:flex-row gap-4 items-end">
+                {/* A. Tipo de Reporte (50%) */}
                 <div className="w-full lg:w-1/2">
                     <label className="text-sm font-medium mb-1 block">Tipo de Reporte</label>
                     <Select value={reportType} onValueChange={setReportType}>
                         <SelectTrigger className="w-full">
-                            <div className="flex items-center gap-2 truncate">
-                                <FileText className="h-4 w-4 shrink-0" />
-                                <SelectValue placeholder="Seleccione un reporte..." />
-                            </div>
+                            <SelectValue placeholder="Seleccione un reporte" />
                         </SelectTrigger>
                         <SelectContent>
                             {REPORT_OPTIONS.map((opt) => (
@@ -240,7 +242,7 @@ const PredefinedReports = () => {
             </div>
 
             {/* D. Botón Generar */}
-            <div className="flex justify-end">
+            <div className="flex justify-end mt-4">
                 <Button onClick={handleGenerate} disabled={!reportType || !year || !quarter || isLoading}>
                     {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                     Generar Reporte
@@ -251,3 +253,4 @@ const PredefinedReports = () => {
 };
 
 export default PredefinedReports;
+
