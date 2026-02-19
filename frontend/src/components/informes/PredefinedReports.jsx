@@ -16,6 +16,7 @@ import ReporteComponentesView from './predefinidos/ReporteComponentesView';
 import ReporteSecretariasView from './predefinidos/ReporteSecretariasView';
 import ReporteArbolView from './predefinidos/ReporteArbolView';
 import ReporteRankingComponentesView from './predefinidos/ReporteRankingComponentesView';
+import ReporteRankingSecretariasView from './predefinidos/ReporteRankingSecretariasView';
 
 const PredefinedReports = () => {
     const [reportType, setReportType] = useState('');
@@ -49,6 +50,7 @@ const PredefinedReports = () => {
         generateSecretariasReport,
         generateArbolReport,
         generateRankingComponentesReport,
+        generateRankingSecretariasReport,
         loadingReport,
         reportData,
         setReportData
@@ -92,6 +94,12 @@ const PredefinedReports = () => {
             });
         } else if (reportType === 'ranking_componente') {
             await generateRankingComponentesReport({
+                idPlan: activePlanId,
+                year,
+                quarter
+            });
+        } else if (reportType === 'ranking_dependencia') {
+            await generateRankingSecretariasReport({
                 idPlan: activePlanId,
                 year,
                 quarter
@@ -152,6 +160,15 @@ const PredefinedReports = () => {
     if (reportData && reportType === 'ranking_componente') {
         return (
             <ReporteRankingComponentesView
+                data={reportData}
+                onClose={() => setReportData(null)}
+            />
+        );
+    }
+
+    if (reportData && reportType === 'ranking_dependencia') {
+        return (
+            <ReporteRankingSecretariasView
                 data={reportData}
                 onClose={() => setReportData(null)}
             />

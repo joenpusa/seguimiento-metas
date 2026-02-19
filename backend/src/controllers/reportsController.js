@@ -553,4 +553,57 @@ export const reportsController = {
       res.status(500).json({ error: "Error interno al generar reporte" });
     }
   }
+  ,
+
+  // ==========================================
+  // REPORTE 6: RANKING POR DEPENDENCIAS (SECRETARIAS)
+  // ==========================================
+  async generateRankingSecretariasReport(req, res) {
+    const { idPlan, year, quarter } = req.body;
+
+    if (!idPlan || !year || !quarter) {
+      return res.status(400).json({ error: "Faltan parámetros (idPlan, year, quarter)" });
+    }
+
+    try {
+      // 1. Obtener datos agrupados
+      const data = await ReportsModel.getRankingSecretariasData(idPlan, year, quarter);
+      if (!data || !data.plan) {
+        return res.status(404).json({ error: "Plan no encontrado o sin datos." });
+      }
+
+      const { plan, rows } = data;
+
+      // 2. Calcular porcentajes y procesar
+      const ranking = rows.map(row => {
+        const total = parseFloat(row.meta_total_sum) || 0;
+        const avance = parseFloat(row.avance_acumulado_sum) || 0;
+        let p = 0;
+
+        if (total > 0) {
+          p = (avance / total) * 100;
+        }
+        if (p > 100) p = 100;
+
+        return {
+          secretaria_id: row.secretaria_id,
+          secretaria_nombre: row.secretaria_nombre,
+          metas_count: row.total_metas_count,
+          avance_porcentaje: parseFloat(p.toFixed(2))
+        };
+      });
+
+      // 3. Ordenar por Porcentaje Descendente
+      ranking.sort((a, b) => b.avance_porcentaje - a.avance_porcentaje);
+
+      res.json({
+        plan,
+        ranking
+      });
+
+    } catch (error) {
+      console.error("Error generando reporte ranking secretarias:", error);
+      res.status(500).json({ error: "Error interno al generar reporte" });
+    }
+  }
 };

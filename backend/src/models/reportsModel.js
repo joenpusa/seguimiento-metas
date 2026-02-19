@@ -388,4 +388,65 @@ export const ReportsModel = {
       db.release();
     }
   }
+  ,
+
+  // =============================================
+  // 📌 Obtener datos para el Reporte Ranking de Secretarias (Dependencias)
+  // =============================================
+  async getRankingSecretariasData(idPlan, year, quarter) {
+    const db = await openDb();
+    try {
+      // 1. Obtener información del PLAN
+      const [planRows] = await db.query(
+        "SELECT * FROM planes_desarrollo WHERE id_plan = ?",
+        [idPlan]
+      );
+      const plan = planRows[0];
+      if (!plan) return null;
+
+      // 2. Mapeo de trimestres
+      const trimestreOrder = { T1: 1, T2: 2, T3: 3, T4: 4 };
+      const qOrder = trimestreOrder[quarter] || 4;
+
+      // 3. Consulta Agrupada por Secretaria
+      const sql = `
+        SELECT
+          s.id_secretaria AS secretaria_id,
+          s.nombre AS secretaria_nombre,
+          
+          COUNT(m.id_meta) AS total_metas_count,
+          
+          SUM(m.cant_ano1 + m.cant_ano2 + m.cant_ano3 + m.cant_ano4) AS meta_total_sum,
+          
+          COALESCE(SUM(av_calc.cantidad), 0) AS avance_acumulado_sum
+
+        FROM metas m
+        INNER JOIN detalles_plan dp ON dp.id_detalle = m.id_detalle
+        INNER JOIN secretarias s ON s.id_secretaria = m.id_secretaria
+        
+        -- Join para Avances (filtrado por corte)
+        LEFT JOIN avances av_calc ON av_calc.id_meta = m.id_meta
+          AND (
+             av_calc.anio < ? 
+             OR (av_calc.anio = ? AND 
+                 CASE av_calc.trimestre
+                   WHEN 'T1' THEN 1
+                   WHEN 'T2' THEN 2
+                   WHEN 'T3' THEN 3
+                   WHEN 'T4' THEN 4
+                 END <= ?)
+          )
+          
+        WHERE dp.id_plan = ?
+          
+        GROUP BY s.id_secretaria
+      `;
+
+      const [rows] = await db.query(sql, [year, year, qOrder, idPlan]);
+
+      return { plan, rows };
+    } finally {
+      db.release();
+    }
+  }
 };
