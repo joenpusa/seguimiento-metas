@@ -1,6 +1,7 @@
 import express from "express";
 import { authenticateToken, requireRole } from "../middleware/authMiddleware.js";
 import { ProgramacionesModel } from "../models/programacionesModel.js";
+import { MetasModel } from "../models/metasModel.js";
 
 const router = express.Router();
 
@@ -29,7 +30,7 @@ router.get(
 router.post(
   "/",
   authenticateToken,
-  requireRole("admin"),
+  requireRole("admin", "responsable_carga"),
   async (req, res) => {
     try {
       const { id_meta, anio, trimestre } = req.body;
@@ -38,6 +39,14 @@ router.post(
         return res.status(400).json({
           message: "Campos requeridos: id_meta, anio, trimestre",
         });
+      }
+
+      const meta = await MetasModel.getById(id_meta);
+      if (!meta) {
+        return res.status(404).json({ message: "Meta no encontrada" });
+      }
+      if (req.user.rol !== "admin" && req.user.id_secretaria !== meta.id_secretaria) {
+        return res.status(403).json({ message: "No tiene permiso para programar esta meta" });
       }
 
       const exists = await ProgramacionesModel.existsCombination({
@@ -72,7 +81,7 @@ router.post(
 router.put(
   "/:id",
   authenticateToken,
-  requireRole("admin"),
+  requireRole("admin", "responsable_carga"),
   async (req, res) => {
     try {
       const { id } = req.params;
@@ -83,6 +92,18 @@ router.put(
         return res
           .status(404)
           .json({ message: "Programación no encontrada" });
+      }
+
+      const meta = await MetasModel.getById(programacion.id_meta);
+      if (req.user.rol !== "admin" && req.user.id_secretaria !== meta.id_secretaria) {
+        return res.status(403).json({ message: "No tiene permiso para modificar programaciones de esta meta" });
+      }
+
+      if (id_meta && id_meta !== programacion.id_meta) {
+        const newMeta = await MetasModel.getById(id_meta);
+        if (req.user.rol !== "admin" && req.user.id_secretaria !== newMeta.id_secretaria) {
+            return res.status(403).json({ message: "No tiene permiso para asignar a esta nueva meta" });
+        }
       }
 
       const exists = await ProgramacionesModel.existsCombination(

@@ -81,7 +81,7 @@ router.get(
 router.post(
   "/",
   authenticateToken,
-  requireRole("admin"),
+  requireRole("admin", "responsable_carga"),
   async (req, res) => {
     try {
       const {
@@ -108,6 +108,13 @@ router.post(
           .json({ message: "Campos requeridos faltantes" });
       }
 
+      if (
+        req.user.rol !== "admin" &&
+        req.user.id_secretaria !== Number(id_secretaria)
+      ) {
+        return res.status(403).json({ message: "No tiene permiso para crear metas en esta secretaría" });
+      }
+
       const result = await MetasModel.create(req.body);
 
       res.status(201).json({
@@ -129,7 +136,7 @@ router.post(
 router.put(
   "/:id",
   authenticateToken,
-  requireRole("admin"),
+  requireRole("admin", "responsable_carga"),
   async (req, res) => {
     try {
       const { id } = req.params;
@@ -155,6 +162,17 @@ router.put(
           .json({ message: "Campos requeridos faltantes" });
       }
 
+      const meta = await MetasModel.getById(id);
+      if (!meta) {
+        return res.status(404).json({ message: "Meta no encontrada" });
+      }
+
+      if (req.user.rol !== "admin") {
+        if (req.user.id_secretaria !== meta.id_secretaria || req.user.id_secretaria !== Number(id_secretaria)) {
+          return res.status(403).json({ message: "No tiene permiso para modificar esta meta o asignarla a otra secretaría" });
+        }
+      }
+
       await MetasModel.update(id, req.body);
 
       res.json({ message: "Meta actualizada correctamente" });
@@ -173,9 +191,18 @@ router.put(
 router.delete(
   "/:id",
   authenticateToken,
-  requireRole("admin"),
+  requireRole("admin", "responsable_carga"),
   async (req, res) => {
     try {
+      const meta = await MetasModel.getById(req.params.id);
+      if (!meta) {
+        return res.status(404).json({ message: "Meta no encontrada" });
+      }
+
+      if (req.user.rol !== "admin" && req.user.id_secretaria !== meta.id_secretaria) {
+        return res.status(403).json({ message: "No tiene permiso para eliminar esta meta" });
+      }
+
       await MetasModel.delete(req.params.id);
       res.json({ message: "Meta eliminada correctamente" });
     } catch (err) {

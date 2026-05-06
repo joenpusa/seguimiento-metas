@@ -19,18 +19,16 @@ const Sidebar = ({ open, setOpen, isDesktop }) => {
   const { currentUser } = useAuth();
 
   const baseNavItems = [
-    { icon: LayoutDashboard, label: 'Dashboard', path: '/', adminOnly: false },
-    { icon: Target, label: 'Metas', path: '/metas', adminOnly: false },
-    { icon: TrendingUp, label: 'Avances', path: '/avances', adminOnly: false },
-    { icon: FileBarChart, label: 'Informes', path: '/informes', adminOnly: false },
-    { icon: Archive, label: 'Admin General', path: '/admin-plan', adminOnly: false }, // Visible para todos, el contenido interno se restringe
+    { icon: LayoutDashboard, label: 'Dashboard', path: '/', roles: ['admin', 'responsable', 'responsable_carga', 'consultor'] },
+    { icon: Target, label: 'Metas', path: '/metas', roles: ['admin', 'responsable_carga'] },
+    { icon: TrendingUp, label: 'Avances', path: '/avances', roles: ['admin', 'responsable_carga'] },
+    { icon: FileBarChart, label: 'Informes', path: '/informes', roles: ['admin', 'responsable', 'responsable_carga', 'consultor'] },
+    { icon: Archive, label: 'Admin General', path: '/admin-plan', roles: ['admin', 'responsable'] },
   ];
 
   const navItems = baseNavItems.filter(item => {
-    if (item.adminOnly && (!currentUser || currentUser.rol !== 'admin')) {
-      return false;
-    }
-    return true;
+    if (!currentUser) return false;
+    return item.roles.includes(currentUser.rol);
   });
 
 

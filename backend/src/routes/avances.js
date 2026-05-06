@@ -1,6 +1,7 @@
 import express from "express";
-import { authenticateToken } from "../middleware/authMiddleware.js";
+import { authenticateToken, requireRole } from "../middleware/authMiddleware.js";
 import { AvancesModel } from "../models/avancesModel.js";
+import { MetasModel } from "../models/metasModel.js";
 
 const router = express.Router();
 
@@ -38,8 +39,16 @@ router.get("/:id", authenticateToken, async (req, res) => {
 });
 
 // 🔹 POST /api/avances
-router.post("/", authenticateToken, async (req, res) => {
+router.post("/", authenticateToken, requireRole("admin", "responsable_carga"), async (req, res) => {
   try {
+    const meta = await MetasModel.getById(req.body.id_meta);
+    if (!meta) {
+      return res.status(404).json({ message: "Meta no encontrada" });
+    }
+    if (req.user.rol !== "admin" && req.user.id_secretaria !== meta.id_secretaria) {
+      return res.status(403).json({ message: "No tiene permiso para añadir avances a esta meta" });
+    }
+
     const result = await AvancesModel.create(req.body);
 
     res.status(201).json({
@@ -59,12 +68,17 @@ router.post("/", authenticateToken, async (req, res) => {
 });
 
 // 🔹 PUT /api/avances/:id
-router.put("/:id", authenticateToken, async (req, res) => {
+router.put("/:id", authenticateToken, requireRole("admin", "responsable_carga"), async (req, res) => {
   try {
     const avance = await AvancesModel.getById(req.params.id);
 
     if (!avance) {
       return res.status(404).json({ message: "Avance no encontrado" });
+    }
+
+    const meta = await MetasModel.getById(avance.id_meta);
+    if (req.user.rol !== "admin" && req.user.id_secretaria !== meta.id_secretaria) {
+      return res.status(403).json({ message: "No tiene permiso para modificar avances de esta meta" });
     }
 
     await AvancesModel.update(req.params.id, req.body);
@@ -77,12 +91,17 @@ router.put("/:id", authenticateToken, async (req, res) => {
 });
 
 // DELETE /api/avances/:id
-router.delete("/:id", authenticateToken, async (req, res) => {
+router.delete("/:id", authenticateToken, requireRole("admin", "responsable_carga"), async (req, res) => {
   try {
     const avance = await AvancesModel.getById(req.params.id);
 
     if (!avance) {
       return res.status(404).json({ message: "Avance no encontrado" });
+    }
+
+    const meta = await MetasModel.getById(avance.id_meta);
+    if (req.user.rol !== "admin" && req.user.id_secretaria !== meta.id_secretaria) {
+      return res.status(403).json({ message: "No tiene permiso para eliminar avances de esta meta" });
     }
 
     // 🔒 Obtener el último avance de esa meta

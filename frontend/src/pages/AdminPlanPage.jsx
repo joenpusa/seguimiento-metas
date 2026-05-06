@@ -44,7 +44,8 @@ const AdminPlanPage = () => {
   
   const getDefaultTab = () => {
     if (currentUser?.rol === 'admin') return 'planes';
-    return 'unidades'; // Usuarios no admin solo ven unidades de medida aquí
+    if (currentUser?.rol === 'responsable') return 'estructura';
+    return '';
   };
   const [currentTab, setCurrentTab] = useState(getDefaultTab()); 
 
@@ -106,15 +107,15 @@ const AdminPlanPage = () => {
   };
 
   const allTabs = [
-    { id: 'planes', label: 'Planes', icon: ListChecks, adminOnly: true },
-    { id: 'estructura', label: 'Estructura', icon: Settings, adminOnly: true, disabled: !activePlanId },
-    { id: 'municipios', label: 'Municipios', icon: MapPin, adminOnly: true },
-    { id: 'responsables', label: 'Responsables', icon: Users, adminOnly: true },
-    { id: 'usuarios', label: 'Usuarios', icon: ShieldCheck, adminOnly: true },
-    { id: 'unidades', label: 'Unidades Medida', icon: Ruler, adminOnly: false },
+    { id: 'planes', label: 'Planes', icon: ListChecks, roles: ['admin'] },
+    { id: 'estructura', label: 'Estructura', icon: Settings, roles: ['admin', 'responsable'], disabled: !activePlanId },
+    { id: 'municipios', label: 'Municipios', icon: MapPin, roles: ['admin'] },
+    { id: 'responsables', label: 'Responsables', icon: Users, roles: ['admin'] },
+    { id: 'usuarios', label: 'Usuarios', icon: ShieldCheck, roles: ['admin'] },
+    { id: 'unidades', label: 'Unidades Medida', icon: Ruler, roles: ['admin'] },
   ];
 
-  const visibleTabs = allTabs.filter(tab => currentUser?.rol === 'admin' ? true : !tab.adminOnly);
+  const visibleTabs = allTabs.filter(tab => currentUser && tab.roles.includes(currentUser.rol));
 
   if (loading) return <div className="flex items-center justify-center h-[calc(100vh-100px)]"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div><p className="mt-4 text-gray-500">Cargando...</p></div>;
   
@@ -166,7 +167,7 @@ const AdminPlanPage = () => {
           />
         )}
 
-        {currentTab === 'estructura' && activePlan && currentUser?.rol === 'admin' && (
+        {currentTab === 'estructura' && activePlan && ['admin', 'responsable'].includes(currentUser?.rol) && (
           <DetallePlanProvider planId={activePlanId}>
             <MetaProvider>
               <AdminEstructuraPlan key={activePlan.id} plan={activePlan} />
@@ -177,7 +178,7 @@ const AdminPlanPage = () => {
         {currentTab === 'municipios' && currentUser?.rol === 'admin' && <AdminMunicipios />}
         {currentTab === 'responsables' && currentUser?.rol === 'admin' && <AdminResponsables />}
         {currentTab === 'usuarios' && currentUser?.rol === 'admin' && <AdminUsuarios />}
-        {currentTab === 'unidades' && <AdminUnidadesMedida />}
+        {currentTab === 'unidades' && currentUser?.rol === 'admin' && <AdminUnidadesMedida />}
       </motion.div>
 
 

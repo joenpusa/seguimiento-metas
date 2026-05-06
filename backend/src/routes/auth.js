@@ -22,7 +22,14 @@ router.post('/login', async (req, res) => {
     const match = await bcrypt.compare(password, user.password);
     if (!match) return res.status(401).json({ message: 'Credenciales incorrectas' });
 
-    const payload = { id: user.id, email: user.email, nombre: user.nombre, rol: user.rol, requiereCambioClave: !!user.requiereCambioClave };
+    const payload = { 
+      id: user.id_usuario, 
+      email: user.email, 
+      nombre: user.nombre, 
+      rol: user.rol, 
+      id_secretaria: user.id_secretaria,
+      requiereCambioClave: !!user.requiereCambioClave 
+    };
     const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: process.env.JWT_EXPIRES_IN || '8h' });
 
     res.json({

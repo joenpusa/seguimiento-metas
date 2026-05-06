@@ -14,10 +14,12 @@ export const authenticateToken = (req, res, next) => {
   });
 };
 
-export const requireRole = (role) => {
+export const requireRole = (...roles) => {
   return (req, res, next) => {
     if (!req.user) return res.status(401).json({ message: 'No autenticado' });
-    if (req.user.rol !== role) return res.status(403).json({ message: 'Rol insuficiente' });
+    if (!roles.includes(req.user.rol)) {
+      return res.status(403).json({ message: 'Rol insuficiente' });
+    }
     next();
   };
 };

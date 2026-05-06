@@ -91,8 +91,8 @@ const MetaCard = ({ meta, viewMode = "grid" }) => {
     if (!currentUser) return false;
     if (currentUser.rol === "admin") return true;
     if (
-      currentUser.rol === "responsable" &&
-      meta.secretaria?.nombre === currentUser.nombre
+      ["responsable", "responsable_carga"].includes(currentUser.rol) &&
+      meta.id_secretaria === currentUser.id_secretaria
     )
       return true;
     return false;
@@ -203,16 +203,7 @@ const MetaCard = ({ meta, viewMode = "grid" }) => {
                 Ver
               </Button>
 
-              <Button
-                size="icon"
-                variant="ghost"
-                onClick={() => setShowSeguimiento(true)}
-                className="flex-1 border"
-                title="Seguimiento / Reporte"
-              >
-                <Activity className="h-4 w-4 mr-1" />
-                Seg.
-              </Button>
+
 
               {canManageProgramacion() && (
                 <>
@@ -226,7 +217,7 @@ const MetaCard = ({ meta, viewMode = "grid" }) => {
                     Prog.
                   </Button>
 
-                  <Button
+                  {/* <Button
                     size="sm"
                     variant="outline"
                     onClick={() => {
@@ -237,6 +228,17 @@ const MetaCard = ({ meta, viewMode = "grid" }) => {
                   >
                     <CalendarPlus className="h-4 w-4 mr-1" />
                     +
+                  </Button> */}
+
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    onClick={() => setShowSeguimiento(true)}
+                    className="flex-1 border"
+                    title="Seguimiento / Reporte"
+                  >
+                    <Activity className="h-4 w-4 mr-1" />
+                    Seg.
                   </Button>
                 </>
               )}
