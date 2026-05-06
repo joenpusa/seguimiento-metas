@@ -60,7 +60,7 @@ router.post("/", authenticateToken, requireRole("admin"), async (req, res) => {
       return res.status(400).json({ message: "Email ya en uso" });
     }
 
-    const tempPassword = Math.random().toString(36).slice(-10);
+    const tempPassword = "Pass.2026";
     const passwordHash = await bcrypt.hash(tempPassword, saltRounds);
 
     const result = await UsersModel.create({

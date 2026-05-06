@@ -33,6 +33,7 @@ import { useToast } from "@/components/ui/use-toast";
 const ROLES_USUARIO = [
   { id: "admin", nombre: "Administrador" },
   { id: "responsable", nombre: "Responsable" },
+  { id: "responsable_carga", nombre: "Responsable Carga" },
   { id: "consultor", nombre: "Consultor" },
 ];
 
@@ -153,9 +154,8 @@ const AdminUsuarios = () => {
                       {u.email}
                     </p>
                     <p
-                      className={`text-xs font-medium ${
-                        u.es_activo ? "text-green-600" : "text-red-500"
-                      }`}
+                      className={`text-xs font-medium ${u.es_activo ? "text-green-600" : "text-red-500"
+                        }`}
                     >
                       {u.es_activo ? "Activo" : "Inactivo"}
                     </p>

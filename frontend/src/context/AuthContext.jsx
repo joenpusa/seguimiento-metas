@@ -200,6 +200,42 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const changePasswordContext = async (id, currentPassword, newPassword) => {
+    setLoading(true);
+    try {
+      const userId = id || currentUser?.id_usuario || currentUser?.id;
+      if (!userId) {
+        throw new Error("ID de usuario no definido");
+      }
+
+      await api.put(`/users/${userId}/password`, { password: newPassword });
+
+      const updatedUser = {
+        ...currentUser,
+        requiereCambioClave: false,
+      };
+
+      setCurrentUser(updatedUser);
+      localStorage.setItem("user", JSON.stringify(updatedUser));
+
+      toast({
+        title: "Contraseña actualizada correctamente",
+      });
+
+      navigate("/");
+    } catch (err) {
+      toast({
+        title: "Error",
+        description:
+          err.response?.data?.message ||
+          "No se pudo cambiar la contraseña",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // ===============================
   // CRUD USUARIOS
   // ===============================
@@ -296,6 +332,7 @@ export const AuthProvider = ({ children }) => {
         login,
         logout,
         changePassword,
+        changePasswordContext,
 
         // usuarios
         _users: users,
