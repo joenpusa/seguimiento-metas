@@ -65,12 +65,12 @@ const MetaSeguimiento = ({ metaId, open, onOpenChange }) => {
             "Trimestre",
             "Prog. Cantidad",
             "Prog. Gastos Total",
-            "Prog. Propio", "Prog. Credito", "Prog. SGP", "Prog. Regalias", "Prog. Municipal", "Prog. Otros",
+            "Prog. Propio", "Prog. Credito", "Prog. SGP", "Prog. Regalias", "Prog. Nación o Municipio", "Prog. Otros",
             "Avance Cantidad",
             "% Cumplimiento Fisico",
             "Avance Gastos Total",
             "% Eje. Financiera",
-            "Av. Propio", "Av. Credito", "Av. SGP", "Av. Regalias", "Av. Municipal", "Av. Otros",
+            "Av. Propio", "Av. Credito", "Av. SGP", "Av. Regalias", "Av. Nación o Municipio", "Av. Otros",
             "Pob. Total Reportada",
             "Mujeres",
             "Discapacidad",
@@ -195,7 +195,9 @@ const MetaSeguimiento = ({ metaId, open, onOpenChange }) => {
                                     </div>
                                     <div>
                                         <label className="text-[10px] font-bold text-muted-foreground uppercase block">Meta Total (Cuatrienio)</label>
-                                        <div className="text-xs font-medium">{formatNumber(data.meta.cantidad)}</div>
+                                        <div className="text-xs font-medium text-blue-700">
+                                            {formatNumber(data.detalles?.reduce((sum, d) => sum + (Number(d.avance_cantidad) || 0), 0) || 0)}
+                                        </div>
                                     </div>
                                     <div>
                                         <label className="text-[10px] font-bold text-muted-foreground uppercase block">Presupuesto Total</label>
@@ -214,11 +216,11 @@ const MetaSeguimiento = ({ metaId, open, onOpenChange }) => {
 
                                                 {/* PROGRAMACION */}
                                                 <th colSpan={2} className="px-3 py-2 border-r text-center bg-gray-50">Programación (General)</th>
-                                                <th colSpan={6} className="px-3 py-2 border-r text-center bg-gray-50">Detalle P. Gastos</th>
+                                                <th colSpan={6} className="px-3 py-2 border-r text-center bg-gray-50">Detalle Programado de Gatos</th>
 
                                                 {/* AVANCE */}
                                                 <th colSpan={4} className="px-3 py-2 border-r text-center bg-blue-50 text-blue-800">Ejecución / Avance</th>
-                                                <th colSpan={6} className="px-3 py-2 border-r text-center bg-blue-50 text-blue-800">Detalle A. Gastos</th>
+                                                <th colSpan={6} className="px-3 py-2 border-r text-center bg-blue-50 text-blue-800">Detalle Acumulado de Gatos</th>
 
                                                 {/* POBLACION */}
                                                 <th colSpan={2} className="px-3 py-2 text-center bg-green-50 text-green-800">Población</th>
@@ -233,7 +235,7 @@ const MetaSeguimiento = ({ metaId, open, onOpenChange }) => {
                                                 <th className="px-2 py-2 border-r text-right min-w-[90px] text-[10px]">Crédito</th>
                                                 <th className="px-2 py-2 border-r text-right min-w-[90px] text-[10px]">SGP</th>
                                                 <th className="px-2 py-2 border-r text-right min-w-[90px] text-[10px]">Regalías</th>
-                                                <th className="px-2 py-2 border-r text-right min-w-[90px] text-[10px]">Municipal</th>
+                                                <th className="px-2 py-2 border-r text-right min-w-[90px] text-[10px]">Nación o Municipio</th>
                                                 <th className="px-2 py-2 border-r text-right min-w-[90px] text-[10px]">Otros</th>
 
                                                 {/* Avance General */}
@@ -247,7 +249,7 @@ const MetaSeguimiento = ({ metaId, open, onOpenChange }) => {
                                                 <th className="px-2 py-2 border-r text-right min-w-[90px] text-[10px] bg-blue-50/50">Crédito</th>
                                                 <th className="px-2 py-2 border-r text-right min-w-[90px] text-[10px] bg-blue-50/50">SGP</th>
                                                 <th className="px-2 py-2 border-r text-right min-w-[90px] text-[10px] bg-blue-50/50">Regalías</th>
-                                                <th className="px-2 py-2 border-r text-right min-w-[90px] text-[10px] bg-blue-50/50">Municipal</th>
+                                                <th className="px-2 py-2 border-r text-right min-w-[90px] text-[10px] bg-blue-50/50">Nación o Municipio</th>
                                                 <th className="px-2 py-2 border-r text-right min-w-[90px] text-[10px] bg-blue-50/50">Otros</th>
 
                                                 {/* Poblacion */}
