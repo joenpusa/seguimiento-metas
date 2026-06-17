@@ -2,10 +2,13 @@ import React from 'react';
 import { Button } from '@/components/ui/button';
 import { X, Printer } from 'lucide-react';
 
-const ReporteRankingSecretariasView = ({ data, onClose }) => {
+const ReporteRankingSecretariasView = ({ data, isInternalReport, onClose }) => {
     if (!data) return null;
 
-    const { plan, ranking } = data;
+    const { plan, ranking: originalRanking } = data;
+    const ranking = isInternalReport 
+        ? originalRanking.filter(r => r.avance_porcentaje !== 0 && r.avance_porcentaje !== 100)
+        : originalRanking;
 
     const handlePrint = () => {
         window.print();

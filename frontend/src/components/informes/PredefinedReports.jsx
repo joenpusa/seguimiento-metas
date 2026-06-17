@@ -7,6 +7,7 @@ import {
     SelectValue
 } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import { FileText, Calendar, Filter, Loader2 } from 'lucide-react';
 import { usePlan } from "@/context/PlanContext";
 import { useReportes } from "@/context/ReportesContext";
@@ -22,6 +23,7 @@ const PredefinedReports = () => {
     const [reportType, setReportType] = useState('');
     const [year, setYear] = useState('');
     const [quarter, setQuarter] = useState('');
+    const [isInternalReport, setIsInternalReport] = useState(false);
 
     const REPORT_OPTIONS = [
         { id: 'general', label: '1. Reporte de metas General con grafico circular' },
@@ -119,6 +121,7 @@ const PredefinedReports = () => {
         return (
             <ReporteGeneralView
                 data={reportData}
+                isInternalReport={isInternalReport}
                 onClose={() => setReportData(null)}
             />
         );
@@ -128,6 +131,7 @@ const PredefinedReports = () => {
         return (
             <ReporteLineasView
                 data={reportData}
+                isInternalReport={isInternalReport}
                 onClose={() => setReportData(null)}
             />
         );
@@ -137,6 +141,7 @@ const PredefinedReports = () => {
         return (
             <ReporteComponentesView
                 data={reportData}
+                isInternalReport={isInternalReport}
                 onClose={() => setReportData(null)}
             />
         );
@@ -146,6 +151,7 @@ const PredefinedReports = () => {
         return (
             <ReporteSecretariasView
                 data={reportData}
+                isInternalReport={isInternalReport}
                 onClose={() => setReportData(null)}
             />
         );
@@ -155,6 +161,7 @@ const PredefinedReports = () => {
         return (
             <ReporteArbolView
                 data={reportData}
+                isInternalReport={isInternalReport}
                 onClose={() => setReportData(null)}
             />
         );
@@ -164,6 +171,7 @@ const PredefinedReports = () => {
         return (
             <ReporteRankingComponentesView
                 data={reportData}
+                isInternalReport={isInternalReport}
                 onClose={() => setReportData(null)}
             />
         );
@@ -173,6 +181,7 @@ const PredefinedReports = () => {
         return (
             <ReporteRankingSecretariasView
                 data={reportData}
+                isInternalReport={isInternalReport}
                 onClose={() => setReportData(null)}
             />
         );
@@ -241,7 +250,22 @@ const PredefinedReports = () => {
                 </div>
             </div>
 
-            {/* D. Botón Generar */}
+            {/* D. Visibilidad del Reporte */}
+            <div className="mt-4 flex items-center space-x-2 p-3 bg-gray-50 border rounded-md">
+                <Checkbox 
+                    id="internal-report" 
+                    checked={isInternalReport} 
+                    onCheckedChange={(checked) => setIsInternalReport(checked)} 
+                />
+                <label 
+                    htmlFor="internal-report" 
+                    className="text-sm font-medium text-gray-700 cursor-pointer select-none"
+                >
+                    Reporte Interno (Excluir metas en 0% y 100%)
+                </label>
+            </div>
+
+            {/* E. Botón Generar */}
             <div className="flex justify-end mt-4">
                 <Button onClick={handleGenerate} disabled={!reportType || !year || !quarter || isLoading}>
                     {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
@@ -253,4 +277,5 @@ const PredefinedReports = () => {
 };
 
 export default PredefinedReports;
+
 

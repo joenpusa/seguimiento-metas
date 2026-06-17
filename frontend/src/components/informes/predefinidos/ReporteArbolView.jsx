@@ -5,19 +5,27 @@ import { X, ChevronRight, ChevronDown, Printer } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 
 // Función para aplanar el árbol a una lista para la impresión
-const flattenTree = (nodes, level = 0, result = []) => {
+const flattenTree = (nodes, level = 0, isInternalReport = false, result = []) => {
     nodes.forEach(node => {
+        // Si es reporte interno, no incluir metas en 0% o 100%
+        if (isInternalReport && node.type === 'meta' && (node.avance_porcentaje === 0 || node.avance_porcentaje === 100)) {
+            return;
+        }
         result.push({ ...node, level });
         if (node.children && node.children.length > 0) {
-            flattenTree(node.children, level + 1, result);
+            flattenTree(node.children, level + 1, isInternalReport, result);
         }
     });
     return result;
 };
 
 // Componente Nodo para la Vista en Pantalla (Interactivo)
-const TreeNode = ({ node, level }) => {
+const TreeNode = ({ node, level, isInternalReport }) => {
     const [expanded, setExpanded] = useState(true);
+
+    if (isInternalReport && node.type === 'meta' && (node.avance_porcentaje === 0 || node.avance_porcentaje === 100)) {
+        return null;
+    }
 
     const hasChildren = node.children && node.children.length > 0;
 
@@ -83,7 +91,7 @@ const TreeNode = ({ node, level }) => {
             {expanded && hasChildren && (
                 <div className="mt-2 border-l-2 border-gray-100 ml-3 pl-1">
                     {node.children.map((child, idx) => (
-                        <TreeNode key={`${child.type}-${child.id}-${idx}`} node={child} level={level + 1} />
+                        <TreeNode key={`${child.type}-${child.id}-${idx}`} node={child} level={level + 1} isInternalReport={isInternalReport} />
                     ))}
                 </div>
             )}
@@ -91,7 +99,7 @@ const TreeNode = ({ node, level }) => {
     );
 };
 
-const ReporteArbolView = ({ data, onClose }) => {
+const ReporteArbolView = ({ data, isInternalReport, onClose }) => {
     if (!data) return null;
 
     const { plan, arbol } = data;
@@ -101,7 +109,7 @@ const ReporteArbolView = ({ data, onClose }) => {
     };
 
     // Aplanar datos para la tabla de impresión
-    const flatData = flattenTree(arbol);
+    const flatData = flattenTree(arbol, 0, isInternalReport);
 
     // Colores de fondo para la tabla de impresión según nivel
     const getPrintRowStyle = (level, porcentaje) => {
@@ -164,7 +172,7 @@ const ReporteArbolView = ({ data, onClose }) => {
                     ) : (
                         arbol.map((linea, idx) => (
                             <div key={`root-${idx}`} className="mb-6">
-                                <TreeNode node={linea} level={0} />
+                                <TreeNode node={linea} level={0} isInternalReport={isInternalReport} />
                             </div>
                         ))
                     )}

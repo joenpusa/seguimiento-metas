@@ -3,20 +3,26 @@ import { Button } from '@/components/ui/button';
 import { Printer, X } from 'lucide-react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts';
 
-const SectionReporte = ({ linea, totalMetasGlobal }) => {
+const SectionReporte = ({ linea, totalMetasGlobal, isInternalReport }) => {
     const { counts, metas, nombre } = linea;
     const totalMetas = metas.length;
 
     // Colores oficiales
     // const COLORS = ['#000000', '#D32F2F', '#F57C00', '#FBC02D', '#388E3C'];
 
-    const chartData = [
+    let chartData = [
         { name: '0%', value: counts.rango0, color: '#000000' },
         { name: '< 26.25%', value: counts.rango_low, color: '#D32F2F' },
         { name: '26.25% - 43.75%', value: counts.rango_mid, color: '#F57C00' },
         { name: '> 43.75%', value: counts.rango_high, color: '#FBC02D' },
         { name: '100%', value: counts.rango100, color: '#388E3C' },
-    ].filter(d => d.value > 0);
+    ];
+
+    if (isInternalReport) {
+        chartData = chartData.filter(d => d.name !== '0%' && d.name !== '100%');
+    }
+    
+    chartData = chartData.filter(d => d.value > 0);
 
     const getPct = (cnt) => totalMetas > 0 ? ((cnt / totalMetas) * 100).toFixed(2) + '%' : '0%';
 
@@ -29,29 +35,29 @@ const SectionReporte = ({ linea, totalMetasGlobal }) => {
                 <table className="w-full border-collapse border border-gray-300 text-sm">
                     <thead>
                         <tr className="text-white">
-                            <th className="border p-2 bg-black">0%</th>
+                            {!isInternalReport && <th className="border p-2 bg-black">0%</th>}
                             <th className="border p-2 bg-red-600">&lt; 26.25%</th>
                             <th className="border p-2 bg-orange-600">26.25% - &lt; 43.75%</th>
                             <th className="border p-2 bg-yellow-400 text-black">&gt;= 43.75%</th>
-                            <th className="border p-2 bg-green-700">100%</th>
+                            {!isInternalReport && <th className="border p-2 bg-green-700">100%</th>}
                             <th className="border p-2 bg-gray-300 text-black">TOTAL METAS</th>
                         </tr>
                     </thead>
                     <tbody>
                         <tr className="text-center font-bold">
-                            <td className="border p-2">{counts.rango0}</td>
+                            {!isInternalReport && <td className="border p-2">{counts.rango0}</td>}
                             <td className="border p-2">{counts.rango_low}</td>
                             <td className="border p-2">{counts.rango_mid}</td>
                             <td className="border p-2">{counts.rango_high}</td>
-                            <td className="border p-2">{counts.rango100}</td>
+                            {!isInternalReport && <td className="border p-2">{counts.rango100}</td>}
                             <td className="border p-2 text-lg">{totalMetas}</td>
                         </tr>
                         <tr className="text-center text-gray-600 italic">
-                            <td className="border p-2">{getPct(counts.rango0)}</td>
+                            {!isInternalReport && <td className="border p-2">{getPct(counts.rango0)}</td>}
                             <td className="border p-2">{getPct(counts.rango_low)}</td>
                             <td className="border p-2">{getPct(counts.rango_mid)}</td>
                             <td className="border p-2">{getPct(counts.rango_high)}</td>
-                            <td className="border p-2">{getPct(counts.rango100)}</td>
+                            {!isInternalReport && <td className="border p-2">{getPct(counts.rango100)}</td>}
                             <td className="border p-2">100%</td>
                         </tr>
                     </tbody>
@@ -98,7 +104,7 @@ const SectionReporte = ({ linea, totalMetasGlobal }) => {
     );
 };
 
-const ReporteLineasView = ({ data, onClose }) => {
+const ReporteLineasView = ({ data, isInternalReport, onClose }) => {
     if (!data) return null;
 
     const { plan, lineas } = data;
@@ -138,7 +144,7 @@ const ReporteLineasView = ({ data, onClose }) => {
 
                 {/* Iteración de Líneas */}
                 {lineas.map((linea, idx) => (
-                    <SectionReporte key={idx} linea={linea} />
+                    <SectionReporte key={idx} linea={linea} isInternalReport={isInternalReport} />
                 ))}
 
                 {/* Footer */}
