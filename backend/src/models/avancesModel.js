@@ -151,7 +151,19 @@ export const AvancesModel = {
             )
             THEN 1
             ELSE 0
-          END AS es_ultimo
+          END AS es_ultimo,
+
+          (
+            SELECT JSON_ARRAYAGG(
+              JSON_OBJECT(
+                'id_unico', ax.id_unico,
+                'nombre_archivo', ax.nombre_archivo,
+                'key_archivo', ax.key_archivo
+              )
+            )
+            FROM avancexarchivos ax
+            WHERE ax.id_avance = a.id_avance
+          ) AS archivos_json
 
         FROM avances a
         INNER JOIN metas m ON m.id_meta = a.id_meta
@@ -179,7 +191,25 @@ export const AvancesModel = {
         `SELECT * FROM avances WHERE id_avance = ?`,
         [id]
       );
-      return rows[0];
+      if (rows.length === 0) return null;
+
+      const avance = rows[0];
+
+      // Buscar municipios asociados
+      const [muniRows] = await db.query(
+        `SELECT id_municipio FROM avancexmunicipios WHERE id_avance = ?`,
+        [id]
+      );
+      avance.municipios = muniRows.map(r => r.id_municipio);
+
+      // Buscar archivos asociados
+      const [archivosRows] = await db.query(
+        `SELECT id_unico, nombre_archivo, key_archivo FROM avancexarchivos WHERE id_avance = ?`,
+        [id]
+      );
+      avance.archivos = archivosRows;
+
+      return avance;
     } finally {
       db.release();
     }
@@ -223,9 +253,14 @@ export const AvancesModel = {
           cantesp_lgtbi,
           cantesp_migrante,
           cantesp_indigente,
-          cantesp_privado
+          cantesp_privado,
+          
+          que_se_hizo,
+          cuanto_se_invirtio,
+          poblacion_beneficiada,
+          como_se_ejecuto
         )
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         `,
         [
           data.anio,
@@ -258,9 +293,36 @@ export const AvancesModel = {
           data.cantesp_migrante || 0,
           data.cantesp_indigente || 0,
           data.cantesp_privado || 0,
+
+          data.que_se_hizo || null,
+          data.cuanto_se_invirtio || null,
+          data.poblacion_beneficiada || null,
+          data.como_se_ejecuto || null,
         ]
       );
-      return { id: result.insertId };
+      const idAvance = result.insertId;
+
+      // Insertar municipios seleccionados
+      if (Array.isArray(data.municipios)) {
+        for (const id_municipio of data.municipios) {
+          await db.query(
+            "INSERT INTO avancexmunicipios (id_avance, id_municipio) VALUES (?, ?)",
+            [idAvance, id_municipio]
+          );
+        }
+      }
+
+      // Insertar archivos
+      if (Array.isArray(data.archivos)) {
+        for (const archivo of data.archivos) {
+          await db.query(
+            "INSERT INTO avancexarchivos (id_avance, nombre_archivo, key_archivo) VALUES (?, ?, ?)",
+            [idAvance, archivo.nombre_archivo, archivo.key_archivo]
+          );
+        }
+      }
+
+      return { id: idAvance };
     } finally {
       db.release();
     }
@@ -301,7 +363,12 @@ export const AvancesModel = {
           cantesp_lgtbi = ?,
           cantesp_migrante = ?,
           cantesp_indigente = ?,
-          cantesp_privado = ?
+          cantesp_privado = ?,
+
+          que_se_hizo = ?,
+          cuanto_se_invirtio = ?,
+          poblacion_beneficiada = ?,
+          como_se_ejecuto = ?
         WHERE id_avance = ?
         `,
         [
@@ -333,9 +400,36 @@ export const AvancesModel = {
           data.cantesp_indigente || 0,
           data.cantesp_privado || 0,
 
+          data.que_se_hizo || null,
+          data.cuanto_se_invirtio || null,
+          data.poblacion_beneficiada || null,
+          data.como_se_ejecuto || null,
+
           id,
         ]
       );
+
+      // Actualizar municipios
+      await db.query("DELETE FROM avancexmunicipios WHERE id_avance = ?", [id]);
+      if (Array.isArray(data.municipios)) {
+        for (const id_municipio of data.municipios) {
+          await db.query(
+            "INSERT INTO avancexmunicipios (id_avance, id_municipio) VALUES (?, ?)",
+            [id, id_municipio]
+          );
+        }
+      }
+
+      // Insertar nuevos archivos si los hay
+      if (Array.isArray(data.archivos)) {
+        for (const archivo of data.archivos) {
+          await db.query(
+            "INSERT INTO avancexarchivos (id_avance, nombre_archivo, key_archivo) VALUES (?, ?, ?)",
+            [id, archivo.nombre_archivo, archivo.key_archivo]
+          );
+        }
+      }
+
       return true;
     } finally {
       db.release();

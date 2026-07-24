@@ -6,9 +6,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/components/ui/use-toast";
+import { Checkbox } from "@/components/ui/checkbox";
 
 import { useAvance } from "@/context/AvanceContext";
 import { useMeta } from "@/context/MetaContext";
+import { useMunicipio } from "@/context/MunicipioContext";
 
 const initialPoblacion = {
   cantidad_0_5: 0,
@@ -47,8 +49,14 @@ const AvanceFormulario = ({ meta, programacion, onClose, onSuccess, avance = nul
   const [detailedMeta, setDetailedMeta] = useState(meta);
   console.log(detailedMeta);
 
+  const { municipios } = useMunicipio();
+
   const [formData, setFormData] = useState({
     descripcion: "",
+    que_se_hizo: "",
+    cuanto_se_invirtio: "",
+    poblacion_beneficiada: "",
+    como_se_ejecuto: "",
     cantidad: 0,
     gasto_pro: 0,
     gasto_sgp: 0,
@@ -57,7 +65,9 @@ const AvanceFormulario = ({ meta, programacion, onClose, onSuccess, avance = nul
     gasto_mun: 0,
     gasto_otr: 0,
     fec_especifica: "",
-    url_evidencia: "",
+    municipios: [],
+    archivos_nuevos: [],
+    archivos_existentes: [],
     poblacion: initialPoblacion,
   });
 
@@ -83,7 +93,11 @@ const AvanceFormulario = ({ meta, programacion, onClose, onSuccess, avance = nul
         // Esto ayuda a que no se vea vacío mientras carga el full
         const mapToForm = (data) => ({
           descripcion: data.descripcion || "",
-          cantidad: data.cantidadAvanzada || 0,
+          que_se_hizo: data.que_se_hizo || "",
+          cuanto_se_invirtio: data.cuanto_se_invirtio || "",
+          poblacion_beneficiada: data.poblacion_beneficiada || "",
+          como_se_ejecuto: data.como_se_ejecuto || "",
+          cantidad: data.cantidadAvanzada ?? data.cantidad ?? 0,
           gasto_pro: data.gasto_pro || 0,
           gasto_sgp: data.gasto_sgp || 0,
           gasto_reg: data.gasto_reg || 0,
@@ -91,7 +105,9 @@ const AvanceFormulario = ({ meta, programacion, onClose, onSuccess, avance = nul
           gasto_mun: data.gasto_mun || 0,
           gasto_otr: data.gasto_otr || 0,
           fec_especifica: data.fec_especifica ? data.fec_especifica.split("T")[0] : "",
-          url_evidencia: data.evidenciaURL || "",
+          municipios: data.municipios || [],
+          archivos_existentes: data.archivos || [],
+          archivos_nuevos: [],
           poblacion: {
             cantidad_0_5: data.cantidad_0_5 || 0,
             cantidad_6_12: data.cantidad_6_12 || 0,
@@ -145,6 +161,23 @@ const AvanceFormulario = ({ meta, programacion, onClose, onSuccess, avance = nul
     }));
   };
 
+  const handleFileChange = (e) => {
+    if (readOnly) return;
+    const files = Array.from(e.target.files);
+    if (files.length > 5) {
+      toast({ title: "Error", description: "Máximo 5 archivos permitidos", variant: "destructive" });
+      e.target.value = "";
+      return;
+    }
+    const oversized = files.find((f) => f.size > 2 * 1024 * 1024);
+    if (oversized) {
+      toast({ title: "Error", description: "Cada archivo debe pesar máximo 2MB", variant: "destructive" });
+      e.target.value = "";
+      return;
+    }
+    setFormData((p) => ({ ...p, archivos_nuevos: files }));
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (readOnly) return;
@@ -152,44 +185,45 @@ const AvanceFormulario = ({ meta, programacion, onClose, onSuccess, avance = nul
     if (!formData.descripcion) {
       toast({
         title: "Error",
-        description: "Debe ingresar una descripción",
+        description: "Debe ingresar una descripción (Qué se hizo)",
         variant: "destructive",
       });
       return;
     }
 
-    if (formData.url_evidencia) {
-      try {
-        new URL(formData.url_evidencia);
-      } catch (_) {
-        toast({
-          title: "Error de validación",
-          description: "La URL de evidencia no es válida. Asegúrese de incluir http:// o https://",
-          variant: "destructive",
-        });
-        return;
-      }
+    const payload = new FormData();
+    payload.append("id_meta", meta.id);
+    payload.append("anio", programacion.anio);
+    payload.append("trimestre", programacion.trimestre);
+    payload.append("descripcion", formData.descripcion);
+    payload.append("que_se_hizo", formData.que_se_hizo);
+    payload.append("cuanto_se_invirtio", formData.cuanto_se_invirtio);
+    payload.append("poblacion_beneficiada", formData.poblacion_beneficiada);
+    payload.append("como_se_ejecuto", formData.como_se_ejecuto);
+    payload.append("cantidad", Number(formData.cantidad));
+
+    payload.append("gasto_pro", Number(formData.gasto_pro));
+    payload.append("gasto_sgp", Number(formData.gasto_sgp));
+    payload.append("gasto_reg", Number(formData.gasto_reg));
+    payload.append("gasto_cre", Number(formData.gasto_cre));
+    payload.append("gasto_mun", Number(formData.gasto_mun));
+    payload.append("gasto_otr", Number(formData.gasto_otr));
+
+    if (formData.fec_especifica) {
+      payload.append("fec_especifica", formData.fec_especifica);
     }
 
-    const payload = {
-      id_meta: meta.id,
-      anio: programacion.anio,
-      trimestre: programacion.trimestre,
-      descripcion: formData.descripcion,
-      cantidad: Number(formData.cantidad),
+    payload.append("municipios", JSON.stringify(formData.municipios));
 
-      // Gastos individualizados
-      gasto_pro: Number(formData.gasto_pro),
-      gasto_sgp: Number(formData.gasto_sgp),
-      gasto_reg: Number(formData.gasto_reg),
-      gasto_cre: Number(formData.gasto_cre),
-      gasto_mun: Number(formData.gasto_mun),
-      gasto_otr: Number(formData.gasto_otr),
+    Object.keys(formData.poblacion).forEach((key) => {
+      payload.append(key, formData.poblacion[key]);
+    });
 
-      fec_especifica: formData.fec_especifica || null,
-      url_evidencia: formData.url_evidencia || null,
-      ...formData.poblacion,
-    };
+    if (formData.archivos_nuevos && formData.archivos_nuevos.length > 0) {
+      formData.archivos_nuevos.forEach((file) => {
+        payload.append("archivos", file);
+      });
+    }
 
     let ok = false;
     if (avance) {
@@ -219,12 +253,75 @@ const AvanceFormulario = ({ meta, programacion, onClose, onSuccess, avance = nul
         </div>
 
         <div>
-          <Label>Descripción</Label>
+          <Label>a. ¿Qué se hizo?</Label>
+          <Textarea
+            name="que_se_hizo"
+            value={formData.que_se_hizo}
+            onChange={handleChange}
+            rows={3}
+          />
+        </div>
+
+        <div>
+          <Label>b. ¿Cuánto se invirtió?</Label>
+          <Textarea
+            name="cuanto_se_invirtio"
+            value={formData.cuanto_se_invirtio}
+            onChange={handleChange}
+            rows={3}
+          />
+        </div>
+
+        {/* MUNICIPIOS (c. Dónde se invirtió) */}
+        <div className="space-y-2 mt-4">
+          <Label>c. ¿Dónde se invirtió? (Municipios)</Label>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 max-h-40 overflow-y-auto border rounded p-2">
+            {municipios.map((m) => (
+              <label key={m.id} className="flex items-center gap-2 text-xs">
+                <Checkbox
+                  checked={formData.municipios.includes(m.id)}
+                  onCheckedChange={(checked) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      municipios: checked
+                        ? [...prev.municipios, m.id]
+                        : prev.municipios.filter((id) => id !== m.id),
+                    }))
+                  }
+                />
+                {m.nombre}
+              </label>
+            ))}
+          </div>
+        </div>
+
+        <div>
+          <Label>d. Población beneficiada (Detalle)</Label>
+          <Textarea
+            name="poblacion_beneficiada"
+            value={formData.poblacion_beneficiada}
+            onChange={handleChange}
+            rows={3}
+          />
+        </div>
+
+        <div>
+          <Label>e. ¿Cómo se ejecutó?</Label>
+          <Textarea
+            name="como_se_ejecuto"
+            value={formData.como_se_ejecuto}
+            onChange={handleChange}
+            rows={3}
+          />
+        </div>
+
+        <div>
+          <Label>Descripción General (Opcional)</Label>
           <Textarea
             name="descripcion"
             value={formData.descripcion}
             onChange={handleChange}
-            rows={3}
+            rows={2}
           />
         </div>
 
@@ -291,12 +388,36 @@ const AvanceFormulario = ({ meta, programacion, onClose, onSuccess, avance = nul
           </div>
 
           <div>
-            <Label>URL evidencia</Label>
+            <Label>Evidencias (Archivos)</Label>
             <Input
-              name="url_evidencia"
-              value={formData.url_evidencia}
-              onChange={handleChange}
+              type="file"
+              name="archivos"
+              multiple
+              onChange={handleFileChange}
+              accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png"
             />
+            <p className="text-xs text-muted-foreground mt-1">Máximo 5 archivos (máx 2MB c/u).</p>
+
+            {/* Mostrar archivos ya subidos si los hay */}
+            {formData.archivos_existentes && formData.archivos_existentes.length > 0 && (
+              <div className="mt-2 text-sm border p-2 rounded-md bg-white">
+                <p className="font-semibold text-xs mb-1">Archivos subidos previamente:</p>
+                <ul className="list-disc list-inside">
+                  {formData.archivos_existentes.map((a, i) => (
+                    <li key={i}>
+                      <a
+                        href={`http://localhost:4000/uploads/avances/${a.key_archivo}`}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="text-blue-600 hover:underline"
+                      >
+                        {a.nombre_archivo}
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
           </div>
         </div>
 

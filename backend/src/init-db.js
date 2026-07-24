@@ -209,6 +209,10 @@ const run = async () => {
         cantidad INTEGER DEFAULT 0,
         gasto INTEGER DEFAULT 0,
         url_evidencia VARCHAR(500) NOT NULL,
+        que_se_hizo TEXT,
+        cuanto_se_invirtio TEXT,
+        poblacion_beneficiada TEXT,
+        como_se_ejecuto TEXT,
 
         cantidad_0_5 INTEGER DEFAULT 0,
         cantidad_6_12 INTEGER DEFAULT 0,
@@ -235,6 +239,24 @@ const run = async () => {
       CREATE UNIQUE INDEX IF NOT EXISTS idx_avances_meta_anio_trimestre
       ON avances (id_meta, anio, trimestre);
 
+      -- 2. Crear tabla avancexmunicipios
+      CREATE TABLE IF NOT EXISTS avancexmunicipios (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        id_avance INTEGER NOT NULL,
+        id_municipio INTEGER NOT NULL,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY(id_avance) REFERENCES avances(id_avance),
+        FOREIGN KEY(id_municipio) REFERENCES municipios(id_municipio)
+      );
+      -- 3. Crear tabla avancexarchivos
+      CREATE TABLE IF NOT EXISTS avancexarchivos (
+        id_unico INTEGER PRIMARY KEY AUTOINCREMENT,
+        id_avance INTEGER NOT NULL,
+        nombre_archivo TEXT NOT NULL,
+        key_archivo TEXT NOT NULL UNIQUE,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY(id_avance) REFERENCES avances(id_avance)
+      );
     `);
 
     // ===============================

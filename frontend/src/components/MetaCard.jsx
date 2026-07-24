@@ -17,6 +17,7 @@ import {
   Calendar,
   CalendarPlus,
   Activity,
+  Map,
 } from "lucide-react";
 
 import MetaForm from "@/components/MetaForm";
@@ -28,10 +29,12 @@ import { useAuth } from "@/context/AuthContext";
 import { useProgramacion } from "@/context/ProgramacionContext";
 
 import MetaSeguimiento from "@/components/MetaSeguimiento";
+import MetaMapModal from "@/components/MetaMapModal";
 
 const MetaCard = ({ meta, viewMode = "grid" }) => {
   const [openMetaForm, setOpenMetaForm] = useState(false);
   const [showSeguimiento, setShowSeguimiento] = useState(false);
+  const [showMapModal, setShowMapModal] = useState(false);
   const [programacionToEdit, setProgramacionToEdit] = useState(null);
   const { createProgramacion, updateProgramacion } = useProgramacion();
 
@@ -217,18 +220,6 @@ const MetaCard = ({ meta, viewMode = "grid" }) => {
                     Prog.
                   </Button>
 
-                  {/* <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => {
-                      setProgramacionToEdit(null);
-                      setShowProgramacion(true);
-                    }}
-                    className="flex-1"
-                  >
-                    <CalendarPlus className="h-4 w-4 mr-1" />
-                    +
-                  </Button> */}
 
                   <Button
                     size="icon"
@@ -239,6 +230,17 @@ const MetaCard = ({ meta, viewMode = "grid" }) => {
                   >
                     <Activity className="h-4 w-4 mr-1" />
                     Seg.
+                  </Button>
+
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    onClick={() => setShowMapModal(true)}
+                    className="flex-1 border"
+                    title="Ver mapa de municipios"
+                  >
+                    <Map className="h-4 w-4 mr-1" />
+                    Mapa
                   </Button>
                 </>
               )}
@@ -255,6 +257,13 @@ const MetaCard = ({ meta, viewMode = "grid" }) => {
         metaId={meta.id}
         open={showSeguimiento}
         onOpenChange={setShowSeguimiento}
+      />
+
+      {/* Modal mapa */}
+      <MetaMapModal
+        open={showMapModal}
+        onOpenChange={setShowMapModal}
+        meta={meta}
       />
 
       {/* Lista programaciones */}

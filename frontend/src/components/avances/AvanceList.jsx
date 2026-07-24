@@ -141,6 +141,42 @@ const AvanceList = ({ avances = [], loading, onEdit, onDelete, onView }) => {
                       </p>
                     </div>
                   </div>
+
+                  {avance.archivos && avance.archivos.length > 0 && (
+                    <div className="mt-4 pt-4 border-t">
+                      <p className="text-xs font-semibold mb-2">Evidencias adjuntas</p>
+                      <div className="bg-white rounded border overflow-hidden">
+                        <table className="w-full text-xs text-left">
+                          <thead className="bg-slate-50 border-b">
+                            <tr>
+                              <th className="px-2 py-1.5 font-medium">Nombre del archivo</th>
+                              <th className="px-2 py-1.5 font-medium w-24 text-center">Acción</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y">
+                            {avance.archivos.map((a, i) => (
+                              <tr key={i} className="hover:bg-slate-50">
+                                <td className="px-2 py-1.5 truncate max-w-[200px] sm:max-w-[300px]" title={a.nombre_archivo}>
+                                  {a.nombre_archivo}
+                                </td>
+                                <td className="px-2 py-1.5 text-center">
+                                  <a
+                                    href={`http://localhost:4000/uploads/avances/${a.key_archivo}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-blue-600 hover:underline flex items-center justify-center gap-1 font-medium"
+                                  >
+                                    <ExternalLink className="h-3 w-3" />
+                                    Abrir
+                                  </a>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  )}
                 </CardContent>
 
                 <CardFooter className="bg-slate-50 dark:bg-slate-800/50 py-3 px-4 flex justify-between items-center border-t">
@@ -157,7 +193,7 @@ const AvanceList = ({ avances = [], loading, onEdit, onDelete, onView }) => {
                         rel="noopener noreferrer"
                       >
                         <ExternalLink className="h-3.5 w-3.5" />
-                        Ver evidencia
+                        Ver evidencia (antigua)
                       </a>
                     </Button>
                   ) : (

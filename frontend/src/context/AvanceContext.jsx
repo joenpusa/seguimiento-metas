@@ -42,6 +42,12 @@ export const AvanceProvider = ({ children }) => {
       anio: Number(a.anio),
       trimestre: a.trimestre,
       descripcion: a.descripcion,
+      que_se_hizo: a.que_se_hizo,
+      cuanto_se_invirtio: a.cuanto_se_invirtio,
+      poblacion_beneficiada: a.poblacion_beneficiada,
+      como_se_ejecuto: a.como_se_ejecuto,
+      municipios: a.municipios || [],
+      archivos: a.archivos || (a.archivos_json ? (typeof a.archivos_json === 'string' ? JSON.parse(a.archivos_json) : a.archivos_json) : []),
       cantidadAvanzada: Number(a.cantidad),
 
       // Gastos individualizados
@@ -143,7 +149,9 @@ export const AvanceProvider = ({ children }) => {
   // ===============================
   const addAvance = async (data) => {
     try {
-      await api.post("/avances", data);
+      const isFormData = data instanceof FormData;
+      const config = isFormData ? { headers: { 'Content-Type': 'multipart/form-data' } } : {};
+      await api.post("/avances", data, config);
       toast({ title: "Avance registrado correctamente" });
       if (activePlan?.id) {
         fetchAvances({ idPlan: activePlan.id });
@@ -161,7 +169,9 @@ export const AvanceProvider = ({ children }) => {
 
   const updateAvance = async (id, data) => {
     try {
-      await api.put(`/avances/${id}`, data);
+      const isFormData = data instanceof FormData;
+      const config = isFormData ? { headers: { 'Content-Type': 'multipart/form-data' } } : {};
+      await api.put(`/avances/${id}`, data, config);
       toast({ title: "Avance actualizado correctamente" });
       if (activePlan?.id) {
         fetchAvances({ idPlan: activePlan.id });
