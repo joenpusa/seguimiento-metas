@@ -114,7 +114,23 @@ export const MetasModel = {
           s.nombre AS secretaria_nombre,
           u.nombre AS unidad_nombre,
 
-          GROUP_CONCAT(mu.id_municipio) AS municipios
+          GROUP_CONCAT(mu.id_municipio) AS municipios,
+
+          (
+            SELECT JSON_ARRAYAGG(
+              JSON_OBJECT(
+                'id_municipio', temp.id_municipio,
+                'vigencias', temp.vigencias
+              )
+            )
+            FROM (
+              SELECT am.id_municipio, COUNT(DISTINCT a.anio) AS vigencias
+              FROM avances a
+              INNER JOIN avancexmunicipios am ON a.id_avance = am.id_avance
+              WHERE a.id_meta = m.id_meta
+              GROUP BY am.id_municipio
+            ) temp
+          ) AS municipios_vigencias_json
 
         FROM metas m
 
@@ -177,6 +193,11 @@ export const MetasModel = {
         municipios: meta.municipios
           ? meta.municipios.split(",").map(Number)
           : [],
+        municipios_vigencias: meta.municipios_vigencias_json
+          ? (typeof meta.municipios_vigencias_json === 'string'
+              ? JSON.parse(meta.municipios_vigencias_json)
+              : meta.municipios_vigencias_json)
+          : []
       };
     } finally {
       db.release();

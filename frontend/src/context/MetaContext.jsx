@@ -237,6 +237,7 @@ export const MetaProvider = ({ children }) => {
     },
 
     municipios: Array.isArray(m.municipios) ? m.municipios : [],
+    municipios_vigencias: Array.isArray(m.municipios_vigencias) ? m.municipios_vigencias : [],
 
     // POBLACION
     cantidad_0_5: m.cantidad_0_5 || 0,
