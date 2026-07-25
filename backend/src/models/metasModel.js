@@ -124,12 +124,12 @@ export const MetasModel = {
               )
             )
             FROM (
-              SELECT am.id_municipio, COUNT(DISTINCT a.anio) AS vigencias
+              SELECT a.id_meta, am.id_municipio, COUNT(DISTINCT a.anio) AS vigencias
               FROM avances a
               INNER JOIN avancexmunicipios am ON a.id_avance = am.id_avance
-              WHERE a.id_meta = m.id_meta
-              GROUP BY am.id_municipio
+              GROUP BY a.id_meta, am.id_municipio
             ) temp
+            WHERE temp.id_meta = m.id_meta
           ) AS municipios_vigencias_json
 
         FROM metas m
