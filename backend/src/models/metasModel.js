@@ -120,11 +120,12 @@ export const MetasModel = {
             SELECT JSON_ARRAYAGG(
               JSON_OBJECT(
                 'id_municipio', temp.id_municipio,
-                'vigencias', temp.vigencias
+                'vigencias', temp.vigencias,
+                'anio', temp.anio
               )
             )
             FROM (
-              SELECT a.id_meta, am.id_municipio, COUNT(DISTINCT a.anio) AS vigencias
+              SELECT a.id_meta, am.id_municipio, COUNT(DISTINCT a.anio) AS vigencias, MIN(a.anio) AS anio
               FROM avances a
               INNER JOIN avancexmunicipios am ON a.id_avance = am.id_avance
               GROUP BY a.id_meta, am.id_municipio
