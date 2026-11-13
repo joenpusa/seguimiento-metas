@@ -374,35 +374,35 @@ span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 
     </div>
 
     <h2 id="1-informacion-general-y-entorno-de-produccion">1. Información General y Entorno de Producción</h2>
-<p>La API del sistema de seguimiento de metas está desarrollada bajo el estándar <strong>REST</strong>, utiliza <strong>JSON</strong> para el intercambio de datos y autenticación basada en <strong>JWT (JSON Web Tokens)</strong>.</p>
+<p>La API del sistema de seguimiento de metas está desarrollada bajo el estándar <strong>REST</strong>, utiliza <strong>JSON</strong> para el intercambio de información y autenticación mediante <strong>JWT (JSON Web Tokens)</strong>.</p>
 <ul>
 <li><strong>URL Base de la API (Producción):</strong><br />
 <code>https://apiseguimientopdd.nortedesantander.gov.co</code></li>
-<li><strong>Aplicación Web (Producción):</strong><br />
+<li><strong>Aplicación Web Oficial:</strong><br />
 <code>https://seguimientopdd.nortedesantander.gov.co</code></li>
 <li><strong>Cabeceras estándar requeridas:</strong>  </li>
 <li><code>Content-Type: application/json</code></li>
-<li><code>Authorization: Bearer &lt;ACCESS_TOKEN&gt;</code> <em>(requerido en todos los endpoints protegidos)</em></li>
+<li><code>Authorization: Bearer &lt;ACCESS_TOKEN&gt;</code> <em>(requerido en todos los endpoints de consulta)</em></li>
 </ul>
 <blockquote>
 <p><strong>Nota técnica sobre certificados SSL:</strong><br />
-Si su cliente HTTP (por ejemplo <code>curl</code>, librerías internas o entornos corporativos) no tiene instalada la cadena de certificados intermedia del dominio gubernamental y genera un error <code>SSL certificate problem: unable to get local issuer certificate</code> (código 60), agregue el parámetro <code>-k</code> o <code>--insecure</code> en <code>curl</code>, o configure su cliente HTTP para confiar en la autoridad certificadora del servidor.</p>
+Si su cliente HTTP (por ejemplo <code>curl</code>, librerías internas o entornos de desarrollo) no tiene instalada la cadena de certificados intermedia del dominio gubernamental y genera el error <code>SSL certificate problem: unable to get local issuer certificate</code> (código 60), agregue el parámetro <code>-k</code> o <code>--insecure</code> en <code>curl</code>, o deshabilite la verificación estricta de SSL en su cliente (<code>verify=False</code> en Python, <code>NODE_TLS_REJECT_UNAUTHORIZED="0"</code> en Node.js).</p>
 </blockquote>
 <hr />
 <h2 id="2-autenticacion-y-obtencion-del-token-login">2. Autenticación y Obtención del Token (Login)</h2>
-<p>Para interactuar con la API desde cualquier aplicación externa, primero debe autenticarse utilizando las credenciales asignadas para obtener un <strong>token de acceso (JWT)</strong>. Este token debe incluirse en la cabecera <code>Authorization</code> de cada solicitud subsecuente.</p>
+<p>Para interactuar con la API desde cualquier aplicación externa, el primer paso obligatorio es autenticarse utilizando las credenciales asignadas para obtener un <strong>token de acceso (JWT)</strong>.</p>
 <h3 id="credenciales-de-acceso">Credenciales de Acceso</h3>
 <ul>
 <li><strong>Usuario (email):</strong> <code>apigober@nortedesantander.gov.co</code></li>
 <li><strong>Contraseña:</strong> <code>Pass.2026</code></li>
-<li><strong>Rol asignado:</strong> <code>admin</code> <em>(permite lectura global y acciones administrativas sobre el sistema)</em></li>
+<li><strong>Rol asignado:</strong> <code>admin</code> <em>(permite lectura y consulta global del sistema)</em></li>
 </ul>
 <hr />
 <h3 id="endpoint-iniciar-sesion-post-apiauthlogin">Endpoint: Iniciar Sesión (<code>POST /api/auth/login</code>)</h3>
 <ul>
 <li><strong>Método:</strong> <code>POST</code></li>
 <li><strong>URL:</strong> <code>https://apiseguimientopdd.nortedesantander.gov.co/api/auth/login</code></li>
-<li><strong>Cabeceras:</strong> <code>Content-Type: application/json</code></li>
+<li><strong>Cabecera:</strong> <code>Content-Type: application/json</code></li>
 </ul>
 <h4 id="parametros-del-body-json">Parámetros del Body (JSON)</h4>
 <table>
@@ -419,7 +419,7 @@ Si su cliente HTTP (por ejemplo <code>curl</code>, librerías internas o entorno
 <td style="text-align: left;"><code>email</code></td>
 <td style="text-align: left;"><code>string</code></td>
 <td style="text-align: center;">Sí</td>
-<td style="text-align: left;">Correo electrónico del usuario (<code>apigober@nortedesantander.gov.co</code>).</td>
+<td style="text-align: left;">Correo electrónico asignado (<code>apigober@nortedesantander.gov.co</code>).</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code>password</code></td>
@@ -461,61 +461,31 @@ Si su cliente HTTP (por ejemplo <code>curl</code>, librerías internas o entorno
 </code></pre></div>
 
 <blockquote>
-<p><strong>Importante para la Integración:</strong><br />
-1. El <code>accessToken</code> tiene una vigencia estándar de <strong>8 horas</strong>. Una vez expire, debe realizar una nueva solicitud de login para renovarlo.<br />
-2. Cada llamada a los endpoints protegidos debe incluir la cabecera:<br />
+<p><strong>Importante:</strong><br />
+1. El <code>accessToken</code> tiene una vigencia estándar de <strong>8 horas</strong>. Una vez expire, se debe realizar nuevamente la solicitud de login para renovarlo.<br />
+2. Cada llamada a los endpoints de metas debe incluir la cabecera:<br />
 <code>http
    Authorization: Bearer &lt;accessToken&gt;</code></p>
 </blockquote>
 <hr />
-<h2 id="3-contexto-planes-de-desarrollo-y-resolucion-automatica-del-plan-activo">3. Contexto: Planes de Desarrollo y Resolución Automática del Plan Activo</h2>
-<p>El sistema almacena metas asociadas a diferentes Planes de Desarrollo Departamentales (por ejemplo, planes históricos y el plan vigente).</p>
+<h2 id="3-contexto-base-resolucion-automatica-del-plan-activo">3. Contexto Base: Resolución Automática del Plan Activo</h2>
+<p>El sistema almacena información de metas asociadas a Planes de Desarrollo Departamentales.</p>
 <blockquote>
 <p>[!IMPORTANT]<br />
-<strong>Resolución Automática del Plan Activo:</strong><br />
-Dado que una aplicación externa desconoce los identificadores internos (<code>id_meta</code> o <code>id_plan</code>), y dado que un <strong>código de meta</strong> puede repetirse entre distintos planes de desarrollo, <strong>la API resuelve y entrega automáticamente los datos del Plan de Desarrollo que se encuentra ACTIVO en el momento dentro del proyecto</strong> (<code>es_activo = 1</code>).  </p>
-<p>Usted no necesita conocer ni enviar el <code>idPlan</code> para consultar las metas o sus detalles por código; la API siempre responderá con la información del plan vigente actual.</p>
+<strong>Consulta por Código en el Plan Activo:</strong><br />
+Las aplicaciones externas <strong>no necesitan conocer ni enviar identificadores internos</strong> (<code>id_meta</code> ni <code>id_plan</code>).  </p>
+<p>Como es posible que un código o número de meta pueda repetirse entre diferentes planes de desarrollo históricos, <strong>la API entrega automáticamente los datos de la meta correspondiente al Plan de Desarrollo que está ACTIVO en el momento dentro del proyecto</strong> (<code>es_activo = 1</code>). Actualmente corresponde al plan <strong>"Norte Territorio de Paz" (2024-2027)</strong>.</p>
 </blockquote>
-<p>Si su integración requiere conocer el plan actualmente activo o listar los planes registrados:</p>
-<h3 id="endpoint-consultar-plan-de-desarrollo-activo-get-apiplanes-desarrolloactivo">Endpoint: Consultar Plan de Desarrollo Activo (<code>GET /api/planes-desarrollo/activo</code>)</h3>
-<ul>
-<li><strong>Método:</strong> <code>GET</code></li>
-<li><strong>URL:</strong> <code>https://apiseguimientopdd.nortedesantander.gov.co/api/planes-desarrollo/activo</code></li>
-<li><strong>Cabecera:</strong> <code>Authorization: Bearer &lt;TOKEN&gt;</code></li>
-</ul>
-<h4 id="ejemplo-en-curl_1">Ejemplo en cURL</h4>
-<div class="codehilite"><pre><span></span><code>curl<span class="w"> </span>-k<span class="w"> </span>-X<span class="w"> </span>GET<span class="w"> </span><span class="s2">&quot;https://apiseguimientopdd.nortedesantander.gov.co/api/planes-desarrollo/activo&quot;</span><span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>-H<span class="w"> </span><span class="s2">&quot;Authorization: Bearer </span><span class="nv">$TOKEN</span><span class="s2">&quot;</span>
-</code></pre></div>
-
-<h4 id="respuesta-exitosa-200-ok_1">Respuesta Exitosa (<code>200 OK</code>)</h4>
-<div class="codehilite"><pre><span></span><code><span class="p">{</span>
-<span class="w">  </span><span class="nt">&quot;id_plan&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">2</span><span class="p">,</span>
-<span class="w">  </span><span class="nt">&quot;nombre_plan&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Norte Territorio de Paz&quot;</span><span class="p">,</span>
-<span class="w">  </span><span class="nt">&quot;vigencia_inicio&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;2024-01-01&quot;</span><span class="p">,</span>
-<span class="w">  </span><span class="nt">&quot;vigencia_fin&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;2027-12-31&quot;</span><span class="p">,</span>
-<span class="w">  </span><span class="nt">&quot;es_activo&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span>
-<span class="w">  </span><span class="nt">&quot;created_at&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;2026-01-06T11:03:14.000Z&quot;</span>
-<span class="p">}</span>
-</code></pre></div>
-
-<h3 id="endpoint-listar-todos-los-planes-de-desarrollo-get-apiplanes-desarrollo">Endpoint: Listar Todos los Planes de Desarrollo (<code>GET /api/planes-desarrollo</code>)</h3>
-<ul>
-<li><strong>Método:</strong> <code>GET</code></li>
-<li><strong>URL:</strong> <code>https://apiseguimientopdd.nortedesantander.gov.co/api/planes-desarrollo</code></li>
-<li><strong>Cabecera:</strong> <code>Authorization: Bearer &lt;TOKEN&gt;</code></li>
-</ul>
 <hr />
 <h2 id="4-consulta-de-metas">4. Consulta de Metas</h2>
-<h3 id="41-listado-general-de-metas-get-apimetas">4.1. Listado General de Metas (<code>GET /api/metas</code>)</h3>
-<p>Permite obtener el listado de metas del Plan de Desarrollo con sus acumulados físicos, financieros, porcentajes de avance y estado de progreso.<br />
-<strong>Si no se indica <code>idPlan</code>, la API entrega automáticamente las metas del Plan de Desarrollo actualmente ACTIVO.</strong></p>
+<h3 id="41-listado-general-de-metas-del-plan-activo-get-apimetas">4.1. Listado General de Metas del Plan Activo (<code>GET /api/metas</code>)</h3>
+<p>Permite obtener el listado completo de metas registradas en el Plan de Desarrollo activo, incluyendo sus acumulados físicos, financieros, porcentajes de avance y estado de progreso.</p>
 <ul>
 <li><strong>Método:</strong> <code>GET</code></li>
 <li><strong>URL:</strong> <code>https://apiseguimientopdd.nortedesantander.gov.co/api/metas</code></li>
 <li><strong>Cabecera:</strong> <code>Authorization: Bearer &lt;TOKEN&gt;</code></li>
 </ul>
-<h4 id="parametros-de-consulta-query-parameters">Parámetros de Consulta (Query Parameters)</h4>
+<h4 id="parametros-de-consulta-query-parameters-opcionales">Parámetros de Consulta (Query Parameters - Opcionales)</h4>
 <table>
 <thead>
 <tr>
@@ -535,31 +505,10 @@ Dado que una aplicación externa desconoce los identificadores internos (<code>i
 <td style="text-align: left;"><code>117</code></td>
 </tr>
 <tr>
-<td style="text-align: left;"><code>idPlan</code></td>
-<td style="text-align: left;"><code>number</code></td>
-<td style="text-align: center;">No</td>
-<td style="text-align: left;">ID del Plan de Desarrollo. <em>(Si se omite, se usa el plan activo).</em></td>
-<td style="text-align: left;"><code>2</code></td>
-</tr>
-<tr>
-<td style="text-align: left;"><code>responsableId</code></td>
-<td style="text-align: left;"><code>number</code></td>
-<td style="text-align: center;">No</td>
-<td style="text-align: left;">ID de la Secretaría responsable.</td>
-<td style="text-align: left;"><code>2</code> <em>(Secretaría de TICs)</em></td>
-</tr>
-<tr>
-<td style="text-align: left;"><code>municipioId</code></td>
-<td style="text-align: left;"><code>number</code></td>
-<td style="text-align: center;">No</td>
-<td style="text-align: left;">ID del municipio asociado a la meta.</td>
-<td style="text-align: left;"><code>3</code> <em>(Ábrego)</em></td>
-</tr>
-<tr>
 <td style="text-align: left;"><code>q</code></td>
 <td style="text-align: left;"><code>string</code></td>
 <td style="text-align: center;">No</td>
-<td style="text-align: left;">Búsqueda por coincidencia en código, nombre o descripción.</td>
+<td style="text-align: left;">Búsqueda por coincidencia en texto (código, nombre o descripción).</td>
 <td style="text-align: left;"><code>conectados</code></td>
 </tr>
 <tr>
@@ -570,41 +519,39 @@ Dado que una aplicación externa desconoce los identificadores internos (<code>i
 <td style="text-align: left;"><code>EN_EJECUCION</code></td>
 </tr>
 <tr>
-<td style="text-align: left;"><code>limit</code></td>
-<td style="text-align: left;"><code>number/string</code></td>
+<td style="text-align: left;"><code>responsableId</code></td>
+<td style="text-align: left;"><code>number</code></td>
 <td style="text-align: center;">No</td>
-<td style="text-align: left;">Límite de registros a retornar (ej. <code>50</code> o <code>all</code> para todos).</td>
+<td style="text-align: left;">Filtro por ID de Secretaría ejecutora.</td>
+<td style="text-align: left;"><code>2</code> <em>(Secretaría de TICs)</em></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>limit</code></td>
+<td style="text-align: left;"><code>string</code></td>
+<td style="text-align: center;">No</td>
+<td style="text-align: left;">Pasar <code>all</code> para retornar la totalidad de metas sin límite de 100.</td>
 <td style="text-align: left;"><code>all</code></td>
 </tr>
 </tbody>
 </table>
-<blockquote>
-<p><strong>Nota de paginación/límite:</strong> Si no se aplican filtros, la API retorna hasta 100 registros por defecto. Para obtener la totalidad de las metas del plan activo, puede pasar <code>limit=all</code> o utilizar filtros específicos.</p>
-</blockquote>
-<h4 id="ejemplo-1-consultar-las-metas-del-plan-de-desarrollo-activo">Ejemplo 1: Consultar las metas del plan de desarrollo activo</h4>
-<div class="codehilite"><pre><span></span><code>curl<span class="w"> </span>-k<span class="w"> </span>-X<span class="w"> </span>GET<span class="w"> </span><span class="s2">&quot;https://apiseguimientopdd.nortedesantander.gov.co/api/metas&quot;</span><span class="w"> </span><span class="se">\</span>
+<h4 id="ejemplo-1-consultar-todas-las-metas-del-plan-activo">Ejemplo 1: Consultar todas las metas del plan activo</h4>
+<div class="codehilite"><pre><span></span><code>curl<span class="w"> </span>-k<span class="w"> </span>-X<span class="w"> </span>GET<span class="w"> </span><span class="s2">&quot;https://apiseguimientopdd.nortedesantander.gov.co/api/metas?limit=all&quot;</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>-H<span class="w"> </span><span class="s2">&quot;Authorization: Bearer </span><span class="nv">$TOKEN</span><span class="s2">&quot;</span>
 </code></pre></div>
 
-<h4 id="ejemplo-2-filtrar-metas-por-codigo-especifico">Ejemplo 2: Filtrar metas por código específico</h4>
+<h4 id="ejemplo-2-filtrar-metas-por-codigo">Ejemplo 2: Filtrar metas por código</h4>
 <div class="codehilite"><pre><span></span><code>curl<span class="w"> </span>-k<span class="w"> </span>-X<span class="w"> </span>GET<span class="w"> </span><span class="s2">&quot;https://apiseguimientopdd.nortedesantander.gov.co/api/metas?codigo=117&quot;</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>-H<span class="w"> </span><span class="s2">&quot;Authorization: Bearer </span><span class="nv">$TOKEN</span><span class="s2">&quot;</span>
 </code></pre></div>
 
-<h4 id="ejemplo-3-filtrar-por-secretaria-responsable-y-texto">Ejemplo 3: Filtrar por secretaría responsable y texto</h4>
-<div class="codehilite"><pre><span></span><code>curl<span class="w"> </span>-k<span class="w"> </span>-X<span class="w"> </span>GET<span class="w"> </span><span class="s2">&quot;https://apiseguimientopdd.nortedesantander.gov.co/api/metas?responsableId=2&amp;q=digital&quot;</span><span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>-H<span class="w"> </span><span class="s2">&quot;Authorization: Bearer </span><span class="nv">$TOKEN</span><span class="s2">&quot;</span>
-</code></pre></div>
-
 <h4 id="estructura-de-respuesta-200-ok">Estructura de Respuesta (<code>200 OK</code>)</h4>
-<p>Retorna un arreglo de objetos meta:</p>
+<p>Retorna un arreglo JSON con las metas del plan activo:</p>
 <div class="codehilite"><pre><span></span><code><span class="p">[</span>
 <span class="w">  </span><span class="p">{</span>
 <span class="w">    </span><span class="nt">&quot;id_meta&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">12</span><span class="p">,</span>
 <span class="w">    </span><span class="nt">&quot;codigo&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;117&quot;</span><span class="p">,</span>
 <span class="w">    </span><span class="nt">&quot;nombre&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Municipios y áreas no municipalizadas conectados a redes de servicio&quot;</span><span class="p">,</span>
 <span class="w">    </span><span class="nt">&quot;descripcion&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Municipios y áreas no municipalizadas conectados a redes de servicio&quot;</span><span class="p">,</span>
-<span class="w">    </span><span class="nt">&quot;id_detalle&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">35</span><span class="p">,</span>
 <span class="w">    </span><span class="nt">&quot;id_plan&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">2</span><span class="p">,</span>
 <span class="w">    </span><span class="nt">&quot;plan_nombre&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Norte Territorio de Paz&quot;</span><span class="p">,</span>
 <span class="w">    </span><span class="nt">&quot;id_unidad&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">15</span><span class="p">,</span>
@@ -627,52 +574,24 @@ Dado que una aplicación externa desconoce los identificadores internos (<code>i
 <span class="w">    </span><span class="nt">&quot;val2_pro&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">39.61</span><span class="p">,</span>
 <span class="w">    </span><span class="nt">&quot;val3_pro&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">42.77</span><span class="p">,</span>
 <span class="w">    </span><span class="nt">&quot;val4_pro&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">46.2</span><span class="p">,</span>
-<span class="w">    </span><span class="nt">&quot;val1_sgp&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span>
-<span class="w">    </span><span class="nt">&quot;val2_sgp&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span>
-<span class="w">    </span><span class="nt">&quot;val3_sgp&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span>
-<span class="w">    </span><span class="nt">&quot;val4_sgp&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span>
-<span class="w">    </span><span class="nt">&quot;val1_reg&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span>
-<span class="w">    </span><span class="nt">&quot;val2_reg&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">10000</span><span class="p">,</span>
-<span class="w">    </span><span class="nt">&quot;val3_reg&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">5000</span><span class="p">,</span>
-<span class="w">    </span><span class="nt">&quot;val4_reg&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span>
-<span class="w">    </span><span class="nt">&quot;val1_mun&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span>
-<span class="w">    </span><span class="nt">&quot;val2_mun&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">15000</span><span class="p">,</span>
-<span class="w">    </span><span class="nt">&quot;val3_mun&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">15000</span><span class="p">,</span>
-<span class="w">    </span><span class="nt">&quot;val4_mun&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">20000</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;val1_sgp&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;val2_sgp&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;val3_sgp&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;val4_sgp&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;val1_reg&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;val2_reg&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">10000</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;val3_reg&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">5000</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;val4_reg&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;val1_mun&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;val2_mun&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">15000</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;val3_mun&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">15000</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;val4_mun&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">20000</span><span class="p">,</span>
 <span class="w">    </span><span class="nt">&quot;val1_cre&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;val2_cre&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;val3_cre&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;val4_cre&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span>
 <span class="w">    </span><span class="nt">&quot;val1_otr&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;val2_otr&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;val3_otr&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;val4_otr&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span>
 
 <span class="w">    </span><span class="nt">&quot;porcentaje_financiero&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">49.46</span><span class="p">,</span>
 <span class="w">    </span><span class="nt">&quot;estadoProgreso&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;COMPLETADA&quot;</span><span class="p">,</span>
 
-<span class="w">    </span><span class="nt">&quot;linea_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">30</span><span class="p">,</span>
 <span class="w">    </span><span class="nt">&quot;linea_codigo&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;1&quot;</span><span class="p">,</span>
 <span class="w">    </span><span class="nt">&quot;linea_nombre&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;DESARROLLO ECONÓMICO SOSTENIBLE Y COMPETITIVIDAD&quot;</span><span class="p">,</span>
-<span class="w">    </span><span class="nt">&quot;componente_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">32</span><span class="p">,</span>
 <span class="w">    </span><span class="nt">&quot;componente_codigo&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;1.7&quot;</span><span class="p">,</span>
 <span class="w">    </span><span class="nt">&quot;componente_nombre&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;TIC - CTeI&quot;</span><span class="p">,</span>
-<span class="w">    </span><span class="nt">&quot;apuesta_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">33</span><span class="p">,</span>
 <span class="w">    </span><span class="nt">&quot;apuesta_codigo&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;1.7.1&quot;</span><span class="p">,</span>
 <span class="w">    </span><span class="nt">&quot;apuesta_nombre&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;CONECTIVIDAD: Cerrando Brechas Digitales&quot;</span><span class="p">,</span>
-<span class="w">    </span><span class="nt">&quot;iniciativa_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">35</span><span class="p">,</span>
 <span class="w">    </span><span class="nt">&quot;iniciativa_codigo&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;1.7.1.1&quot;</span><span class="p">,</span>
 <span class="w">    </span><span class="nt">&quot;iniciativa_nombre&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Instalación, ampliación de cobertura, fortalecimiento...&quot;</span><span class="p">,</span>
 
-<span class="w">    </span><span class="nt">&quot;cantidad_0_5&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span>
-<span class="w">    </span><span class="nt">&quot;cantidad_6_12&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span>
-<span class="w">    </span><span class="nt">&quot;cantidad_13_17&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span>
-<span class="w">    </span><span class="nt">&quot;cantidad_18_24&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span>
-<span class="w">    </span><span class="nt">&quot;cantidad_25_62&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span>
-<span class="w">    </span><span class="nt">&quot;cantidad_65_mas&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span>
-<span class="w">    </span><span class="nt">&quot;cantesp_mujer&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span>
-<span class="w">    </span><span class="nt">&quot;cantesp_discapacidad&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span>
-<span class="w">    </span><span class="nt">&quot;cantesp_etnia&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span>
-<span class="w">    </span><span class="nt">&quot;cantesp_victima&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span>
-<span class="w">    </span><span class="nt">&quot;cantesp_desmovilizado&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span>
-<span class="w">    </span><span class="nt">&quot;cantesp_lgtbi&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span>
-<span class="w">    </span><span class="nt">&quot;cantesp_migrante&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span>
-<span class="w">    </span><span class="nt">&quot;cantesp_indigente&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span>
-<span class="w">    </span><span class="nt">&quot;cantesp_privado&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span>
 <span class="w">    </span><span class="nt">&quot;created_at&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;2026-01-07T15:07:18.000Z&quot;</span>
 <span class="w">  </span><span class="p">}</span>
 <span class="p">]</span>
@@ -682,8 +601,8 @@ Dado que una aplicación externa desconoce los identificadores internos (<code>i
 <h3 id="42-consulta-de-meta-especifica-por-codigo-get-apimetascodigocodigo">4.2. Consulta de Meta Específica por Código (<code>GET /api/metas/codigo/:codigo</code>)</h3>
 <blockquote>
 <p>[!TIP]<br />
-<strong>Endpoint recomendado para integraciones externas:</strong><br />
-Permite obtener la ficha técnica completa de una meta utilizando su <strong>código o número de meta</strong>, sin necesidad de conocer los identificadores (<code>ID</code>) internos. Si un código existiese en varios planes, la API <strong>siempre retornará la meta correspondiente al Plan de Desarrollo actualmente activo</strong>.</p>
+<strong>Endpoint Principal de Integración:</strong><br />
+Permite obtener la ficha técnica integral de una meta mediante su <strong>código oficial</strong>. La API busca de forma automática la meta correspondiente en el <strong>plan de desarrollo activo</strong>.</p>
 </blockquote>
 <ul>
 <li><strong>Método:</strong> <code>GET</code></li>
@@ -711,40 +630,18 @@ Permite obtener la ficha técnica completa de una meta utilizando su <strong>có
 </tr>
 </tbody>
 </table>
-<h4 id="parametros-de-consulta-query-parameters_1">Parámetros de Consulta (Query Parameters)</h4>
-<table>
-<thead>
-<tr>
-<th style="text-align: left;">Parámetro</th>
-<th style="text-align: left;">Tipo</th>
-<th style="text-align: center;">Obligatorio</th>
-<th style="text-align: left;">Descripción</th>
-<th style="text-align: left;">Ejemplo</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td style="text-align: left;"><code>idPlan</code></td>
-<td style="text-align: left;"><code>number</code></td>
-<td style="text-align: center;">No</td>
-<td style="text-align: left;">Opcional. Permite consultar el código en un plan específico distinto al activo.</td>
-<td style="text-align: left;"><code>2</code></td>
-</tr>
-</tbody>
-</table>
-<h4 id="ejemplo-en-curl_2">Ejemplo en cURL</h4>
+<h4 id="ejemplo-en-curl_1">Ejemplo en cURL</h4>
 <div class="codehilite"><pre><span></span><code>curl<span class="w"> </span>-k<span class="w"> </span>-X<span class="w"> </span>GET<span class="w"> </span><span class="s2">&quot;https://apiseguimientopdd.nortedesantander.gov.co/api/metas/codigo/117&quot;</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>-H<span class="w"> </span><span class="s2">&quot;Authorization: Bearer </span><span class="nv">$TOKEN</span><span class="s2">&quot;</span>
 </code></pre></div>
 
-<h4 id="estructura-de-respuesta-200-ok_1">Estructura de Respuesta (<code>200 OK</code>)</h4>
-<p>Retorna el objeto meta con todos sus detalles acumulados, gastos por fuente y desglose territorial:</p>
+<h4 id="estructura-de-respuesta-exitosa-200-ok">Estructura de Respuesta Exitosa (<code>200 OK</code>)</h4>
+<p>Retorna el objeto meta con desglose acumulado de cantidades, gastos por fuente y distribución territorial:</p>
 <div class="codehilite"><pre><span></span><code><span class="p">{</span>
 <span class="w">  </span><span class="nt">&quot;id_meta&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">12</span><span class="p">,</span>
 <span class="w">  </span><span class="nt">&quot;codigo&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;117&quot;</span><span class="p">,</span>
 <span class="w">  </span><span class="nt">&quot;nombre&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Municipios y áreas no municipalizadas conectados a redes de servicio&quot;</span><span class="p">,</span>
 <span class="w">  </span><span class="nt">&quot;descripcion&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Municipios y áreas no municipalizadas conectados a redes de servicio&quot;</span><span class="p">,</span>
-<span class="w">  </span><span class="nt">&quot;id_detalle&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">35</span><span class="p">,</span>
 <span class="w">  </span><span class="nt">&quot;id_plan&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">2</span><span class="p">,</span>
 <span class="w">  </span><span class="nt">&quot;nombre_plan&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Norte Territorio de Paz&quot;</span><span class="p">,</span>
 <span class="w">  </span><span class="nt">&quot;id_unidad&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">15</span><span class="p">,</span>
@@ -767,18 +664,9 @@ Permite obtener la ficha técnica completa de una meta utilizando su <strong>có
 <span class="w">  </span><span class="nt">&quot;val2_pro&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">39.61</span><span class="p">,</span>
 <span class="w">  </span><span class="nt">&quot;val3_pro&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">42.77</span><span class="p">,</span>
 <span class="w">  </span><span class="nt">&quot;val4_pro&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">46.2</span><span class="p">,</span>
-<span class="w">  </span><span class="nt">&quot;val1_sgp&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span>
-<span class="w">  </span><span class="nt">&quot;val2_sgp&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span>
-<span class="w">  </span><span class="nt">&quot;val3_sgp&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span>
-<span class="w">  </span><span class="nt">&quot;val4_sgp&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span>
-<span class="w">  </span><span class="nt">&quot;val1_reg&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span>
-<span class="w">  </span><span class="nt">&quot;val2_reg&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">10000</span><span class="p">,</span>
-<span class="w">  </span><span class="nt">&quot;val3_reg&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">5000</span><span class="p">,</span>
-<span class="w">  </span><span class="nt">&quot;val4_reg&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span>
-<span class="w">  </span><span class="nt">&quot;val1_mun&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span>
-<span class="w">  </span><span class="nt">&quot;val2_mun&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">15000</span><span class="p">,</span>
-<span class="w">  </span><span class="nt">&quot;val3_mun&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">15000</span><span class="p">,</span>
-<span class="w">  </span><span class="nt">&quot;val4_mun&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">20000</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;val1_sgp&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;val2_sgp&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;val3_sgp&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;val4_sgp&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;val1_reg&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;val2_reg&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">10000</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;val3_reg&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">5000</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;val4_reg&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;val1_mun&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;val2_mun&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">15000</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;val3_mun&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">15000</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;val4_mun&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">20000</span><span class="p">,</span>
 <span class="w">  </span><span class="nt">&quot;val1_cre&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;val2_cre&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;val3_cre&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;val4_cre&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span>
 <span class="w">  </span><span class="nt">&quot;val1_otr&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;val2_otr&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;val3_otr&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;val4_otr&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span>
 
@@ -806,16 +694,6 @@ Permite obtener la ficha técnica completa de una meta utilizando su <strong>có
 <span class="w">  </span><span class="nt">&quot;linea_codigo&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;1&quot;</span><span class="p">,</span>
 <span class="w">  </span><span class="nt">&quot;linea_nombre&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;DESARROLLO ECONÓMICO SOSTENIBLE Y COMPETITIVIDAD&quot;</span><span class="p">,</span>
 
-<span class="w">  </span><span class="nt">&quot;acumulado_0_5&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span>
-<span class="w">  </span><span class="nt">&quot;acumulado_6_12&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span>
-<span class="w">  </span><span class="nt">&quot;acumulado_13_17&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span>
-<span class="w">  </span><span class="nt">&quot;acumulado_18_24&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span>
-<span class="w">  </span><span class="nt">&quot;acumulado_25_62&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span>
-<span class="w">  </span><span class="nt">&quot;acumulado_65_mas&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span>
-<span class="w">  </span><span class="nt">&quot;acumulado_mujer&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span>
-<span class="w">  </span><span class="nt">&quot;acumulado_discapacidad&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span>
-<span class="w">  </span><span class="nt">&quot;acumulado_victima&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span>
-
 <span class="w">  </span><span class="nt">&quot;municipios&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="mi">3</span><span class="p">,</span><span class="w"> </span><span class="mi">9</span><span class="p">,</span><span class="w"> </span><span class="mi">12</span><span class="p">,</span><span class="w"> </span><span class="mi">18</span><span class="p">],</span>
 <span class="w">  </span><span class="nt">&quot;municipios_vigencias&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
 <span class="w">    </span><span class="p">{</span>
@@ -833,26 +711,25 @@ Permite obtener la ficha técnica completa de una meta utilizando su <strong>có
 </code></pre></div>
 
 <h4 id="respuesta-de-error-404-not-found">Respuesta de Error (<code>404 Not Found</code>)</h4>
-<p>Si el código no existe en el plan activo:</p>
 <div class="codehilite"><pre><span></span><code><span class="p">{</span>
 <span class="w">  </span><span class="nt">&quot;message&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Meta con código &#39;999&#39; no encontrada en el plan de desarrollo activo&quot;</span>
 <span class="p">}</span>
 </code></pre></div>
 
 <hr />
-<h3 id="43-seguimiento-detallado-trimestral-por-codigo-get-apimetascodigocodigoseguimiento">4.3. Seguimiento Detallado Trimestral por Código (<code>GET /api/metas/codigo/:codigo/seguimiento</code>)</h3>
-<p>Permite contrastar de manera cronológica la planeación frente a la ejecución real de una meta por código (Programado vs. Ejecutado) en cada trimestre (T1, T2, T3, T4), con acumulados y avance porcentual.</p>
+<h3 id="43-consulta-de-seguimiento-trimestral-por-codigo-get-apimetascodigocodigoseguimiento">4.3. Consulta de Seguimiento Trimestral por Código (<code>GET /api/metas/codigo/:codigo/seguimiento</code>)</h3>
+<p>Permite contrastar cronológicamente lo <strong>programado vs. ejecutado</strong> (físico y financiero) trimestre a trimestre (T1, T2, T3, T4) para una meta consultada por su código en el plan activo.</p>
 <ul>
 <li><strong>Método:</strong> <code>GET</code></li>
 <li><strong>URL:</strong> <code>https://apiseguimientopdd.nortedesantander.gov.co/api/metas/codigo/:codigo/seguimiento</code></li>
 <li><strong>Cabecera:</strong> <code>Authorization: Bearer &lt;TOKEN&gt;</code></li>
 </ul>
-<h4 id="ejemplo-en-curl_3">Ejemplo en cURL</h4>
+<h4 id="ejemplo-en-curl_2">Ejemplo en cURL</h4>
 <div class="codehilite"><pre><span></span><code>curl<span class="w"> </span>-k<span class="w"> </span>-X<span class="w"> </span>GET<span class="w"> </span><span class="s2">&quot;https://apiseguimientopdd.nortedesantander.gov.co/api/metas/codigo/117/seguimiento&quot;</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>-H<span class="w"> </span><span class="s2">&quot;Authorization: Bearer </span><span class="nv">$TOKEN</span><span class="s2">&quot;</span>
 </code></pre></div>
 
-<h4 id="estructura-de-respuesta-200-ok_2">Estructura de Respuesta (<code>200 OK</code>)</h4>
+<h4 id="estructura-de-respuesta-200-ok_1">Estructura de Respuesta (<code>200 OK</code>)</h4>
 <div class="codehilite"><pre><span></span><code><span class="p">{</span>
 <span class="w">  </span><span class="nt">&quot;meta&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
 <span class="w">    </span><span class="nt">&quot;id_meta&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">12</span><span class="p">,</span>
@@ -863,11 +740,7 @@ Permite obtener la ficha técnica completa de una meta utilizando su <strong>có
 <span class="w">    </span><span class="nt">&quot;meta_total_cantidad_raw&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">10</span><span class="p">,</span>
 <span class="w">    </span><span class="nt">&quot;meta_total_presupuesto_raw&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">65128.58</span><span class="p">,</span>
 <span class="w">    </span><span class="nt">&quot;secretaria_nombre&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Secretaría de TICs&quot;</span><span class="p">,</span>
-<span class="w">    </span><span class="nt">&quot;unidad_nombre&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Municipios&quot;</span><span class="p">,</span>
-<span class="w">    </span><span class="nt">&quot;linea_nombre&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;DESARROLLO ECONÓMICO SOSTENIBLE Y COMPETITIVIDAD&quot;</span><span class="p">,</span>
-<span class="w">    </span><span class="nt">&quot;componente_nombre&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;TIC - CTeI&quot;</span><span class="p">,</span>
-<span class="w">    </span><span class="nt">&quot;apuesta_nombre&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;CONECTIVIDAD: Cerrando Brechas Digitales&quot;</span><span class="p">,</span>
-<span class="w">    </span><span class="nt">&quot;iniciativa_nombre&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Instalación, ampliación de cobertura...&quot;</span>
+<span class="w">    </span><span class="nt">&quot;unidad_nombre&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Municipios&quot;</span>
 <span class="w">  </span><span class="p">},</span>
 <span class="w">  </span><span class="nt">&quot;detalles&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
 <span class="w">    </span><span class="p">{</span>
@@ -886,13 +759,8 @@ Permite obtener la ficha técnica completa de una meta utilizando su <strong>có
 <span class="w">      </span><span class="nt">&quot;trimestre&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;T3&quot;</span><span class="p">,</span>
 <span class="w">      </span><span class="nt">&quot;programacion_cantidad&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span>
 <span class="w">      </span><span class="nt">&quot;programacion_gastos&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">341</span><span class="p">,</span>
-<span class="w">      </span><span class="nt">&quot;prog_gasto_pro&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">341</span><span class="p">,</span>
-<span class="w">      </span><span class="nt">&quot;prog_gasto_sgp&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span>
-<span class="w">      </span><span class="nt">&quot;prog_gasto_reg&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span>
 <span class="w">      </span><span class="nt">&quot;avance_cantidad&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">21</span><span class="p">,</span>
 <span class="w">      </span><span class="nt">&quot;avance_gastos&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">32173.7</span><span class="p">,</span>
-<span class="w">      </span><span class="nt">&quot;av_gasto_pro&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">2173.7</span><span class="p">,</span>
-<span class="w">      </span><span class="nt">&quot;av_gasto_mun&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">30000</span><span class="p">,</span>
 <span class="w">      </span><span class="nt">&quot;porcentaje_cumplimiento_fisico&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">100</span><span class="p">,</span>
 <span class="w">      </span><span class="nt">&quot;porcentaje_cumplimiento_financiero&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">49.46</span><span class="p">,</span>
 <span class="w">      </span><span class="nt">&quot;poblacion_total_reportada&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">49362</span>
@@ -902,125 +770,14 @@ Permite obtener la ficha técnica completa de una meta utilizando su <strong>có
 </code></pre></div>
 
 <hr />
-<h3 id="44-compatibilidad-consulta-de-meta-por-id-interno-get-apimetasid">4.4. Compatibilidad: Consulta de Meta por ID Interno (<code>GET /api/metas/:id</code>)</h3>
-<blockquote>
-<p><strong>Nota de Compatibilidad:</strong><br />
-Si se pasa un identificador numérico, busca por <code>id_meta</code>. Si el identificador no existe como ID interno, la API intentará automáticamente localizarlo como <strong>código de meta</strong> dentro del plan de desarrollo activo.</p>
-</blockquote>
-<ul>
-<li><strong>Método:</strong> <code>GET</code></li>
-<li><strong>URL:</strong> <code>https://apiseguimientopdd.nortedesantander.gov.co/api/metas/:id</code></li>
-<li><strong>Cabecera:</strong> <code>Authorization: Bearer &lt;TOKEN&gt;</code></li>
-</ul>
-<h4 id="ejemplo-en-curl_4">Ejemplo en cURL</h4>
-<div class="codehilite"><pre><span></span><code>curl<span class="w"> </span>-k<span class="w"> </span>-X<span class="w"> </span>GET<span class="w"> </span><span class="s2">&quot;https://apiseguimientopdd.nortedesantander.gov.co/api/metas/12&quot;</span><span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>-H<span class="w"> </span><span class="s2">&quot;Authorization: Bearer </span><span class="nv">$TOKEN</span><span class="s2">&quot;</span>
-</code></pre></div>
-
+<h2 id="5-scripts-y-ejemplos-de-conexion-de-extremo-a-extremo">5. Scripts y Ejemplos de Conexión de Extremo a Extremo</h2>
+<p>A continuación se presentan los ejemplos completos que realizan el flujo estándar de integración:<br />
+1. <strong>Autenticación (Login):</strong> Envía usuario y contraseña y obtiene el <code>accessToken</code>.<br />
+2. <strong>Listado de Metas:</strong> Consulta el listado general del plan activo.<br />
+3. <strong>Consulta por Código:</strong> Obtiene la ficha de la meta específica por su número/código.<br />
+4. <strong>Seguimiento Trimestral:</strong> Obtiene el reporte de ejecución programada vs. real por períodos.</p>
 <hr />
-<h3 id="45-metas-por-nodo-de-estructura-iniciativa-get-apimetasdetalleiddetalle">4.5. Metas por Nodo de Estructura / Iniciativa (<code>GET /api/metas/detalle/:idDetalle</code>)</h3>
-<p>Permite obtener todas las metas asociadas a un nodo específico de la estructura del plan (por ejemplo, a una iniciativa particular).</p>
-<ul>
-<li><strong>Método:</strong> <code>GET</code></li>
-<li><strong>URL:</strong> <code>https://apiseguimientopdd.nortedesantander.gov.co/api/metas/detalle/:idDetalle</code></li>
-<li><strong>Cabecera:</strong> <code>Authorization: Bearer &lt;TOKEN&gt;</code></li>
-</ul>
-<hr />
-<h2 id="5-trazabilidad-programaciones-y-avances-reportados">5. Trazabilidad: Programaciones y Avances Reportados</h2>
-<h3 id="51-consultar-programacion-trimestral-de-una-meta-get-apiprogramacionesmetaidmeta">5.1. Consultar Programación Trimestral de una Meta (<code>GET /api/programaciones/meta/:idMeta</code>)</h3>
-<p>Lista los períodos planificados para la meta, con sus metas físicas, presupuestos y el estado del período (<code>reportado</code>, <code>vencido</code>, etc.).</p>
-<ul>
-<li><strong>Método:</strong> <code>GET</code></li>
-<li><strong>URL:</strong> <code>https://apiseguimientopdd.nortedesantander.gov.co/api/programaciones/meta/:idMeta</code></li>
-<li><strong>Cabecera:</strong> <code>Authorization: Bearer &lt;TOKEN&gt;</code></li>
-</ul>
-<h4 id="ejemplo-en-curl_5">Ejemplo en cURL</h4>
-<div class="codehilite"><pre><span></span><code>curl<span class="w"> </span>-k<span class="w"> </span>-X<span class="w"> </span>GET<span class="w"> </span><span class="s2">&quot;https://apiseguimientopdd.nortedesantander.gov.co/api/programaciones/meta/12&quot;</span><span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>-H<span class="w"> </span><span class="s2">&quot;Authorization: Bearer </span><span class="nv">$TOKEN</span><span class="s2">&quot;</span>
-</code></pre></div>
-
-<hr />
-<h3 id="52-consultar-avances-registrados-get-apiavances">5.2. Consultar Avances Registrados (<code>GET /api/avances</code>)</h3>
-<p>Permite obtener los reportes periódicos de ejecución con descripción cualitativa del avance, gastos y soportes adjuntos.</p>
-<ul>
-<li><strong>Método:</strong> <code>GET</code></li>
-<li><strong>URL:</strong> <code>https://apiseguimientopdd.nortedesantander.gov.co/api/avances</code></li>
-<li><strong>Cabecera:</strong> <code>Authorization: Bearer &lt;TOKEN&gt;</code></li>
-<li><strong>Parámetros Query:</strong></li>
-<li><code>idPlan</code> (Opcional, numérico): ID del plan.</li>
-<li><code>idMeta</code> (Opcional, numérico): Filtrar por una meta específica.</li>
-<li><code>anio</code> (Opcional, string): Filtrar por año (ej. <code>2025</code>).</li>
-<li><code>trimestre</code> (Opcional, string): Filtrar por trimestre (<code>T1</code>, <code>T2</code>, <code>T3</code>, <code>T4</code>).</li>
-</ul>
-<hr />
-<h2 id="6-tablas-maestras-y-catalogos-de-referencia">6. Tablas Maestras y Catálogos de Referencia</h2>
-<h3 id="61-secretarias-dependencias-get-apisecretarias">6.1. Secretarías / Dependencias (<code>GET /api/secretarias</code>)</h3>
-<p>Lista las entidades ejecutoras responsables de las metas.</p>
-<div class="codehilite"><pre><span></span><code>curl<span class="w"> </span>-k<span class="w"> </span>-X<span class="w"> </span>GET<span class="w"> </span><span class="s2">&quot;https://apiseguimientopdd.nortedesantander.gov.co/api/secretarias&quot;</span><span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>-H<span class="w"> </span><span class="s2">&quot;Authorization: Bearer </span><span class="nv">$TOKEN</span><span class="s2">&quot;</span>
-</code></pre></div>
-
-<h3 id="62-municipios-de-norte-de-santander-get-apimunicipios">6.2. Municipios de Norte de Santander (<code>GET /api/municipios</code>)</h3>
-<p>Lista los municipios del departamento.</p>
-<div class="codehilite"><pre><span></span><code>curl<span class="w"> </span>-k<span class="w"> </span>-X<span class="w"> </span>GET<span class="w"> </span><span class="s2">&quot;https://apiseguimientopdd.nortedesantander.gov.co/api/municipios&quot;</span><span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>-H<span class="w"> </span><span class="s2">&quot;Authorization: Bearer </span><span class="nv">$TOKEN</span><span class="s2">&quot;</span>
-</code></pre></div>
-
-<h3 id="63-unidades-de-medida-get-apiunidades">6.3. Unidades de Medida (<code>GET /api/unidades</code>)</h3>
-<p>Catálogo de unidades de medida para las cantidades de las metas (ej: Kilómetros, Porcentaje, Municipios, etc.).</p>
-<div class="codehilite"><pre><span></span><code>curl<span class="w"> </span>-k<span class="w"> </span>-X<span class="w"> </span>GET<span class="w"> </span><span class="s2">&quot;https://apiseguimientopdd.nortedesantander.gov.co/api/unidades&quot;</span><span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>-H<span class="w"> </span><span class="s2">&quot;Authorization: Bearer </span><span class="nv">$TOKEN</span><span class="s2">&quot;</span>
-</code></pre></div>
-
-<h3 id="64-estructura-jerarquica-del-plan-get-apidetalles-planidplan">6.4. Estructura Jerárquica del Plan (<code>GET /api/detalles-plan/:idPlan</code>)</h3>
-<p>Permite reconstruir el árbol estratégico del Plan de Desarrollo: <strong>Líneas</strong> ➔ <strong>Componentes</strong> ➔ <strong>Apuestas</strong> ➔ <strong>Iniciativas</strong>.</p>
-<div class="codehilite"><pre><span></span><code>curl<span class="w"> </span>-k<span class="w"> </span>-X<span class="w"> </span>GET<span class="w"> </span><span class="s2">&quot;https://apiseguimientopdd.nortedesantander.gov.co/api/detalles-plan/2&quot;</span><span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>-H<span class="w"> </span><span class="s2">&quot;Authorization: Bearer </span><span class="nv">$TOKEN</span><span class="s2">&quot;</span>
-</code></pre></div>
-
-<hr />
-<h2 id="7-reportes-consolidados-y-estadisticas">7. Reportes Consolidados y Estadísticas</h2>
-<p>Para consultar datos agregados y tableros de resumen ejecutivo sin procesar meta por meta:</p>
-<h3 id="71-reporte-general-con-distribucion-de-cumplimiento-post-apireportsgeneral">7.1. Reporte General con Distribución de Cumplimiento (<code>POST /api/reports/general</code>)</h3>
-<ul>
-<li><strong>Método:</strong> <code>POST</code></li>
-<li><strong>URL:</strong> <code>https://apiseguimientopdd.nortedesantander.gov.co/api/reports/general</code></li>
-<li><strong>Cabeceras:</strong> <code>Authorization: Bearer &lt;TOKEN&gt;</code>, <code>Content-Type: application/json</code></li>
-<li><strong>Body:</strong> <code>{"idPlan": 2, "year": "2025", "quarter": "T3"}</code></li>
-</ul>
-<p>Otros reportes disponibles:<br />
-* <code>POST /api/reports/lineas</code> (Avance agrupado por Líneas estratégicas)<br />
-* <code>POST /api/reports/secretarias</code> (Avance agrupado por Secretarías)<br />
-* <code>POST /api/reports/arbol</code> (Árbol completo de avance; solo requiere <code>{"idPlan": 2}</code>)</p>
-<hr />
-<h2 id="8-acciones-de-escritura-sobre-metas-creacion-actualizacion-y-eliminacion">8. Acciones de Escritura sobre Metas (Creación, Actualización y Eliminación)</h2>
-<p>El usuario <code>apigober@nortedesantander.gov.co</code> tiene rol de <strong><code>admin</code></strong>, lo que le otorga permisos para realizar operaciones de creación y mantenimiento sobre las metas.</p>
-<h3 id="81-crear-una-meta-post-apimetas">8.1. Crear una Meta (<code>POST /api/metas</code>)</h3>
-<ul>
-<li><strong>Método:</strong> <code>POST</code></li>
-<li><strong>URL:</strong> <code>https://apiseguimientopdd.nortedesantander.gov.co/api/metas</code></li>
-<li><strong>Cabecera:</strong> <code>Authorization: Bearer &lt;TOKEN&gt;</code>, <code>Content-Type: application/json</code></li>
-</ul>
-<h3 id="82-actualizar-una-meta-put-apimetasid">8.2. Actualizar una Meta (<code>PUT /api/metas/:id</code>)</h3>
-<ul>
-<li><strong>Método:</strong> <code>PUT</code></li>
-<li><strong>URL:</strong> <code>https://apiseguimientopdd.nortedesantander.gov.co/api/metas/:id</code></li>
-<li><strong>Cabecera:</strong> <code>Authorization: Bearer &lt;TOKEN&gt;</code>, <code>Content-Type: application/json</code></li>
-</ul>
-<h3 id="83-eliminar-una-meta-delete-apimetasid">8.3. Eliminar una Meta (<code>DELETE /api/metas/:id</code>)</h3>
-<ul>
-<li><strong>Método:</strong> <code>DELETE</code></li>
-<li><strong>URL:</strong> <code>https://apiseguimientopdd.nortedesantander.gov.co/api/metas/:id</code></li>
-<li><strong>Cabecera:</strong> <code>Authorization: Bearer &lt;TOKEN&gt;</code></li>
-</ul>
-<hr />
-<h2 id="9-scripts-de-ejemplo-de-integracion-rapida-login-listar-consultar-por-codigo">9. Scripts de Ejemplo de Integración Rápida (Login ➔ Listar ➔ Consultar por Código)</h2>
-<p>Estos scripts muestran el flujo completo recomendado para la aplicación externa:<br />
-1. <strong>Autenticación (Login):</strong> Envía usuario y contraseña a <code>POST /api/auth/login</code> y extrae el <code>accessToken</code>.<br />
-2. <strong>Listado General de Metas:</strong> Llama a <code>GET /api/metas</code> (sin requerir ID de plan, entrega las del plan activo).<br />
-3. <strong>Consulta de Meta por Código:</strong> Consulta <code>GET /api/metas/codigo/:codigo</code> con el número de meta para obtener toda la ficha técnica.<br />
-4. <strong>Seguimiento Detallado por Código:</strong> Consulta <code>GET /api/metas/codigo/:codigo/seguimiento</code> para ver el avance trimestral.</p>
-<h3 id="91-script-en-bash-linux-macos">9.1. Script en Bash (Linux / macOS)</h3>
+<h3 id="51-script-en-bash-linux-macos">5.1. Script en Bash (Linux / macOS)</h3>
 <p>Guarde este archivo como <code>consultar_metas.sh</code> y ejecútelo con <code>bash consultar_metas.sh</code>:</p>
 <div class="codehilite"><pre><span></span><code><span class="ch">#!/usr/bin/env bash</span>
 <span class="nb">set</span><span class="w"> </span>-e
@@ -1037,7 +794,7 @@ Si se pasa un identificador numérico, busca por <code>id_meta</code>. Si el ide
 <span class="w">  </span>-H<span class="w"> </span><span class="s2">&quot;Content-Type: application/json&quot;</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>-d<span class="w"> </span><span class="s2">&quot;{\&quot;email\&quot;: \&quot;</span><span class="si">${</span><span class="nv">EMAIL</span><span class="si">}</span><span class="s2">\&quot;, \&quot;password\&quot;: \&quot;</span><span class="si">${</span><span class="nv">PASSWORD</span><span class="si">}</span><span class="s2">\&quot;}&quot;</span><span class="k">)</span>
 
-<span class="c1"># Extraer el token de acceso</span>
+<span class="c1"># Extraer el token de acceso JWT</span>
 <span class="nv">TOKEN</span><span class="o">=</span><span class="k">$(</span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;</span><span class="nv">$LOGIN_RESPONSE</span><span class="s2">&quot;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>-o<span class="w"> </span><span class="s1">&#39;&quot;accessToken&quot;:&quot;[^&quot;]*&#39;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>cut<span class="w"> </span>-d<span class="s1">&#39;&quot;&#39;</span><span class="w"> </span>-f4<span class="k">)</span>
 
 <span class="k">if</span><span class="w"> </span><span class="o">[</span><span class="w"> </span>-z<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$TOKEN</span><span class="s2">&quot;</span><span class="w"> </span><span class="o">]</span><span class="p">;</span><span class="w"> </span><span class="k">then</span>
@@ -1053,19 +810,15 @@ Si se pasa un identificador numérico, busca por <code>id_meta</code>. Si el ide
 <span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;==========================================================&quot;</span>
 <span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;2. Consultando listado de metas del Plan Activo...&quot;</span>
 <span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;==========================================================&quot;</span>
-<span class="c1"># No requiere idPlan: toma el plan activo automáticamente</span>
 curl<span class="w"> </span>-k<span class="w"> </span>-s<span class="w"> </span>-X<span class="w"> </span>GET<span class="w"> </span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">API_URL</span><span class="si">}</span><span class="s2">/api/metas&quot;</span><span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>-H<span class="w"> </span><span class="s2">&quot;Authorization: Bearer </span><span class="si">${</span><span class="nv">TOKEN</span><span class="si">}</span><span class="s2">&quot;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>head<span class="w"> </span>-n<span class="w"> </span><span class="m">35</span>
+<span class="w">  </span>-H<span class="w"> </span><span class="s2">&quot;Authorization: Bearer </span><span class="si">${</span><span class="nv">TOKEN</span><span class="si">}</span><span class="s2">&quot;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>head<span class="w"> </span>-n<span class="w"> </span><span class="m">30</span>
 
 <span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;&quot;</span>
 <span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;==========================================================&quot;</span>
 <span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;3. Consultando meta específica por Código (</span><span class="si">${</span><span class="nv">CODIGO_META</span><span class="si">}</span><span class="s2">)...&quot;</span>
 <span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;==========================================================&quot;</span>
-<span class="c1"># Consulta directa por código en el plan activo</span>
-<span class="nv">META_DATA</span><span class="o">=</span><span class="k">$(</span>curl<span class="w"> </span>-k<span class="w"> </span>-s<span class="w"> </span>-X<span class="w"> </span>GET<span class="w"> </span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">API_URL</span><span class="si">}</span><span class="s2">/api/metas/codigo/</span><span class="si">${</span><span class="nv">CODIGO_META</span><span class="si">}</span><span class="s2">&quot;</span><span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>-H<span class="w"> </span><span class="s2">&quot;Authorization: Bearer </span><span class="si">${</span><span class="nv">TOKEN</span><span class="si">}</span><span class="s2">&quot;</span><span class="k">)</span>
-
-<span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;</span><span class="nv">$META_DATA</span><span class="s2">&quot;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>head<span class="w"> </span>-n<span class="w"> </span><span class="m">35</span>
+curl<span class="w"> </span>-k<span class="w"> </span>-s<span class="w"> </span>-X<span class="w"> </span>GET<span class="w"> </span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">API_URL</span><span class="si">}</span><span class="s2">/api/metas/codigo/</span><span class="si">${</span><span class="nv">CODIGO_META</span><span class="si">}</span><span class="s2">&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-H<span class="w"> </span><span class="s2">&quot;Authorization: Bearer </span><span class="si">${</span><span class="nv">TOKEN</span><span class="si">}</span><span class="s2">&quot;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>head<span class="w"> </span>-n<span class="w"> </span><span class="m">35</span>
 
 <span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;&quot;</span>
 <span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;==========================================================&quot;</span>
@@ -1074,12 +827,11 @@ curl<span class="w"> </span>-k<span class="w"> </span>-s<span class="w"> </span>
 curl<span class="w"> </span>-k<span class="w"> </span>-s<span class="w"> </span>-X<span class="w"> </span>GET<span class="w"> </span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">API_URL</span><span class="si">}</span><span class="s2">/api/metas/codigo/</span><span class="si">${</span><span class="nv">CODIGO_META</span><span class="si">}</span><span class="s2">/seguimiento&quot;</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>-H<span class="w"> </span><span class="s2">&quot;Authorization: Bearer </span><span class="si">${</span><span class="nv">TOKEN</span><span class="si">}</span><span class="s2">&quot;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>head<span class="w"> </span>-n<span class="w"> </span><span class="m">35</span>
 
-<span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;&quot;</span>
-<span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;Flujo completado exitosamente.&quot;</span>
+<span class="nb">echo</span><span class="w"> </span>-e<span class="w"> </span><span class="s2">&quot;\nFlujo completado exitosamente.&quot;</span>
 </code></pre></div>
 
 <hr />
-<h3 id="92-ejemplo-en-nodejs-javascript-fetch">9.2. Ejemplo en Node.js (JavaScript / Fetch)</h3>
+<h3 id="52-ejemplo-en-nodejs-javascript-fetch">5.2. Ejemplo en Node.js (JavaScript / Fetch)</h3>
 <div class="codehilite"><pre><span></span><code><span class="kd">const</span><span class="w"> </span><span class="nx">API_URL</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;https://apiseguimientopdd.nortedesantander.gov.co&quot;</span><span class="p">;</span>
 <span class="kd">const</span><span class="w"> </span><span class="nx">CODIGO_META</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;117&quot;</span><span class="p">;</span>
 
@@ -1101,19 +853,19 @@ curl<span class="w"> </span>-k<span class="w"> </span>-s<span class="w"> </span>
 
 <span class="w">  </span><span class="kd">const</span><span class="w"> </span><span class="nx">loginData</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">await</span><span class="w"> </span><span class="nx">loginRes</span><span class="p">.</span><span class="nx">json</span><span class="p">();</span>
 <span class="w">  </span><span class="kd">const</span><span class="w"> </span><span class="nx">token</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">loginData</span><span class="p">.</span><span class="nx">accessToken</span><span class="p">;</span>
-<span class="w">  </span><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s2">&quot;✓ Token obtenido exitosamente.&quot;</span><span class="p">);</span>
+<span class="w">  </span><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s2">&quot;✓ Token JWT obtenido exitosamente.&quot;</span><span class="p">);</span>
 
 <span class="w">  </span><span class="kd">const</span><span class="w"> </span><span class="nx">headers</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span>
 <span class="w">    </span><span class="s2">&quot;Authorization&quot;</span><span class="o">:</span><span class="w"> </span><span class="sb">`Bearer </span><span class="si">${</span><span class="nx">token</span><span class="si">}</span><span class="sb">`</span>
 <span class="w">  </span><span class="p">};</span>
 
-<span class="w">  </span><span class="c1">// 2. Listar Metas del Plan Activo (sin necesidad de idPlan)</span>
+<span class="w">  </span><span class="c1">// 2. Listar Metas del Plan Activo (sin requerir idPlan)</span>
 <span class="w">  </span><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s2">&quot;\n2. Consultando listado de metas del plan activo...&quot;</span><span class="p">);</span>
 <span class="w">  </span><span class="kd">const</span><span class="w"> </span><span class="nx">metasRes</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">await</span><span class="w"> </span><span class="nx">fetch</span><span class="p">(</span><span class="sb">`</span><span class="si">${</span><span class="nx">API_URL</span><span class="si">}</span><span class="sb">/api/metas`</span><span class="p">,</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">headers</span><span class="w"> </span><span class="p">});</span>
 <span class="w">  </span><span class="kd">const</span><span class="w"> </span><span class="nx">metas</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">await</span><span class="w"> </span><span class="nx">metasRes</span><span class="p">.</span><span class="nx">json</span><span class="p">();</span>
 <span class="w">  </span><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="sb">`✓ Se obtuvieron </span><span class="si">${</span><span class="nx">metas</span><span class="p">.</span><span class="nx">length</span><span class="si">}</span><span class="sb"> metas del plan activo.`</span><span class="p">);</span>
 
-<span class="w">  </span><span class="c1">// 3. Consultar Meta Específica por Código (en el plan activo)</span>
+<span class="w">  </span><span class="c1">// 3. Consultar Meta Específica por Código en el Plan Activo</span>
 <span class="w">  </span><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="sb">`\n3. Consultando meta con código &#39;</span><span class="si">${</span><span class="nx">CODIGO_META</span><span class="si">}</span><span class="sb">&#39;...`</span><span class="p">);</span>
 <span class="w">  </span><span class="kd">const</span><span class="w"> </span><span class="nx">metaRes</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">await</span><span class="w"> </span><span class="nx">fetch</span><span class="p">(</span><span class="sb">`</span><span class="si">${</span><span class="nx">API_URL</span><span class="si">}</span><span class="sb">/api/metas/codigo/</span><span class="si">${</span><span class="nx">CODIGO_META</span><span class="si">}</span><span class="sb">`</span><span class="p">,</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">headers</span><span class="w"> </span><span class="p">});</span>
 
@@ -1122,21 +874,24 @@ curl<span class="w"> </span>-k<span class="w"> </span>-s<span class="w"> </span>
 <span class="w">    </span><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s2">&quot;✓ Meta encontrada:&quot;</span><span class="p">);</span>
 <span class="w">    </span><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="sb">`  - Código: </span><span class="si">${</span><span class="nx">meta</span><span class="p">.</span><span class="nx">codigo</span><span class="si">}</span><span class="sb">`</span><span class="p">);</span>
 <span class="w">    </span><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="sb">`  - Nombre: </span><span class="si">${</span><span class="nx">meta</span><span class="p">.</span><span class="nx">nombre</span><span class="si">}</span><span class="sb">`</span><span class="p">);</span>
-<span class="w">    </span><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="sb">`  - Plan: [</span><span class="si">${</span><span class="nx">meta</span><span class="p">.</span><span class="nx">id_plan</span><span class="si">}</span><span class="sb">] </span><span class="si">${</span><span class="nx">meta</span><span class="p">.</span><span class="nx">nombre_plan</span><span class="si">}</span><span class="sb">`</span><span class="p">);</span>
+<span class="w">    </span><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="sb">`  - Plan Activo: [</span><span class="si">${</span><span class="nx">meta</span><span class="p">.</span><span class="nx">id_plan</span><span class="si">}</span><span class="sb">] </span><span class="si">${</span><span class="nx">meta</span><span class="p">.</span><span class="nx">nombre_plan</span><span class="si">}</span><span class="sb">`</span><span class="p">);</span>
 <span class="w">    </span><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="sb">`  - Secretaría: </span><span class="si">${</span><span class="nx">meta</span><span class="p">.</span><span class="nx">secretaria_nombre</span><span class="si">}</span><span class="sb">`</span><span class="p">);</span>
-<span class="w">    </span><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="sb">`  - Avance Físico: </span><span class="si">${</span><span class="nx">meta</span><span class="p">.</span><span class="nx">porcentaje_fisico</span><span class="si">}</span><span class="sb">%`</span><span class="p">);</span>
-<span class="w">    </span><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="sb">`  - Avance Financiero: </span><span class="si">${</span><span class="nx">meta</span><span class="p">.</span><span class="nx">porcentaje_financiero</span><span class="si">}</span><span class="sb">%`</span><span class="p">);</span>
+<span class="w">    </span><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="sb">`  - Cantidad Programada: </span><span class="si">${</span><span class="nx">meta</span><span class="p">.</span><span class="nx">cantidad</span><span class="si">}</span><span class="sb"> </span><span class="si">${</span><span class="nx">meta</span><span class="p">.</span><span class="nx">unidad_nombre</span><span class="si">}</span><span class="sb">`</span><span class="p">);</span>
+<span class="w">    </span><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="sb">`  - Acumulado Físico Ejecutado: </span><span class="si">${</span><span class="nx">meta</span><span class="p">.</span><span class="nx">acumulado_fisico</span><span class="si">}</span><span class="sb">`</span><span class="p">);</span>
+<span class="w">    </span><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="sb">`  - % Cumplimiento Físico: </span><span class="si">${</span><span class="nx">meta</span><span class="p">.</span><span class="nx">porcentaje_fisico</span><span class="si">}</span><span class="sb">%`</span><span class="p">);</span>
+<span class="w">    </span><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="sb">`  - Total Gasto Ejecutado: $</span><span class="si">${</span><span class="nx">meta</span><span class="p">.</span><span class="nx">total_gasto</span><span class="si">}</span><span class="sb">`</span><span class="p">);</span>
+<span class="w">    </span><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="sb">`  - % Cumplimiento Financiero: </span><span class="si">${</span><span class="nx">meta</span><span class="p">.</span><span class="nx">porcentaje_financiero</span><span class="si">}</span><span class="sb">%`</span><span class="p">);</span>
 <span class="w">    </span><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="sb">`  - Estado: </span><span class="si">${</span><span class="nx">meta</span><span class="p">.</span><span class="nx">estadoProgreso</span><span class="si">}</span><span class="sb">`</span><span class="p">);</span>
 <span class="w">  </span><span class="p">}</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="p">{</span>
 <span class="w">    </span><span class="nx">console</span><span class="p">.</span><span class="nx">error</span><span class="p">(</span><span class="sb">`Meta no encontrada (</span><span class="si">${</span><span class="nx">metaRes</span><span class="p">.</span><span class="nx">status</span><span class="si">}</span><span class="sb">)`</span><span class="p">);</span>
 <span class="w">  </span><span class="p">}</span>
 
-<span class="w">  </span><span class="c1">// 4. Consultar Seguimiento Trimestral por Código</span>
-<span class="w">  </span><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="sb">`\n4. Consultando seguimiento trimestral para código &#39;</span><span class="si">${</span><span class="nx">CODIGO_META</span><span class="si">}</span><span class="sb">&#39;...`</span><span class="p">);</span>
+<span class="w">  </span><span class="c1">// 4. Consultar Seguimiento Trimestral Detallado por Código</span>
+<span class="w">  </span><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="sb">`\n4. Consultando desglose trimestral para &#39;</span><span class="si">${</span><span class="nx">CODIGO_META</span><span class="si">}</span><span class="sb">&#39;...`</span><span class="p">);</span>
 <span class="w">  </span><span class="kd">const</span><span class="w"> </span><span class="nx">segRes</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">await</span><span class="w"> </span><span class="nx">fetch</span><span class="p">(</span><span class="sb">`</span><span class="si">${</span><span class="nx">API_URL</span><span class="si">}</span><span class="sb">/api/metas/codigo/</span><span class="si">${</span><span class="nx">CODIGO_META</span><span class="si">}</span><span class="sb">/seguimiento`</span><span class="p">,</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">headers</span><span class="w"> </span><span class="p">});</span>
 <span class="w">  </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nx">segRes</span><span class="p">.</span><span class="nx">ok</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
 <span class="w">    </span><span class="kd">const</span><span class="w"> </span><span class="nx">seguimiento</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">await</span><span class="w"> </span><span class="nx">segRes</span><span class="p">.</span><span class="nx">json</span><span class="p">();</span>
-<span class="w">    </span><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="sb">`✓ Trimestres reportados: </span><span class="si">${</span><span class="nx">seguimiento</span><span class="p">.</span><span class="nx">detalles</span><span class="p">.</span><span class="nx">length</span><span class="si">}</span><span class="sb">`</span><span class="p">);</span>
+<span class="w">    </span><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="sb">`✓ Trimestres con seguimiento reportado: </span><span class="si">${</span><span class="nx">seguimiento</span><span class="p">.</span><span class="nx">detalles</span><span class="p">.</span><span class="nx">length</span><span class="si">}</span><span class="sb">`</span><span class="p">);</span>
 <span class="w">  </span><span class="p">}</span>
 <span class="p">}</span>
 
@@ -1144,13 +899,13 @@ curl<span class="w"> </span>-k<span class="w"> </span>-s<span class="w"> </span>
 </code></pre></div>
 
 <hr />
-<h3 id="93-ejemplo-en-python-requests">9.3. Ejemplo en Python (<code>requests</code>)</h3>
+<h3 id="53-ejemplo-en-python-requests">5.3. Ejemplo en Python (<code>requests</code>)</h3>
 <div class="codehilite"><pre><span></span><code><span class="kn">import</span> <span class="nn">requests</span>
 
 <span class="n">API_URL</span> <span class="o">=</span> <span class="s2">&quot;https://apiseguimientopdd.nortedesantander.gov.co&quot;</span>
 <span class="n">CODIGO_META</span> <span class="o">=</span> <span class="s2">&quot;117&quot;</span>
 
-<span class="c1"># 1. Login y obtención del Token</span>
+<span class="c1"># 1. Login y Obtención del Token</span>
 <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;1. Autenticando en la API...&quot;</span><span class="p">)</span>
 <span class="n">login_payload</span> <span class="o">=</span> <span class="p">{</span>
     <span class="s2">&quot;email&quot;</span><span class="p">:</span> <span class="s2">&quot;apigober@nortedesantander.gov.co&quot;</span><span class="p">,</span>
@@ -1158,7 +913,7 @@ curl<span class="w"> </span>-k<span class="w"> </span>-s<span class="w"> </span>
 <span class="p">}</span>
 
 <span class="n">session</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">Session</span><span class="p">()</span>
-<span class="c1"># Nota: verify=False si el entorno no tiene el certificado intermedio del dominio gubernamental</span>
+<span class="c1"># Nota: verify=False si el cliente no valida el certificado intermedio del dominio gubernamental</span>
 <span class="n">res</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">API_URL</span><span class="si">}</span><span class="s2">/api/auth/login&quot;</span><span class="p">,</span> <span class="n">json</span><span class="o">=</span><span class="n">login_payload</span><span class="p">,</span> <span class="n">verify</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 <span class="n">res</span><span class="o">.</span><span class="n">raise_for_status</span><span class="p">()</span>
 
@@ -1169,7 +924,7 @@ curl<span class="w"> </span>-k<span class="w"> </span>-s<span class="w"> </span>
     <span class="s2">&quot;Authorization&quot;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;Bearer </span><span class="si">{</span><span class="n">token</span><span class="si">}</span><span class="s2">&quot;</span>
 <span class="p">}</span>
 
-<span class="c1"># 2. Listar Metas del Plan Activo (sin requerir idPlan)</span>
+<span class="c1"># 2. Listar Metas del Plan Activo</span>
 <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">2. Consultando metas del plan activo...&quot;</span><span class="p">)</span>
 <span class="n">metas_res</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">API_URL</span><span class="si">}</span><span class="s2">/api/metas&quot;</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="n">headers</span><span class="p">,</span> <span class="n">verify</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 <span class="n">metas_res</span><span class="o">.</span><span class="n">raise_for_status</span><span class="p">()</span>
@@ -1182,32 +937,33 @@ curl<span class="w"> </span>-k<span class="w"> </span>-s<span class="w"> </span>
 
 <span class="k">if</span> <span class="n">meta_res</span><span class="o">.</span><span class="n">status_code</span> <span class="o">==</span> <span class="mi">200</span><span class="p">:</span>
     <span class="n">meta</span> <span class="o">=</span> <span class="n">meta_res</span><span class="o">.</span><span class="n">json</span><span class="p">()</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;✓ Detalle de la meta:&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;✓ Ficha técnica de la meta:&quot;</span><span class="p">)</span>
     <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  - Código: </span><span class="si">{</span><span class="n">meta</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;codigo&#39;</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
     <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  - Nombre: </span><span class="si">{</span><span class="n">meta</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;nombre&#39;</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  - Plan: [</span><span class="si">{</span><span class="n">meta</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;id_plan&#39;</span><span class="p">)</span><span class="si">}</span><span class="s2">] </span><span class="si">{</span><span class="n">meta</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;nombre_plan&#39;</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  - Plan Activo: [</span><span class="si">{</span><span class="n">meta</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;id_plan&#39;</span><span class="p">)</span><span class="si">}</span><span class="s2">] </span><span class="si">{</span><span class="n">meta</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;nombre_plan&#39;</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
     <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  - Secretaría: </span><span class="si">{</span><span class="n">meta</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;secretaria_nombre&#39;</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
     <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  - Cantidad Programada: </span><span class="si">{</span><span class="n">meta</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;cantidad&#39;</span><span class="p">)</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">meta</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;unidad_nombre&#39;</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
     <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  - Acumulado Físico Ejecutado: </span><span class="si">{</span><span class="n">meta</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;acumulado_fisico&#39;</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
     <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  - % Cumplimiento Físico: </span><span class="si">{</span><span class="n">meta</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;porcentaje_fisico&#39;</span><span class="p">)</span><span class="si">}</span><span class="s2">%&quot;</span><span class="p">)</span>
     <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  - Total Gasto Ejecutado: $</span><span class="si">{</span><span class="n">meta</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;total_gasto&#39;</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
     <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  - % Cumplimiento Financiero: </span><span class="si">{</span><span class="n">meta</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;porcentaje_financiero&#39;</span><span class="p">)</span><span class="si">}</span><span class="s2">%&quot;</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  - Estado: </span><span class="si">{</span><span class="n">meta</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;estadoProgreso&#39;</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  - Estado de Progreso: </span><span class="si">{</span><span class="n">meta</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;estadoProgreso&#39;</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 <span class="k">else</span><span class="p">:</span>
-    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error al consultar la meta: </span><span class="si">{</span><span class="n">meta_res</span><span class="o">.</span><span class="n">status_code</span><span class="si">}</span><span class="s2"> - </span><span class="si">{</span><span class="n">meta_res</span><span class="o">.</span><span class="n">text</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Meta no encontrada: </span><span class="si">{</span><span class="n">meta_res</span><span class="o">.</span><span class="n">status_code</span><span class="si">}</span><span class="s2"> - </span><span class="si">{</span><span class="n">meta_res</span><span class="o">.</span><span class="n">text</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
 <span class="c1"># 4. Consultar Seguimiento Trimestral Detallado por Código</span>
 <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">4. Consultando seguimiento trimestral por código &#39;</span><span class="si">{</span><span class="n">CODIGO_META</span><span class="si">}</span><span class="s2">&#39;...&quot;</span><span class="p">)</span>
 <span class="n">seg_res</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">API_URL</span><span class="si">}</span><span class="s2">/api/metas/codigo/</span><span class="si">{</span><span class="n">CODIGO_META</span><span class="si">}</span><span class="s2">/seguimiento&quot;</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="n">headers</span><span class="p">,</span> <span class="n">verify</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 <span class="k">if</span> <span class="n">seg_res</span><span class="o">.</span><span class="n">status_code</span> <span class="o">==</span> <span class="mi">200</span><span class="p">:</span>
     <span class="n">seg_data</span> <span class="o">=</span> <span class="n">seg_res</span><span class="o">.</span><span class="n">json</span><span class="p">()</span>
-    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;✓ Desglose por trimestres (</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">seg_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;detalles&#39;</span><span class="p">,</span><span class="w"> </span><span class="p">[]))</span><span class="si">}</span><span class="s2"> periodos registrados):&quot;</span><span class="p">)</span>
-    <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">seg_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;detalles&quot;</span><span class="p">,</span> <span class="p">[])[:</span><span class="mi">3</span><span class="p">]:</span>
-        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  * </span><span class="si">{</span><span class="n">d</span><span class="p">[</span><span class="s1">&#39;anio&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">-</span><span class="si">{</span><span class="n">d</span><span class="p">[</span><span class="s1">&#39;trimestre&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2"> | Prog: </span><span class="si">{</span><span class="n">d</span><span class="p">[</span><span class="s1">&#39;programacion_cantidad&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2"> | Ejec: </span><span class="si">{</span><span class="n">d</span><span class="p">[</span><span class="s1">&#39;avance_cantidad&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2"> | Gasto: $</span><span class="si">{</span><span class="n">d</span><span class="p">[</span><span class="s1">&#39;avance_gastos&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="n">detalles</span> <span class="o">=</span> <span class="n">seg_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;detalles&quot;</span><span class="p">,</span> <span class="p">[])</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;✓ Períodos reportados: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">detalles</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">detalles</span><span class="p">[:</span><span class="mi">3</span><span class="p">]:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  * </span><span class="si">{</span><span class="n">d</span><span class="p">[</span><span class="s1">&#39;anio&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">d</span><span class="p">[</span><span class="s1">&#39;trimestre&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2"> | Prog: </span><span class="si">{</span><span class="n">d</span><span class="p">[</span><span class="s1">&#39;programacion_cantidad&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2"> | Avance: </span><span class="si">{</span><span class="n">d</span><span class="p">[</span><span class="s1">&#39;avance_cantidad&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2"> | Gasto: $</span><span class="si">{</span><span class="n">d</span><span class="p">[</span><span class="s1">&#39;avance_gastos&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 </code></pre></div>
 
 <hr />
-<h2 id="10-glosario-de-campos-financieros-y-poblacionales">10. Glosario de Campos Financieros y Poblacionales</h2>
+<h2 id="6-glosario-de-campos-financieros-poblacionales-y-estados">6. Glosario de Campos Financieros, Poblacionales y Estados</h2>
 <ul>
 <li><strong>Fuentes de Financiación:</strong></li>
 <li><code>pro</code>: Recursos Propios del Departamento.</li>
@@ -1215,8 +971,12 @@ curl<span class="w"> </span>-k<span class="w"> </span>-s<span class="w"> </span>
 <li><code>reg</code>: Sistema General de Regalías.</li>
 <li><code>cre</code>: Recursos del Crédito.</li>
 <li><code>mun</code>: Aportes de Municipios.</li>
-<li><code>otr</code>: Otras fuentes de financiación / Cooperación.</li>
-<li><em>Estructura temporal:</em> <code>val1_*</code> representa el año 2024, <code>val2_*</code> el año 2025, <code>val3_*</code> el año 2026 y <code>val4_*</code> el año 2027.</li>
+<li><code>otr</code>: Otras fuentes de financiación / Cooperación internacional.</li>
+<li><em>Estructura multianual:</em> <code>val1_*</code> representa el año 2024, <code>val2_*</code> el año 2025, <code>val3_*</code> el año 2026 y <code>val4_*</code> el año 2027.</li>
+<li><strong>Estados de Progreso de la Meta:</strong></li>
+<li><code>SIN_INICIAR</code>: La meta no cuenta con avance físico reportado a la fecha.</li>
+<li><code>EN_EJECUCION</code>: La meta presenta avances físicos reportados mayores a 0 y menores al 100%.</li>
+<li><code>COMPLETADA</code>: La meta alcanzó o superó el 100% de la cantidad física total programada.</li>
 <li><strong>Enfoques Diferenciales y Grupos de Población:</strong></li>
 <li><code>cantidad_0_5</code>: Primera Infancia (0 a 5 años).</li>
 <li><code>cantidad_6_12</code>: Infancia (6 a 12 años).</li>

@@ -338,3 +338,12 @@ with open(HTML_FILE, "w", encoding="utf-8") as f:
     f.write(full_html)
 
 print("HTML generado exitosamente:", HTML_FILE)
+
+# Generar PDF usando LibreOffice headless
+try:
+    env = {**os.environ, "HOME": "/tmp"}
+    cmd = ["libreoffice", "--headless", "--convert-to", "pdf", HTML_FILE]
+    res = subprocess.run(cmd, env=env, check=True, capture_output=True, text=True)
+    print("PDF generado exitosamente:", PDF_FILE)
+except Exception as e:
+    print("Error generando PDF con LibreOffice:", e)
