@@ -11,6 +11,8 @@ export const MetasModel = {
       const sql = `
         SELECT
           m.*,
+          p.id_plan,
+          p.nombre_plan,
           
           -- Calculado para compatibilidad
           CASE
@@ -136,6 +138,7 @@ export const MetasModel = {
         FROM metas m
 
         INNER JOIN detalles_plan i ON i.id_detalle = m.id_detalle
+        LEFT JOIN planes_desarrollo p ON p.id_plan = i.id_plan
         LEFT JOIN detalles_plan a ON a.id_detalle = i.id_detalle_padre
         LEFT JOIN detalles_plan c ON c.id_detalle = a.id_detalle_padre
         LEFT JOIN detalles_plan l ON l.id_detalle = c.id_detalle_padre
@@ -206,6 +209,217 @@ export const MetasModel = {
   },
 
   // =========================
+  // OBTENER UNA META POR CÓDIGO (PLAN ACTIVO O ESPECÍFICO)
+  // =========================
+  async getByCodigo(codigo, idPlan = null) {
+    const db = await openDb();
+    try {
+      const sql = `
+        SELECT
+          m.*,
+          p.id_plan,
+          p.nombre_plan,
+          
+          -- Calculado para compatibilidad
+          CASE
+            WHEN m.recurrente = 1 THEN (m.cant_ano1 + m.cant_ano2 + m.cant_ano3 + m.cant_ano4) / 4
+            ELSE (m.cant_ano1 + m.cant_ano2 + m.cant_ano3 + m.cant_ano4)
+          END AS cantidad,
+
+          -- ACUMULADOS FISICOS
+          CASE
+            WHEN m.recurrente = 1 THEN COALESCE(av.total_cantidad, 0) / 4
+            ELSE COALESCE(av.total_cantidad, 0)
+          END AS acumulado_fisico,
+          -- ACUMULADOS DE GASTOS
+          COALESCE(av.acumulado_pro, 0) AS acumulado_pro,
+          COALESCE(av.acumulado_sgp, 0) AS acumulado_sgp,
+          COALESCE(av.acumulado_reg, 0) AS acumulado_reg,
+          COALESCE(av.acumulado_cre, 0) AS acumulado_cre,
+          COALESCE(av.acumulado_mun, 0) AS acumulado_mun,
+          COALESCE(av.acumulado_otr, 0) AS acumulado_otr,
+          COALESCE(av.total_gasto, 0) AS total_gasto,
+
+          -- ACUMULADOS POBLACION
+          COALESCE(av.acumulado_0_5, 0) AS acumulado_0_5,
+          COALESCE(av.acumulado_6_12, 0) AS acumulado_6_12,
+          COALESCE(av.acumulado_13_17, 0) AS acumulado_13_17,
+          COALESCE(av.acumulado_18_24, 0) AS acumulado_18_24,
+          COALESCE(av.acumulado_25_62, 0) AS acumulado_25_62,
+          COALESCE(av.acumulado_65_mas, 0) AS acumulado_65_mas,
+
+          COALESCE(av.acumulado_mujer, 0) AS acumulado_mujer,
+          COALESCE(av.acumulado_discapacidad, 0) AS acumulado_discapacidad,
+          COALESCE(av.acumulado_etnia, 0) AS acumulado_etnia,
+          COALESCE(av.acumulado_victima, 0) AS acumulado_victima,
+          COALESCE(av.acumulado_desmovilizado, 0) AS acumulado_desmovilizado,
+          COALESCE(av.acumulado_lgtbi, 0) AS acumulado_lgtbi,
+          COALESCE(av.acumulado_migrante, 0) AS acumulado_migrante,
+          COALESCE(av.acumulado_indigente, 0) AS acumulado_indigente,
+          COALESCE(av.acumulado_privado, 0) AS acumulado_privado,
+
+          -- PORCENTAJES
+          CASE
+            WHEN (m.cant_ano1 + m.cant_ano2 + m.cant_ano3 + m.cant_ano4) > 0
+            THEN LEAST(ROUND(COALESCE(av.total_cantidad, 0) * 100.0 / (m.cant_ano1 + m.cant_ano2 + m.cant_ano3 + m.cant_ano4), 2), 100)
+            ELSE 0
+          END AS porcentaje_fisico,
+
+          CASE
+            WHEN (
+              m.val1_pro + m.val2_pro + m.val3_pro + m.val4_pro +
+              m.val1_sgp + m.val2_sgp + m.val3_sgp + m.val4_sgp +
+              m.val1_reg + m.val2_reg + m.val3_reg + m.val4_reg +
+              m.val1_cre + m.val2_cre + m.val3_cre + m.val4_cre +
+              m.val1_mun + m.val2_mun + m.val3_mun + m.val4_mun +
+              m.val1_otr + m.val2_otr + m.val3_otr + m.val4_otr
+            ) > 0
+            THEN LEAST(ROUND(
+              COALESCE(av.total_gasto, 0) * 100.0 /
+              (
+                m.val1_pro + m.val2_pro + m.val3_pro + m.val4_pro +
+                m.val1_sgp + m.val2_sgp + m.val3_sgp + m.val4_sgp +
+                m.val1_reg + m.val2_reg + m.val3_reg + m.val4_reg +
+                m.val1_cre + m.val2_cre + m.val3_cre + m.val4_cre +
+                m.val1_mun + m.val2_mun + m.val3_mun + m.val4_mun +
+                m.val1_otr + m.val2_otr + m.val3_otr + m.val4_otr
+              ),
+              2
+            ), 100)
+            ELSE 0
+          END AS porcentaje_financiero,
+
+          -- Estado de progreso
+          CASE
+            WHEN
+              COALESCE(av.total_cantidad, 0) = 0
+              OR (m.cant_ano1 + m.cant_ano2 + m.cant_ano3 + m.cant_ano4) = 0
+            THEN 'SIN_INICIAR'
+
+            WHEN
+              ROUND(COALESCE(av.total_cantidad, 0) * 100.0 / (m.cant_ano1 + m.cant_ano2 + m.cant_ano3 + m.cant_ano4), 2) >= 100
+            THEN 'COMPLETADA'
+
+            ELSE 'EN_EJECUCION'
+          END AS estadoProgreso,
+
+          i.id_detalle   AS iniciativa_id,
+          i.codigo       AS iniciativa_codigo,
+          i.nombre_detalle AS iniciativa_nombre,
+
+          a.id_detalle   AS apuesta_id,
+          a.codigo       AS apuesta_codigo,
+          a.nombre_detalle AS apuesta_nombre,
+
+          c.id_detalle   AS componente_id,
+          c.codigo       AS componente_codigo,
+          c.nombre_detalle AS componente_nombre,
+
+          l.id_detalle   AS linea_id,
+          l.codigo       AS linea_codigo,
+          l.nombre_detalle AS linea_nombre,
+
+          s.nombre AS secretaria_nombre,
+          u.nombre AS unidad_nombre,
+
+          GROUP_CONCAT(mu.id_municipio) AS municipios,
+
+          (
+            SELECT JSON_ARRAYAGG(
+              JSON_OBJECT(
+                'id_municipio', temp.id_municipio,
+                'vigencias', temp.vigencias,
+                'anio', temp.anio
+              )
+            )
+            FROM (
+              SELECT a.id_meta, am.id_municipio, COUNT(DISTINCT a.anio) AS vigencias, MIN(a.anio) AS anio
+              FROM avances a
+              INNER JOIN avancexmunicipios am ON a.id_avance = am.id_avance
+              GROUP BY a.id_meta, am.id_municipio
+            ) temp
+            WHERE temp.id_meta = m.id_meta
+          ) AS municipios_vigencias_json
+
+        FROM metas m
+
+        INNER JOIN detalles_plan i ON i.id_detalle = m.id_detalle
+        INNER JOIN planes_desarrollo p ON p.id_plan = i.id_plan
+        LEFT JOIN detalles_plan a ON a.id_detalle = i.id_detalle_padre
+        LEFT JOIN detalles_plan c ON c.id_detalle = a.id_detalle_padre
+        LEFT JOIN detalles_plan l ON l.id_detalle = c.id_detalle_padre
+        LEFT JOIN secretarias s ON s.id_secretaria = m.id_secretaria
+        LEFT JOIN unidades u ON u.id_unidad = m.id_unidad
+        LEFT JOIN metasxmunicipio mxm ON mxm.id_meta = m.id_meta
+        LEFT JOIN municipios mu ON mu.id_municipio = mxm.id_municipio
+
+        LEFT JOIN (
+          SELECT
+            id_meta,
+            SUM(cantidad) AS total_cantidad,
+            SUM(IFNULL(gasto_pro,0)) AS acumulado_pro,
+            SUM(IFNULL(gasto_sgp,0)) AS acumulado_sgp,
+            SUM(IFNULL(gasto_reg,0)) AS acumulado_reg,
+            SUM(IFNULL(gasto_cre,0)) AS acumulado_cre,
+            SUM(IFNULL(gasto_mun,0)) AS acumulado_mun,
+            SUM(IFNULL(gasto_otr,0)) AS acumulado_otr,
+            
+            SUM(IFNULL(cantidad_0_5,0)) AS acumulado_0_5,
+            SUM(IFNULL(cantidad_6_12,0)) AS acumulado_6_12,
+            SUM(IFNULL(cantidad_13_17,0)) AS acumulado_13_17,
+            SUM(IFNULL(cantidad_18_24,0)) AS acumulado_18_24,
+            SUM(IFNULL(cantidad_25_62,0)) AS acumulado_25_62,
+            SUM(IFNULL(cantidad_65_mas,0)) AS acumulado_65_mas,
+
+            SUM(IFNULL(cantesp_mujer,0)) AS acumulado_mujer,
+            SUM(IFNULL(cantesp_discapacidad,0)) AS acumulado_discapacidad,
+            SUM(IFNULL(cantesp_etnia,0)) AS acumulado_etnia,
+            SUM(IFNULL(cantesp_victima,0)) AS acumulado_victima,
+            SUM(IFNULL(cantesp_desmovilizado,0)) AS acumulado_desmovilizado,
+            SUM(IFNULL(cantesp_lgtbi,0)) AS acumulado_lgtbi,
+            SUM(IFNULL(cantesp_migrante,0)) AS acumulado_migrante,
+            SUM(IFNULL(cantesp_indigente,0)) AS acumulado_indigente,
+            SUM(IFNULL(cantesp_privado,0)) AS acumulado_privado,
+
+            SUM(
+              IFNULL(gasto_pro,0) + IFNULL(gasto_cre,0) + IFNULL(gasto_sgp,0) +
+              IFNULL(gasto_reg,0) + IFNULL(gasto_otr,0) + IFNULL(gasto_mun,0)
+            ) AS total_gasto
+          FROM avances
+          GROUP BY id_meta
+        ) av ON av.id_meta = m.id_meta
+
+        WHERE TRIM(m.codigo) = ?
+        ${idPlan ? "AND p.id_plan = ?" : "AND p.es_activo = 1"}
+        GROUP BY m.id_meta
+        LIMIT 1
+      `;
+
+      const params = idPlan
+        ? [String(codigo).trim(), Number(idPlan)]
+        : [String(codigo).trim()];
+      const [rows] = await db.query(sql, params);
+      const meta = rows[0];
+
+      if (!meta) return null;
+
+      return {
+        ...meta,
+        municipios: meta.municipios
+          ? meta.municipios.split(",").map(Number)
+          : [],
+        municipios_vigencias: meta.municipios_vigencias_json
+          ? (typeof meta.municipios_vigencias_json === "string"
+              ? JSON.parse(meta.municipios_vigencias_json)
+              : meta.municipios_vigencias_json)
+          : [],
+      };
+    } finally {
+      db.release();
+    }
+  },
+
+  // =========================
   // OBTENER META DETALLADA (SEGUIMIENTO)
   // =========================
   async getDetalladoMeta(idMeta) {
@@ -215,6 +429,8 @@ export const MetasModel = {
       const [rows] = await db.query(
         `SELECT
            m.*,
+           p.id_plan,
+           p.nombre_plan,
            s.nombre AS secretaria_nombre,
            u.nombre AS unidad_nombre,
 
@@ -253,6 +469,7 @@ export const MetasModel = {
 
          -- Joins para jerarquia
          LEFT JOIN detalles_plan i ON i.id_detalle = m.id_detalle
+         LEFT JOIN planes_desarrollo p ON p.id_plan = i.id_plan
          LEFT JOIN detalles_plan a ON a.id_detalle = i.id_detalle_padre
          LEFT JOIN detalles_plan c ON c.id_detalle = a.id_detalle_padre
          LEFT JOIN detalles_plan l ON l.id_detalle = c.id_detalle_padre
@@ -377,6 +594,15 @@ export const MetasModel = {
     } finally {
       db.release();
     }
+  },
+
+  // =========================
+  // OBTENER META DETALLADA POR CÓDIGO (SEGUIMIENTO)
+  // =========================
+  async getDetalladoMetaByCodigo(codigo, idPlan = null) {
+    const meta = await this.getByCodigo(codigo, idPlan);
+    if (!meta) return null;
+    return this.getDetalladoMeta(meta.id_meta);
   },
   async getByDetalle(id_detalle) {
     const db = await openDb();
@@ -700,6 +926,7 @@ export const MetasModel = {
           s.nombre AS secretaria_nombre,
           u.nombre AS unidad_nombre,
           dp.id_plan,
+          p.nombre_plan AS plan_nombre,
 
           -- PORCENTAJES
           CASE
@@ -803,14 +1030,22 @@ export const MetasModel = {
       const params = [];
 
       // ===============================
-      // PLAN (OBLIGATORIO)
+      // PLAN (SI NO SE INDICA, USA EL ACTIVO)
       // ===============================
-      if (!filters.idPlan) {
-        throw new Error("idPlan es obligatorio para filtrar metas");
+      if (filters.idPlan) {
+        sql += " AND dp.id_plan = ?";
+        params.push(filters.idPlan);
+      } else {
+        sql += " AND p.es_activo = 1";
       }
 
-      sql += " AND dp.id_plan = ?";
-      params.push(filters.idPlan);
+      // ===============================
+      // CÓDIGO EXACTO / NÚMERO DE META
+      // ===============================
+      if (filters.codigo) {
+        sql += " AND TRIM(m.codigo) = ?";
+        params.push(String(filters.codigo).trim());
+      }
 
       // ===============================
       // SECRETARÍA
@@ -879,10 +1114,13 @@ export const MetasModel = {
         filters.responsableId ||
         filters.municipioId ||
         filters.q ||
-        filters.estadoProgreso;
+        filters.estadoProgreso ||
+        filters.codigo;
 
-      if (!filtrosOpcionales) {
+      if (!filtrosOpcionales && !filters.all && !filters.limit) {
         sql += " LIMIT 100";
+      } else if (filters.limit && filters.limit !== "all") {
+        sql += ` LIMIT ${Number(filters.limit)}`;
       }
 
       const [rows] = await db.query(sql, params);

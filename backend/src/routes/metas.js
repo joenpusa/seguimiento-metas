@@ -6,30 +6,67 @@ import { MetasModel } from "../models/metasModel.js";
 const router = express.Router();
 
 // ===============================
-// GET /api/metas/:id
-// Obtener una meta por ID
+// GET /api/metas/codigo/:codigo/seguimiento
+// Detalle completo (Programado vs Ejecutado) por Código de la meta
 // ===============================
 router.get(
-  "/:id",
+  "/codigo/:codigo/seguimiento",
   authenticateToken,
   async (req, res) => {
     try {
-      const { id } = req.params;
+      const { codigo } = req.params;
+      const { idPlan } = req.query;
 
-      const meta = await MetasModel.getById(id);
+      const data = await MetasModel.getDetalladoMetaByCodigo(
+        codigo,
+        idPlan ? Number(idPlan) : null
+      );
+
+      if (!data) {
+        return res.status(404).json({
+          message: idPlan
+            ? `Meta con código '${codigo}' no encontrada en el plan indicado (${idPlan})`
+            : `Meta con código '${codigo}' no encontrada en el plan de desarrollo activo`,
+        });
+      }
+
+      res.json(data);
+    } catch (err) {
+      console.error("Error al obtener seguimiento de meta por código:", err);
+      res.status(500).json({ message: "Error al obtener seguimiento de meta" });
+    }
+  }
+);
+
+// ===============================
+// GET /api/metas/codigo/:codigo
+// Obtener una meta por Código (en el plan activo o específico)
+// ===============================
+router.get(
+  "/codigo/:codigo",
+  authenticateToken,
+  async (req, res) => {
+    try {
+      const { codigo } = req.params;
+      const { idPlan } = req.query;
+
+      const meta = await MetasModel.getByCodigo(
+        codigo,
+        idPlan ? Number(idPlan) : null
+      );
 
       if (!meta) {
-        return res
-          .status(404)
-          .json({ message: "Meta no encontrada" });
+        return res.status(404).json({
+          message: idPlan
+            ? `Meta con código '${codigo}' no encontrada en el plan indicado (${idPlan})`
+            : `Meta con código '${codigo}' no encontrada en el plan de desarrollo activo`,
+        });
       }
 
       res.json(meta);
     } catch (err) {
-      console.error("Error al obtener la meta:", err);
-      res
-        .status(500)
-        .json({ message: "Error al obtener la meta" });
+      console.error("Error al obtener la meta por código:", err);
+      res.status(500).json({ message: "Error al obtener la meta" });
     }
   }
 );
@@ -53,7 +90,7 @@ router.get(
 
 // ===============================
 // GET /api/metas/seguimiento/:id 
-// Detalle completo (Programado vs Ejecutado)
+// Detalle completo (Programado vs Ejecutado) por ID (o código)
 // ===============================
 router.get(
   "/seguimiento/:id",
@@ -61,7 +98,16 @@ router.get(
   async (req, res) => {
     try {
       const { id } = req.params;
-      const data = await MetasModel.getDetalladoMeta(id);
+      let data = null;
+
+      if (!isNaN(Number(id))) {
+        data = await MetasModel.getDetalladoMeta(id);
+      }
+
+      // Fallback si no fue ID numérico o no se encontró
+      if (!data) {
+        data = await MetasModel.getDetalladoMetaByCodigo(id);
+      }
 
       if (!data) {
         return res.status(404).json({ message: "Meta no encontrada" });
@@ -71,6 +117,43 @@ router.get(
     } catch (err) {
       console.error("Error al obtener seguimiento de meta:", err);
       res.status(500).json({ message: "Error al obtener seguimiento de meta" });
+    }
+  }
+);
+
+// ===============================
+// GET /api/metas/:id
+// Obtener una meta por ID (con fallback por código en plan activo)
+// ===============================
+router.get(
+  "/:id",
+  authenticateToken,
+  async (req, res) => {
+    try {
+      const { id } = req.params;
+      let meta = null;
+
+      if (!isNaN(Number(id))) {
+        meta = await MetasModel.getById(id);
+      }
+
+      // Si no existe por ID numérico, intentar buscar por código en el plan activo
+      if (!meta) {
+        meta = await MetasModel.getByCodigo(id);
+      }
+
+      if (!meta) {
+        return res
+          .status(404)
+          .json({ message: "Meta no encontrada" });
+      }
+
+      res.json(meta);
+    } catch (err) {
+      console.error("Error al obtener la meta:", err);
+      res
+        .status(500)
+        .json({ message: "Error al obtener la meta" });
     }
   }
 );
@@ -100,7 +183,6 @@ router.post(
         !descripcion ||
         !id_detalle ||
         !id_unidad ||
-        !id_secretaria ||
         !id_secretaria
       ) {
         return res
@@ -154,7 +236,6 @@ router.put(
         !nombre ||
         !descripcion ||
         !id_unidad ||
-        !id_secretaria ||
         !id_secretaria
       ) {
         return res
@@ -213,9 +294,9 @@ router.delete(
 );
 
 // ===============================
-// METAS SEGÚN FILTROS
+// METAS SEGÚN FILTROS (O DEL PLAN ACTIVO)
 // ===============================
-router.get("/", async (req, res) => {
+router.get("/", authenticateToken, async (req, res) => {
   try {
     const {
       idPlan,
@@ -223,34 +304,28 @@ router.get("/", async (req, res) => {
       municipioId,
       q,
       estadoProgreso,
+      codigo,
+      limit,
+      all,
     } = req.query;
 
-    // VALIDACIÓN OBLIGATORIA
-    if (!idPlan) {
-      return res.status(400).json({
-        message: "El parámetro idPlan es obligatorio",
-      });
-    }
-
     const metas = await MetasModel.getFiltered({
-      idPlan: Number(idPlan),
+      idPlan: idPlan ? Number(idPlan) : null,
       responsableId: responsableId ? Number(responsableId) : null,
       municipioId: municipioId ? Number(municipioId) : null,
       q: q?.trim() || null,
       estadoProgreso: estadoProgreso || null,
+      codigo: codigo ? String(codigo).trim() : null,
+      limit: limit || (all === "true" || all === "1" ? "all" : null),
     });
 
     res.json(metas);
   } catch (error) {
-    console.error(" Error obteniendo metas filtradas:", error);
-
-    // Error de validación desde el modelo
-    if (error.message?.includes("idPlan")) {
-      return res.status(400).json({ message: error.message });
-    }
+    console.error("Error obteniendo metas filtradas:", error);
 
     res.status(500).json({
       message: "Error obteniendo metas",
+      error: error.message,
     });
   }
 });

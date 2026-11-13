@@ -3,6 +3,7 @@ import express from "express";
 import {
   getAllPlanes,
   getPlanById,
+  getActivePlan,
   createPlan,
   updatePlan,
   deletePlan,
@@ -11,6 +12,18 @@ import {
 import { authenticateToken } from "../middleware/authMiddleware.js"; // 👈 tu middleware de autenticación JWT
 
 const router = express.Router();
+
+// ✅ Obtener el plan activo actualmente
+router.get("/activo", authenticateToken, async (req, res) => {
+  try {
+    const plan = await getActivePlan();
+    if (!plan) return res.status(404).json({ error: "No hay ningún plan de desarrollo activo" });
+    res.json(plan);
+  } catch (err) {
+    console.error("❌ Error obteniendo plan activo:", err);
+    res.status(500).json({ error: "Error obteniendo plan activo" });
+  }
+});
 
 // ✅ Obtener todos los planes
 router.get("/", authenticateToken, async (req, res) => {

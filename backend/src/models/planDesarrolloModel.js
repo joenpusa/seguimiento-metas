@@ -49,6 +49,30 @@ export async function getPlanById(id) {
 }
 
 // =============================================
+// ✅ Obtener el plan de desarrollo activo
+// =============================================
+export async function getActivePlan() {
+  const db = await openDb();
+  try {
+    const [rows] = await db.query(`
+      SELECT 
+        id_plan,
+        nombre_plan,
+        vigencia_inicio,
+        vigencia_fin,
+        es_activo,
+        created_at
+      FROM planes_desarrollo
+      WHERE es_activo = 1
+      LIMIT 1
+    `);
+    return rows[0] || null;
+  } finally {
+    db.release();
+  }
+}
+
+// =============================================
 // ✅ Crear un nuevo plan (AUTOINCREMENT)
 // =============================================
 export async function createPlan({ nombrePlan, vigenciaInicio, vigenciaFin }) {
